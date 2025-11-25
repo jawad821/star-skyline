@@ -17,10 +17,6 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', (req, res) => {
-  res.json({ status: "Backend running" });
-});
-
 app.get('/db-test', async (req, res) => {
   try {
     const result = await query('SELECT NOW()');
@@ -37,8 +33,13 @@ app.use('/api/vendors', vendorRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/push', pushRoutes);
 
+// Serve dashboard
 app.get('/dashboard', (req, res) => {
-  res.redirect('/dashboard/login.html');
+  res.sendFile(path.join(__dirname, 'public', 'dashboard', 'index.html'));
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dashboard', 'index.html'));
 });
 
 app.use(errorHandler);
