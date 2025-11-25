@@ -1,0 +1,64 @@
+Refactor and finish the entire backend into a production-ready, two-workspace architecture. Workspace: bareerah_backend_v2.
+
+TASKS (do all in one run):
+1) Create folder structure exactly:
+   /config   -> db.js, env.js
+   /controllers -> bookingController.js, vehicleController.js, vendorController.js, reportController.js, authController.js
+   /models -> Booking.js, Vehicle.js, Vendor.js, Driver.js, Payout.js, User.js
+   /routes -> bookingRoutes.js, vehicleRoutes.js, vendorRoutes.js, authRoutes.js, reportRoutes.js
+   /services -> bookingService.js, vehicleService.js, vendorService.js, reportService.js
+   /middleware -> errorHandler.js, asyncHandler.js, authMiddleware.js
+   /utils -> fareCalculator.js, logger.js, csvExport.js, excelExport.js
+   index.js (app entry)
+
+2) MOVE & PRESERVE:
+   - Move existing booking endpoints (calculate-fare, available-vehicles, create-booking, assign-vehicle) into controllers/services/models.
+   - Preserve response shapes exactly (no breaking changes).
+   - Ensure DB safe-mode: open → query → close, single retry after 200ms if pool exhausted.
+
+3) AUTH:
+   - Add admin auth (POST /api/auth/login) using JWT (JWT_SECRET from env).
+   - authMiddleware to guard admin routes (dashboard, reports, vendor payout actions).
+   - Password hashing with bcrypt for admin user (create env ADMIN_USER & ADMIN_PASS seeded).
+
+4) REPORTS:
+   - Implement /api/reports/summary?from=&to= returning bookings count, revenue, top-vendors, top-vehicles.
+   - Add /api/reports/export endpoints to stream CSV/Excel for date range.
+
+5) REALTIME PUSH:
+   - Add POST /api/push/bareerah-event which accepts a booking JSON (from Bareerah) and inserts booking into DB, triggers vendor_payout calculation and returns success.
+   - Ensure idempotency via booking external_id or phone+created_at signature.
+
+6) ADMIN DASHBOARD UI (static HTML/CSS/JS) generation:
+   - Create /public/dashboard/ with files:
+     - login.html
+     - index.html (dashboard)
+     - js/api.js (central API wrapper with base URL configurable)
+     - js/dashboard.js, js/bookings.js, js/vendors.js, js/vehicles.js
+     - css/main.css (macOS glassmorphism style)
+   - Dashboard must include pages & features (as previously confirmed):
+     Dashboard Home, Bookings (table+filters+export), Vehicles, Drivers, Vendors, Reports.
+   - Booking Create Form inside dashboard that calls /api/bookings/calculate-fare then /create-booking.
+   - Realtime update: dashboard polls /api/reports/summary every 10s and listens to POST /api/push/bareerah-event results (simple SSE or polling acceptable).
+
+7) MIGRATIONS & TEST:
+   - Ensure no DB schema changes.
+   - Run server, then automatically run tests:
+     A) GET /api/bookings/available-vehicles?type=sedan
+     B) POST /api/bookings/calculate-fare (sample point & hourly)
+     C) POST /api/bookings/create-booking (sample body)
+     D) POST /api/bookings/assign-vehicle (sample)
+     E) POST /api/push/bareerah-event (simulate)
+   - Print test outputs and final folder tree.
+
+8) DEVOPS NOTES:
+   - Do not enable autoscale or publish during this run.
+   - Place env examples in /config/env.js.example with keys: DATABASE_URL, JWT_SECRET, ADMIN_USER, ADMIN_PASS, API_BASE_URL.
+   - Keep run command as node index.js
+
+9) FINAL OUTPUT (on completion):
+   - Show console test outputs
+   - Show list of created files (tree)
+   - Reply: "Backend refactor completed — test outputs attached"
+
+Proceed now and run all tasks atomically.
