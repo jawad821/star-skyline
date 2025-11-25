@@ -1,0 +1,151 @@
+**"Please generate a fully working Admin Dashboard UI using ONLY HTML, CSS, and vanilla JavaScript (NO React, NO frameworks).
+The UI must be designed in a CLEAN, MINIMAL, APPLE/MACOS style (glassmorphism, soft shadows, rounded UI, subtle blur, light/grey palette).
+
+This UI will connect to my existing Node.js backend at the BASE URL:
+https://<MY-BACKEND-URL>.repl.co
+
+Do NOT connect to the Python limo_ai_demo project.
+
+===========================================
+🎨 UI / DESIGN REQUIREMENTS (MAC STYLE)
+
+• Apple/macOS design language
+• Rounded corners everywhere (8–14px)
+• Soft shadows, light gradients
+• Glassmorphism panels (background: rgba(255,255,255,0.4), backdrop-filter: blur(12px))
+• Thin San Francisco / Inter / Helvetica fonts
+• Light grey sidebar (mac settings.app look)
+• White floating cards with subtle shadow
+• Smooth hover animations (transform: translateY(-2px);)
+• Header bar identical to macOS titlebar (flat, clean, 48px height)
+• Light + Dark mode toggle
+
+===========================================
+📂 FILE STRUCTURE (REQUIRED)
+
+/public/
+index.html
+bookings.html
+drivers.html
+cars.html
+settings.html
+notifications.html
+styles.css
+app.js (page-specific UI logic)
+api.js (all API fetch() calls centralised)
+ui.js (animations, modals, theme, helpers)
+
+===========================================
+🧭 SIDEBAR MENU (Fixed Left)
+
+• Dashboard
+• Bookings
+• Drivers
+• Cars
+• Settings
+• Notifications
+
+Sidebar collapsible on mobile.
+
+===========================================
+📄 PAGE REQUIREMENTS
+
+1️⃣ Dashboard (Home)
+• Displays:
+- Total bookings (GET /api/dashboard/stats)
+- Completed trips
+- Pending approvals
+- Revenue estimate
+• Cards in a 4-column layout
+• MAC-style transparent cards
+
+2️⃣ Bookings Page
+• GET /api/bookings
+• Table view:
+- Name
+- Phone
+- Pickup
+- Dropoff
+- Time
+- Status (colored badge)
+• Click row → open MAC-style modal:
+- Booking details
+- Approve (POST /api/bookings/:id/approve)
+- Reject (POST /api/bookings/:id/reject)
+
+3️⃣ Drivers Page
+• GET /api/drivers
+• Form: name, phone, availability
+• POST /api/drivers
+• Table of drivers with status pills (online/offline)
+
+4️⃣ Cars Page
+• GET /api/cars
+• Add Car Form: name, type, capacity, per-km price
+• POST /api/cars
+• Car list grid view (MAC-style cards)
+
+5️⃣ Settings Page
+• GET /api/settings
+• PUT /api/settings
+• Editable fields:
+- baseFare
+- perKmRate
+- waitingCharge
+• Save button with success toast
+
+6️⃣ Notifications Page
+• GET /api/push/bareerah-event
+• Show event stream in MAC-style list
+
+===========================================
+🎯 JAVASCRIPT REQUIREMENTS
+api.js
+
+• Central fetch wrapper
+• GET, POST, PUT helpers
+• Auto attach JSON headers
+• Error logging
+
+app.js
+
+• Page initialization
+• Table rendering
+• Form submission
+• Modal open/close logic
+• Sidebar active state
+• Light/dark toggle
+
+ui.js
+
+• MAC-style animations
+• Modal glass effects
+• Smooth slide transitions
+
+===========================================
+⚠️ IMPORTANT RULES
+
+• Use ONLY HTML + CSS + JS
+• NO React, NO Vue, NO Bootstrap
+• NO summaries — output full code for all files
+• Dashboard must run by opening index.html or via Express static hosting
+• Use clean, production-ready code
+• Ensure all pages call the Node backend endpoints correctly
+• Replace <MY-BACKEND-URL> automatically in the code
+• DO NOT modify backend routes
+
+===========================================
+
+Return the COMPLETE UI codebase exactly as files in the /public folder."**
+
+💯 This is perfect.
+
+✔ MAC-like design
+✔ All features included
+✔ Exact backend integration
+✔ Full HTML/CSS/JS
+✔ Node backend only
+✔ Complete file structure
+✔ Everything well-specified
+
+Iss prompt se Replit AI premium-level admin dashboard generate karega.

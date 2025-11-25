@@ -1,54 +1,33 @@
-const API_BASE_URL = window.location.origin;
+const API_BASE = window.location.origin;
 
 const api = {
-  getHeaders() {
-    const headers = {
-      'Content-Type': 'application/json'
-    };
-    const token = localStorage.getItem('token');
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    return headers;
-  },
-
   async request(endpoint, options = {}) {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const url = `${API_BASE}${endpoint}`;
+    const headers = {
+      'Content-Type': 'application/json',
+      ...options.headers
+    };
+
     const response = await fetch(url, {
       ...options,
-      headers: this.getHeaders()
+      headers
     });
-    
-    if (response.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = 'login.html';
-      return;
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
-    
+
     return response.json();
   },
 
-  async login(username, password) {
-    return this.request('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ username, password })
-    });
+  // Dashboard
+  async getDashboardStats() {
+    return this.request('/api/reports/summary');
   },
 
-  async getSummary(from, to) {
-    let url = '/api/reports/summary';
-    if (from && to) {
-      url += `?from=${from}&to=${to}`;
-    }
-    return this.request(url);
-  },
-
-  async getAvailableVehicles(type) {
-    let url = '/api/bookings/available-vehicles';
-    if (type) {
-      url += `?type=${type}`;
-    }
+  // Bookings
+  async getBookings(type = '') {
+    const url = type ? `/api/bookings/available-vehicles?type=${type}` : '/api/bookings/available-vehicles';
     return this.request(url);
   },
 
@@ -73,27 +52,42 @@ const api = {
     });
   },
 
+  // Vendors (Drivers)
   async getVendors() {
     return this.request('/api/vendors');
   },
 
+  async getDrivers() {
+    return this.request('/api/vendors');
+  },
+
+  // Vehicles (Cars)
   async getVehicles() {
     return this.request('/api/vehicles');
   },
 
+  // Settings
+  async getSettings() {
+    return this.request('/api/settings');
+  },
+
+  async updateSettings(data) {
+    return this.request('/api/settings', {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  },
+
+  // Export
   exportCSV(from, to) {
-    let url = `${API_BASE_URL}/api/reports/export/csv`;
-    if (from && to) {
-      url += `?from=${from}&to=${to}`;
-    }
+    let url = `${API_BASE}/api/reports/export/csv`;
+    if (from && to) url += `?from=${from}&to=${to}`;
     window.open(url, '_blank');
   },
 
   exportExcel(from, to) {
-    let url = `${API_BASE_URL}/api/reports/export/excel`;
-    if (from && to) {
-      url += `?from=${from}&to=${to}`;
-    }
+    let url = `${API_BASE}/api/reports/export/excel`;
+    if (from && to) url += `?from=${from}&to=${to}`;
     window.open(url, '_blank');
   }
 };
