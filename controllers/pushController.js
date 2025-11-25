@@ -23,20 +23,22 @@ const pushController = {
         });
       }
       
-      const signature = external_id || `${customer_phone}-${new Date().toISOString().slice(0, 10)}`;
-      
-      const existingBooking = await query(
-        'SELECT id FROM bookings WHERE customer_phone = $1 AND DATE(created_at) = CURRENT_DATE LIMIT 1',
-        [customer_phone]
-      );
-      
-      if (existingBooking.rows.length > 0 && external_id) {
-        return res.json({
-          success: true,
-          message: 'Booking already exists',
-          booking_id: existingBooking.rows[0].id,
-          idempotent: true
-        });
+      if (external_id) {
+        const existingBooking = await query(
+          'SELECT id, fare_aed, status FROM bookings WHERE external_id = $1',
+          [external_id]
+        );
+        
+        if (existingBooking.rows.length > 0) {
+          return res.json({
+            success: true,
+            message: 'Booking already exists',
+            booking_id: existingBooking.rows[0].id,
+            fare: parseFloat(existingBooking.rows[0].fare_aed),
+            status: existingBooking.rows[0].status,
+            idempotent: true
+          });
+        }
       }
       
       const vType = vehicle_type || 'sedan';
@@ -48,11 +50,12 @@ const pushController = {
       
       const bookingResult = await query(`
         INSERT INTO bookings (
-          customer_name, customer_phone, pickup_location, dropoff_location,
+          external_id, customer_name, customer_phone, pickup_location, dropoff_location,
           distance_km, fare_aed, vehicle_type, status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending')
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending')
         RETURNING id
       `, [
+        external_id || null,
         customer_name,
         customer_phone,
         pickup_location || null,

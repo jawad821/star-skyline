@@ -1,6 +1,6 @@
 # Overview
 
-This is a Node.js backend application for a taxi/ride booking service. The system provides fare calculation capabilities for different booking types (point-to-point and hourly rentals) across various vehicle categories (sedan, SUV, luxury). The application exposes RESTful APIs for managing bookings and calculating fares based on distance, time, and vehicle type.
+This is a Node.js backend application for a taxi/ride booking service. The system provides fare calculation capabilities for different booking types (point-to-point and hourly rentals) across various vehicle categories (sedan, SUV, luxury). The application exposes RESTful APIs for managing bookings and calculating fares based on distance, time, and vehicle type. It includes JWT authentication, admin dashboard, and reporting capabilities.
 
 # User Preferences
 
@@ -17,14 +17,20 @@ The application follows a clean Model-View-Controller (MVC) pattern with the fol
 /models          - Data access layer (SQL queries)
 /routes          - Route definitions
 /services        - Business logic layer
-/middleware      - Error handling and utilities
-/utils           - Helper functions (fare calculator, logger)
+/middleware      - Error handling, auth, and utilities
+/utils           - Helper functions (fare calculator, logger, exports)
+/public/dashboard - Admin dashboard UI
 ```
 
 ## Backend Framework
 - **Technology**: Express.js (v5.1.0)
 - **Rationale**: Lightweight and flexible web framework for building RESTful APIs
 - **Server Configuration**: Runs on port 3000, bound to 0.0.0.0 for container compatibility
+
+## Authentication
+- **JWT-based authentication** for protected routes
+- **Environment variables** for secure credential storage (JWT_SECRET, ADMIN_USER, ADMIN_PASS)
+- **Auth middleware** protects sensitive endpoints (reports, exports)
 
 ## Data Storage
 - **Database**: PostgreSQL
@@ -40,10 +46,15 @@ The application follows a clean Model-View-Controller (MVC) pattern with the fol
 - **vendors**: Limo service providers with commission rates
 - **drivers**: Drivers assigned to vendors
 - **vehicles**: Fleet with types (sedan/suv/luxury) and status tracking
-- **bookings**: Customer ride bookings with fare and assignment info
+- **bookings**: Customer ride bookings with fare, assignment info, and external_id for idempotency
 - **vendor_payouts**: Payment tracking for completed rides
 
 ## API Endpoints
+
+### Authentication Routes (/api/auth)
+- `POST /login` - Admin login, returns JWT token
+- `GET /verify` - Verify JWT token (protected)
+
 ### Booking Routes (/api/bookings)
 - `POST /calculate-fare` - Calculate fare without creating booking
 - `GET /available-vehicles` - List available vehicles by type
@@ -60,9 +71,27 @@ The application follows a clean Model-View-Controller (MVC) pattern with the fol
 - `POST /` - Create new vendor
 - `GET /:id/drivers` - Get vendor's drivers
 
+### Report Routes (/api/reports) - Protected
+- `GET /summary` - Dashboard summary with stats (requires JWT)
+- `GET /export/csv` - Export bookings to CSV (requires JWT)
+- `GET /export/excel` - Export bookings to Excel (requires JWT)
+
+### Push Routes (/api/push)
+- `POST /bareerah-event` - External event webhook with idempotency via external_id
+
 ### Utility Routes
 - `GET /` - Health check
 - `GET /db-test` - Database connectivity test
+- `GET /dashboard` - Redirect to admin dashboard
+
+## Admin Dashboard
+- **Location**: public/dashboard/
+- **Features**: 
+  - Login with JWT authentication
+  - Dashboard with booking/revenue stats
+  - Booking management with fare calculator
+  - Vehicle and vendor management
+  - CSV/Excel export
 
 ## Business Logic - Fare Calculation
 - **Booking Types**:
@@ -78,12 +107,12 @@ The application follows a clean Model-View-Controller (MVC) pattern with the fol
 ## Code Organization
 - **Entry Point**: index.js - Server initialization, route mounting, middleware setup
 - **Config Layer**: config/ - Database (db.js) and environment (env.js) configuration
-- **Model Layer**: models/ - SQL query functions (Booking.js, Vehicle.js, Vendor.js, Driver.js, Payout.js)
-- **Service Layer**: services/ - Business logic and validation (bookingService.js, vehicleService.js, vendorService.js)
+- **Model Layer**: models/ - SQL query functions (Booking.js, Vehicle.js, Vendor.js, Driver.js, Payout.js, User.js)
+- **Service Layer**: services/ - Business logic and validation
 - **Controller Layer**: controllers/ - HTTP request/response handling
 - **Route Layer**: routes/ - Express route definitions
-- **Middleware**: middleware/ - Error handler and async wrapper
-- **Utilities**: utils/ - Fare calculator and logger
+- **Middleware**: middleware/ - Error handler, async wrapper, auth middleware
+- **Utilities**: utils/ - Fare calculator, logger, CSV/Excel export
 
 ## Error Handling
 - Centralized error handler middleware (middleware/errorHandler.js)
@@ -95,6 +124,8 @@ The application follows a clean Model-View-Controller (MVC) pattern with the fol
 ## Core Dependencies
 - **express** (v5.1.0): Web application framework
 - **pg** (v8.16.3): PostgreSQL client for Node.js
+- **jsonwebtoken**: JWT authentication
+- **bcryptjs**: Password hashing
 - **@types/node** (v22.13.11): TypeScript type definitions for Node.js
 
 ## Database
@@ -106,3 +137,7 @@ The application follows a clean Model-View-Controller (MVC) pattern with the fol
 - **DATABASE_URL**: PostgreSQL connection string (required)
 - **PORT**: Server port (default: 3000)
 - **NODE_ENV**: Environment mode (development/production)
+- **JWT_SECRET**: Secret key for JWT signing (required)
+- **ADMIN_USER**: Admin username (required)
+- **ADMIN_PASS**: Admin password (required)
+- **API_BASE_URL**: Base URL for API (default: http://localhost:3000)
