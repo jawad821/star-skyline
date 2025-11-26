@@ -634,3 +634,67 @@ function closeAllModals() {
 function exportBookings(format) { 
   alert(`Export ${format} coming soon`); 
 }
+
+// Add Vehicle Form Handler
+async function setupAddVehicleForm() {
+  const form = document.getElementById('addVehicleForm');
+  if (!form) return;
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const vehicleData = {
+      plate_number: document.getElementById('addVehiclePlate').value.trim(),
+      model: document.getElementById('addVehicleModel').value.trim(),
+      type: document.getElementById('addVehicleType').value,
+      status: document.getElementById('addVehicleStatus').value,
+      max_passengers: parseInt(document.getElementById('addVehiclePassengers').value),
+      max_luggage: parseInt(document.getElementById('addVehicleLuggage').value),
+      per_km_price: parseFloat(document.getElementById('addVehiclePerKm').value),
+      hourly_price: parseFloat(document.getElementById('addVehicleHourly').value),
+      vendor_id: document.getElementById('addVehicleVendor').value.trim() || null
+    };
+
+    try {
+      const response = await fetchWithTimeout(`${API_BASE}/vehicles`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(vehicleData)
+      }, 5000);
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        alert(`Error: ${result.error || 'Failed to add vehicle'}`);
+        return;
+      }
+
+      alert(`✅ Vehicle "${result.vehicle.model}" (${result.vehicle.plate_number}) added successfully!`);
+      form.reset();
+      
+      // Reload cars list
+      navigateToPage('cars-all');
+      loadCars('all');
+    } catch (error) {
+      alert(`Error adding vehicle: ${error.message}`);
+      console.error('Add vehicle error:', error);
+    }
+  });
+}
+
+// Call form setup in init
+const originalInit = window.init || function() {};
+window.init = function() {
+  originalInit();
+  setupAddVehicleForm();
+};
+
+// Also setup when DOM is ready
+if (document.readyState !== 'loading') {
+  setupAddVehicleForm();
+} else {
+  document.addEventListener('DOMContentLoaded', setupAddVehicleForm);
+}

@@ -30,6 +30,19 @@ const vehicleController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  async createVehicle(req, res, next) {
+    try {
+      const vehicle = await vehicleService.createVehicle(req.body);
+      res.status(201).json({
+        success: true,
+        message: 'Vehicle created successfully',
+        vehicle
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 };
 
