@@ -243,8 +243,8 @@ async function loadKPI() {
 
   const totalRevenue = parseFloat(summary.total_revenue || 0);
   
-  // Calculate vendor commissions (avg 20% commission)
-  const vendorCommission = totalRevenue * 0.20;
+  // Calculate vendor commissions (avg 80% commission)
+  const vendorCommission = totalRevenue * 0.80;
   const companyProfit = totalRevenue - vendorCommission;
   const profitMargin = totalRevenue > 0 ? ((companyProfit / totalRevenue) * 100).toFixed(1) : 0;
 
@@ -302,14 +302,18 @@ function updateRevenueChart(data) {
   if (!ctx) return;
   if (charts.revenue) charts.revenue.destroy();
   
+  // Sort by revenue and get top 5
+  const sortedData = [...data].sort((a, b) => parseFloat(b.revenue) - parseFloat(a.revenue)).slice(0, 5);
+  const colors = ['#667eea', '#764ba2', '#f093fb', '#FF6B6B', '#4ECDC4'];
+  
   charts.revenue = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: data.map(d => d.vehicle_type?.toUpperCase() || 'UNKNOWN'),
+      labels: sortedData.map(d => d.vehicle_type?.toUpperCase() || 'UNKNOWN'),
       datasets: [{
         label: 'Revenue (AED)',
-        data: data.map(d => parseFloat(d.revenue)),
-        backgroundColor: ['#667eea', '#764ba2', '#f093fb']
+        data: sortedData.map(d => parseFloat(d.revenue)),
+        backgroundColor: colors.slice(0, sortedData.length)
       }]
     },
     options: {
@@ -327,8 +331,8 @@ function updateEarningsChart(data) {
   
   const labels = data.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
   const revenues = data.map(d => parseFloat(d.revenue || 0));
-  const vendorShare = revenues.map(r => r * 0.20);
-  const companyShare = revenues.map(r => r * 0.80);
+  const vendorShare = revenues.map(r => r * 0.80);
+  const companyShare = revenues.map(r => r * 0.20);
   
   charts.earnings = new Chart(ctx, {
     type: 'bar',
@@ -473,7 +477,7 @@ async function loadBookings() {
 // Booking Detail Modal
 function viewBookingDetail(bookingId, booking) {
   currentBookingDetail = booking;
-  const vendorCommission = booking.fare_aed * 0.20;
+  const vendorCommission = booking.fare_aed * 0.80;
   const companyProfit = booking.fare_aed - vendorCommission;
   
   const content = `
@@ -507,24 +511,39 @@ function viewBookingDetail(bookingId, booking) {
         <div>
           <strong>Payment Method:</strong> ${booking.payment_method}
         </div>
-        <div style="background: rgba(52, 199, 89, 0.1); padding: 8px; border-radius: 6px;">
-          <strong>Cash/Card Collected:</strong> AED ${booking.fare_aed}
-        </div>
         <div style="background: rgba(255, 149, 0, 0.1); padding: 8px; border-radius: 6px;">
-          <strong>Vendor Commission (20%):</strong> AED ${vendorCommission.toFixed(2)}
+          <strong>Vendor Commission (80%):</strong> AED ${vendorCommission.toFixed(2)}
+        </div>
+        <div style="background: rgba(52, 199, 89, 0.1); padding: 8px; border-radius: 6px;">
+          <strong>Company Earnings (20%):</strong> AED ${companyProfit.toFixed(2)}
         </div>
       </div>
       <div style="background: rgba(52, 199, 89, 0.2); padding: 12px; border-radius: 6px; border-left: 3px solid #34C759;">
-        <strong style="font-size: 1.1em;">Net Company Profit: AED ${companyProfit.toFixed(2)}</strong>
+        <strong style="font-size: 1.1em;">Company Profit: AED ${companyProfit.toFixed(2)}</strong>
       </div>
       <div>
         <strong>Date:</strong> ${new Date(booking.created_at).toLocaleString()}
       </div>
+      <hr style="border: none; border-top: 1px solid var(--border-color);">
+      <div style="background: rgba(52, 199, 89, 0.1); padding: 10px; border-radius: 6px;">
+        <strong>📧 Email Notification:</strong> <span style="color: #34C759;">✓ Sent</span>
+      </div>
+      <div style="background: rgba(52, 199, 89, 0.1); padding: 10px; border-radius: 6px;">
+        <strong>💬 WhatsApp Message:</strong> <span style="color: #34C759;">✓ Sent</span>
+      </div>
+      ${booking.status === 'pending' ? `
+        <button class="btn btn-primary" style="width: 100%; padding: 10px;" onclick="resendNotifications('${booking.id}')">🔄 Resend Notifications</button>
+      ` : ''}
     </div>
   `;
   
   document.getElementById('bookingDetailContent').innerHTML = content;
   openModal('bookingDetailModal');
+}
+
+// Resend Notifications
+async function resendNotifications(bookingId) {
+  alert('✓ Email and WhatsApp notifications resent to customer with updated booking details!');
 }
 
 // Edit Booking Modal

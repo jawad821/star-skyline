@@ -686,7 +686,7 @@ input:focus, select:focus {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: var(--card-bg);
+  background: var(--light-bg);
   border-radius: 12px;
   z-index: 1001;
   min-width: 500px;
@@ -697,6 +697,7 @@ input:focus, select:focus {
   flex-direction: column;
   border: 1px solid var(--border-color);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
 }
 
 .modal-overlay {
@@ -716,6 +717,7 @@ input:focus, select:focus {
   align-items: center;
   padding: 20px;
   border-bottom: 1px solid var(--border-color);
+  background: var(--light-bg);
 }
 
 .modal-header h3 {
@@ -734,6 +736,8 @@ input:focus, select:focus {
 .modal-body {
   padding: 20px;
   flex: 1;
+  background: var(--light-bg);
+  color: var(--text-primary);
 }
 
 .modal-body .form-group {
