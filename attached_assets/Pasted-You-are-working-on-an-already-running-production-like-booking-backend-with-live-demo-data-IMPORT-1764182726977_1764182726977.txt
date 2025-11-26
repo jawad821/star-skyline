@@ -1,0 +1,177 @@
+You are working on an already running production-like booking backend with live demo data.
+⚠️ IMPORTANT: DO NOT delete, truncate, reset, or overwrite any existing tables or demo records.
+Only apply NON-DESTRUCTIVE schema updates (ADD columns if missing, ADD new tables if required).
+
+Your task is to EXTEND the current system safely.
+
+✅ 1. booking_type FIELD (SAFE ADD ONLY)
+✅ Add new column ONLY IF IT DOES NOT EXIST:
+booking_type ENUM(
+  'point_to_point',
+  'airport_transfer',
+  'city_tour',
+  'hourly_rental'
+)
+
+
+Do NOT drop any table
+
+Do NOT reset bookings
+
+Apply via ALTER TABLE ONLY
+
+✅ 2. VEHICLE CATEGORY SYSTEM (SAFE ADD)
+✅ If vehicle categories table already exists:
+
+Compare schema
+
+ONLY ADD missing columns:
+
+passenger_capacity
+luggage_capacity
+hourly_price
+per_km_price
+active
+
+✅ If table does NOT exist:
+
+Create new table without touching old vehicle data.
+
+✅ 3. CLIENT VEHICLE SEEDING (SAFE MERGE)
+
+Insert ONLY if not already present:
+
+Name	Category	Passengers	Luggage
+GMC	suv	6	6
+BMW 7 Series	luxury	4	3
+Lexus	luxury	4	3
+Tesla	luxury	4	2
+BYD Han	luxury	4	3
+BYD Song	suv	5	5
+Mercedes V Class	van	7	7
+
+⚠️ If record exists → update capacities only (DO NOT delete).
+
+✅ 4. AUTO VEHICLE SELECTION (NON-BREAKING)
+
+DO NOT change existing selection logic.
+Only ADD a secondary validator:
+
+if passengers > capacity OR luggage > capacity:
+  reject that vehicle
+
+
+Then choose cheapest eligible.
+
+✅ 5. FARE ENGINE (SAFE PATCH)
+
+Apply ONLY to:
+
+/api/bookings/calculate-fare
+
+/api/bookings/create-booking
+
+If missing parameters:
+
+Return 400 error
+
+DO NOT apply fallback flat AED 150
+
+Add surcharges safely:
+
+airport_transfer → +10%
+
+city_tour/hourly_rental → hourly_price × hours
+
+✅ 6. PHONE & EMAIL SAFE HANDLING
+
+Do NOT overwrite existing phone/email logic.
+ONLY EXTEND payload to include:
+
+caller_number
+confirmed_contact_number
+
+
+Email:
+
+Validate with regex
+
+If invalid → return validation error (DO NOT save junk)
+
+✅ 7. DEMO DATA PROTECTION RULE
+
+🚫 You are strictly NOT allowed to:
+
+DELETE demo bookings
+
+DELETE vehicles
+
+DELETE users
+
+TRUNCATE any table
+
+✅ You ARE allowed to:
+
+ALTER tables
+
+ADD columns
+
+ADD indexes
+
+ADD validation logic
+
+✅ 8. API DOCUMENTATION REPORT (MANDATORY OUTPUT)
+
+After making changes, YOU MUST PRINT BACK:
+
+✅ All available API routes (method + path)
+
+✅ Payload format for:
+
+calculate-fare
+
+create-booking
+
+✅ Vehicle schema (final)
+
+✅ booking_type validation proof
+
+✅ Sample working request & response
+
+✅ 9. SYSTEM VERIFICATION OUTPUT
+
+After restart, console must show:
+
+✅ Existing data preserved
+✅ booking_type column verified
+✅ Vehicle capacities enforced
+✅ Fare engine online
+✅ API backward compatible
+
+✅ 10. ABSOLUTE RULE
+
+DO NOT modify:
+
+Authentication
+
+Dashboard frontend
+
+Analytics reports
+
+Existing customer records
+
+ONLY extend safely.
+
+✅ FINAL DELIVERABLE FROM AGENT:
+
+✅ List of updated tables
+
+✅ List of new columns added
+
+✅ Confirmed non-destructive migration
+
+✅ Updated API contract
+
+✅ One successful fare calculation example
+
+✅ One successful booking example
