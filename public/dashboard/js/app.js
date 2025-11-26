@@ -1005,10 +1005,23 @@ function openAddBookingModal() {
   document.getElementById('bookingDistance').value = '';
   document.getElementById('bookingVehicleType').value = '';
   document.getElementById('bookingType').value = '';
+  document.getElementById('bookingCarModel').value = '';
+  document.getElementById('bookingDriverId').value = '';
   document.getElementById('bookingPayment').value = 'cash';
   document.getElementById('bookingStatus').value = 'pending';
   document.getElementById('bookingNotes').value = '';
   document.getElementById('bookingCalculatedFare').textContent = '0.00';
+  
+  // Reset coordinates
+  pickupCoords = null;
+  dropoffCoords = null;
+  
+  // Load drivers and initialize maps
+  loadDriversForBooking();
+  setTimeout(() => {
+    initGoogleMapsAutocomplete();
+  }, 100);
+  
   openModal('addBookingModal');
 }
 
@@ -1085,71 +1098,100 @@ async function createManualBooking() {
       closeModal('addBookingModal');
       loadBookings();
     } else {
-      alert('❌ Error: ' + result.error);
-    }
-  } catch (error) {
-    alert('✓ Booking created! (Email will be sent)');
-    closeModal('addBookingModal');
-    loadBookings();
-  }
-}
 
-// ===== GOOGLE MAPS INTEGRATION =====
+// ===== COMPLETE GOOGLE MAPS INTEGRATION =====
 let pickupAutocomplete, dropoffAutocomplete;
 let pickupCoords = null, dropoffCoords = null;
 
 function initGoogleMapsAutocomplete() {
+  if (!window.google || !window.google.maps) {
+    console.log('⏳ Google Maps library not loaded yet');
+    return;
+  }
+
   const pickupInput = document.getElementById('bookingPickup');
   const dropoffInput = document.getElementById('bookingDropoff');
   
-  if (!pickupInput || !dropoffInput || !window.google) return;
+  if (!pickupInput || !dropoffInput) {
+    console.log('❌ Booking inputs not found');
+    return;
+  }
 
-  pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, {
-    fields: ['formatted_address', 'geometry', 'place_id'],
-    componentRestrictions: { country: 'ae' }
-  });
+  try {
+    pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, {
+      fields: ['formatted_address', 'geometry'],
+      componentRestrictions: { country: 'ae' }
+    });
 
-  dropoffAutocomplete = new google.maps.places.Autocomplete(dropoffInput, {
-    fields: ['formatted_address', 'geometry', 'place_id'],
-    componentRestrictions: { country: 'ae' }
-  });
+    dropoffAutocomplete = new google.maps.places.Autocomplete(dropoffInput, {
+      fields: ['formatted_address', 'geometry'],
+      componentRestrictions: { country: 'ae' }
+    });
 
-  pickupAutocomplete.addListener('place_changed', () => {
-    const place = pickupAutocomplete.getPlace();
-    if (place.geometry) {
-      pickupCoords = place.geometry.location;
-      calculateDistance();
-    }
-  });
+    pickupAutocomplete.addListener('place_changed', () => {
+      const place = pickupAutocomplete.getPlace();
+      if (place.geometry && place.geometry.location) {
+        pickupCoords = place.geometry.location;
+        console.log('✅ Pickup location set');
+        calculateDistance();
+      }
+    });
 
-  dropoffAutocomplete.addListener('place_changed', () => {
-    const place = dropoffAutocomplete.getPlace();
-    if (place.geometry) {
-      dropoffCoords = place.geometry.location;
-      calculateDistance();
-    }
-  });
+    dropoffAutocomplete.addListener('place_changed', () => {
+      const place = dropoffAutocomplete.getPlace();
+      if (place.geometry && place.geometry.location) {
+        dropoffCoords = place.geometry.location;
+        console.log('✅ Dropoff location set');
+        calculateDistance();
+      }
+    });
+    
+    console.log('✅ Google Maps autocomplete initialized');
+  } catch (error) {
+    console.error('❌ Google Maps error:', error);
+  }
 }
 
 function calculateDistance() {
-  if (!pickupCoords || !dropoffCoords || !window.google) return;
+  if (!pickupCoords || !dropoffCoords || !window.google) {
+    console.log('⏳ Waiting for coordinates or Google Maps...');
+    return;
+  }
 
-  const service = new google.maps.DistanceMatrixService();
-  service.getDistanceMatrix(
-    {
-      origins: [pickupCoords],
-      destinations: [dropoffCoords],
-      travelMode: google.maps.TravelMode.DRIVING,
-      unitSystem: google.maps.UnitSystem.METRIC
-    },
-    (response, status) => {
-      if (status === google.maps.DistanceMatrixStatus.OK && response.rows[0].elements[0].distance) {
-        const distanceKm = Math.round(response.rows[0].elements[0].distance.value / 1000 * 10) / 10;
-        document.getElementById('bookingDistance').value = distanceKm;
-        updateBookingFare();
+  try {
+    const service = new google.maps.DistanceMatrixService();
+    service.getDistanceMatrix(
+      {
+        origins: [pickupCoords],
+        destinations: [dropoffCoords],
+        travelMode: google.maps.TravelMode.DRIVING,
+        unitSystem: google.maps.UnitSystem.METRIC
+      },
+      (response, status) => {
+        if (status === google.maps.DistanceMatrixStatus.OK && response.rows[0].elements[0].status === 'OK') {
+          const distanceMeters = response.rows[0].elements[0].distance.value;
+          const distanceKm = Math.round(distanceMeters / 1000 * 10) / 10;
+          document.getElementById('bookingDistance').value = distanceKm;
+          console.log('✅ Distance calculated:', distanceKm, 'km');
+          updateBookingFare();
+        } else {
+          console.log('⚠️ Distance calculation status:', status);
+        }
       }
-    }
-  );
+    );
+  } catch (error) {
+    console.error('❌ Distance calculation error:', error);
+  }
+}
+
+function updateBookingFare() {
+  const distance = parseFloat(document.getElementById('bookingDistance').value) || 0;
+  const vehicleType = document.getElementById('bookingVehicleType').value;
+  const bookingType = document.getElementById('bookingType').value;
+  
+  if (!distance || !vehicleType || !bookingType) return;
+  
+  calculateBookingFare();
 }
 
 async function loadDriversForBooking() {
@@ -1158,30 +1200,58 @@ async function loadDriversForBooking() {
     const result = await response.json();
     if (result.success && result.data) {
       const driverSelect = document.getElementById('bookingDriverSelect');
+      if (!driverSelect) {
+        console.log('❌ Driver select element not found');
+        return;
+      }
+      
       driverSelect.innerHTML = '<option value="">Select Driver</option>';
       result.data.forEach(driver => {
         const option = document.createElement('option');
         option.value = driver.id;
-        option.textContent = `${driver.name} (${driver.license_number})`;
+        option.textContent = `${driver.name} (${driver.license_number || 'No License'})`;
         driverSelect.appendChild(option);
       });
+      console.log('✅ Loaded', result.data.length, 'drivers');
     }
   } catch (error) {
-    console.error('Failed to load drivers:', error);
+    console.error('❌ Failed to load drivers:', error);
   }
 }
 
-// Toggle driver selection dropdown
+// Wait for Google Maps library to load
+let googleMapsReady = false;
+window.addEventListener('load', () => {
+  if (window.google && window.google.maps) {
+    googleMapsReady = true;
+    console.log('✅ Google Maps library loaded');
+    initGoogleMapsAutocomplete();
+  }
+});
+
+// Also try after a delay for slower connections
+setTimeout(() => {
+  if (window.google && window.google.maps && !googleMapsReady) {
+    googleMapsReady = true;
+    console.log('✅ Google Maps loaded (delayed)');
+    initGoogleMapsAutocomplete();
+  }
+}, 2000);
+
+// Setup driver dropdown toggle
 document.addEventListener('DOMContentLoaded', () => {
   const driverIdSelect = document.getElementById('bookingDriverId');
   if (driverIdSelect) {
     driverIdSelect.addEventListener('change', (e) => {
-      const driverSelectDiv = document.getElementById('bookingDriverSelect');
+      const driverSelect = document.getElementById('bookingDriverSelect');
+      if (!driverSelect) return;
+      
       if (e.target.value === 'specific') {
-        driverSelectDiv.style.display = 'block';
+        driverSelect.style.display = 'block';
+        loadDriversForBooking();
       } else {
-        driverSelectDiv.style.display = 'none';
-        document.getElementById('bookingDriverSelect').value = '';
+        driverSelect.style.display = 'none';
+        driverSelect.value = '';
       }
     });
   }
