@@ -64,6 +64,25 @@ const bookingController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  async resendNotifications(req, res, next) {
+    try {
+      const { booking_id } = req.body;
+      const Booking = require('../models/Booking');
+      const booking = await Booking.findById(booking_id);
+      
+      if (!booking) {
+        return res.status(404).json({ success: false, error: 'Booking not found' });
+      }
+
+      const emailService = require('../utils/emailService');
+      await emailService.sendCustomerNotification(booking, null);
+      
+      res.json({ success: true, message: 'Notifications resent to customer' });
+    } catch (error) {
+      next(error);
+    }
   }
 };
 
