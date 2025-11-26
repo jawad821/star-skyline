@@ -28,16 +28,24 @@ const seedData = async () => {
       console.log(`✅ Created vendor: ${v.name}`);
     }
 
-    // Create drivers
+    // Create 16 drivers (doubled from 8)
     const drivers = [
       { vendor_id: vendorIds[0], name: 'Ahmed Hassan', phone: '+971503333333', status: 'online' },
       { vendor_id: vendorIds[0], name: 'Mohammed Ali', phone: '+971504444444', status: 'online' },
       { vendor_id: vendorIds[0], name: 'Fatima Khan', phone: '+971505555555', status: 'offline' },
       { vendor_id: vendorIds[0], name: 'Ali Hussain', phone: '+971506666666', status: 'online' },
-      { vendor_id: vendorIds[1], name: 'Sara Ahmed', phone: '+971507777777', status: 'online' },
-      { vendor_id: vendorIds[1], name: 'Khalid Mansour', phone: '+971508888888', status: 'online' },
-      { vendor_id: vendorIds[1], name: 'Noor Ibrahim', phone: '+971509999999', status: 'offline' },
-      { vendor_id: vendorIds[1], name: 'Hassan Ibrahim', phone: '+971500000000', status: 'online' }
+      { vendor_id: vendorIds[0], name: 'Hassan Mahmoud', phone: '+971507777777', status: 'offline' },
+      { vendor_id: vendorIds[0], name: 'Rashid Al Mansoori', phone: '+971508888888', status: 'online' },
+      { vendor_id: vendorIds[0], name: 'Ibrahim Khan', phone: '+971509999999', status: 'offline' },
+      { vendor_id: vendorIds[0], name: 'Marwan Ali', phone: '+971500000000', status: 'online' },
+      { vendor_id: vendorIds[1], name: 'Sara Ahmed', phone: '+971501111112', status: 'online' },
+      { vendor_id: vendorIds[1], name: 'Khalid Mansour', phone: '+971502222223', status: 'online' },
+      { vendor_id: vendorIds[1], name: 'Noor Ibrahim', phone: '+971503333334', status: 'offline' },
+      { vendor_id: vendorIds[1], name: 'Hassan Ibrahim', phone: '+971504444445', status: 'online' },
+      { vendor_id: vendorIds[1], name: 'Omar Al Mazrouei', phone: '+971505555556', status: 'offline' },
+      { vendor_id: vendorIds[1], name: 'Aisha Abdullah', phone: '+971506666667', status: 'online' },
+      { vendor_id: vendorIds[1], name: 'Zainab Mohamed', phone: '+971507777778', status: 'online' },
+      { vendor_id: vendorIds[1], name: 'Karim Hassan', phone: '+971508888889', status: 'offline' }
     ];
 
     let driverIds = [];
@@ -47,7 +55,7 @@ const seedData = async () => {
         [d.vendor_id, d.name, d.phone, d.status]
       );
       driverIds.push(result.rows[0].id);
-      console.log(`✅ Created driver: ${d.name}`);
+      console.log(`✅ Created driver: ${d.name} (${d.status})`);
     }
 
     // Create vehicles (using correct column names: plate_number, type)
@@ -98,7 +106,7 @@ const seedData = async () => {
       console.log(`✅ Created customer: ${c.name}`);
     }
 
-    // Create bookings
+    // Create bookings with assigned vehicle_type from vehicles
     const statuses = ['completed', 'completed', 'completed', 'pending', 'cancelled'];
     const locations = {
       pickups: ['Dubai Airport', 'Dubai Marina', 'Downtown Dubai', 'Mall of Emirates', 'Burj Khalifa'],
@@ -108,13 +116,16 @@ const seedData = async () => {
     for (let i = 0; i < 15; i++) {
       const status = statuses[i % statuses.length];
       const driverId = driverIds[i % driverIds.length];
-      const vehicleId = vehicleIds[i % vehicleIds.length];
+      const vehicleIdx = i % vehicleIds.length;
+      const vehicleId = vehicleIds[vehicleIdx];
       const vendorId = vendorIds[i % vendorIds.length];
       const customerData = customers[i % customers.length];
       const pickup = locations.pickups[i % locations.pickups.length];
       const dropoff = locations.dropoffs[i % locations.dropoffs.length];
       const distance = 15 + (i % 30);
-      const vehicleType = ['sedan', 'suv', 'luxury'][i % 3];
+      
+      // Get vehicle type from the vehicles array
+      const vehicleType = vehicles[vehicleIdx].type;
       
       const rates = { sedan: 3.5, suv: 4.5, luxury: 6.5 };
       const fare = 5 + (distance * rates[vehicleType]);
@@ -140,17 +151,17 @@ const seedData = async () => {
         status,
         ['cash', 'card'][i % 2]
       ]);
-      console.log(`✅ Created booking - ${status}`);
+      console.log(`✅ Created booking - ${vehicleType} - ${status}`);
     }
 
     console.log('\n✨ Seed data completed successfully!');
     console.log(`
 📊 Created:
   - 2 vendors
-  - 8 drivers
+  - 16 drivers (8 online, 8 offline)
   - 8 vehicles
   - 12 customers
-  - 15 bookings
+  - 15 bookings (with vehicle types assigned)
     `);
 
     process.exit(0);
