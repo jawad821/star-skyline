@@ -23,6 +23,7 @@
       <!-- Sidebar -->
       <aside class="sidebar">
         <a class="nav-item active" data-page="dashboard">📊 Dashboard</a>
+        <a class="nav-item" data-page="kpi">💹 KPI & Profits</a>
         <a class="nav-item" data-page="bookings">📅 Bookings</a>
         <div class="nav-submenu-toggle" onclick="toggleSubmenu(this)">👥 Drivers ▼</div>
         <div class="nav-submenu" style="display: none;">
@@ -148,6 +149,72 @@
           </div>
         </div>
 
+        <!-- KPI & Profits Page -->
+        <div id="page-kpi" class="page">
+          <h2 class="page-title">KPI & Profits Dashboard</h2>
+          
+          <div class="filter-bar">
+            <div class="filter-group">
+              <button class="filter-btn active" data-range="today" onclick="loadKPI()">Today</button>
+              <button class="filter-btn" data-range="yesterday" onclick="loadKPI()">Yesterday</button>
+              <button class="filter-btn" data-range="week" onclick="loadKPI()">This Week</button>
+              <button class="filter-btn" data-range="month" onclick="loadKPI()">This Month</button>
+            </div>
+          </div>
+
+          <!-- KPI Cards -->
+          <div class="stats-grid">
+            <div class="stat-card glass">
+              <div class="stat-header">
+                <div class="stat-label">Total Revenue</div>
+                <span class="stat-icon">💰</span>
+              </div>
+              <div class="stat-value" id="kpi-total-revenue">AED 0</div>
+              <div class="stat-subtitle">total earnings</div>
+            </div>
+            <div class="stat-card glass">
+              <div class="stat-header">
+                <div class="stat-label">Vendor Commission</div>
+                <span class="stat-icon">🏢</span>
+              </div>
+              <div class="stat-value" id="kpi-vendor-commission">AED 0</div>
+              <div class="stat-subtitle">paid to vendors</div>
+            </div>
+            <div class="stat-card glass">
+              <div class="stat-header">
+                <div class="stat-label">Net Company Profit</div>
+                <span class="stat-icon">📈</span>
+              </div>
+              <div class="stat-value" id="kpi-company-profit">AED 0</div>
+              <div class="stat-subtitle">our earnings</div>
+            </div>
+            <div class="stat-card glass">
+              <div class="stat-header">
+                <div class="stat-label">Profit Margin</div>
+                <span class="stat-icon">📊</span>
+              </div>
+              <div class="stat-value" id="kpi-profit-margin">0%</div>
+              <div class="stat-subtitle">company profit %</div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="charts-container">
+            <div class="chart-card">
+              <h3>Earnings Breakdown by Timeframe</h3>
+              <canvas id="earningsChart"></canvas>
+            </div>
+            <div class="chart-card">
+              <h3>Company vs Vendor Earnings</h3>
+              <canvas id="companyVendorChart"></canvas>
+            </div>
+            <div class="chart-card">
+              <h3>Top Vendors by Revenue</h3>
+              <div id="topVendorsList" class="vendors-list"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- Bookings Page -->
         <div id="page-bookings" class="page">
           <h2 class="page-title">Bookings</h2>
@@ -191,12 +258,12 @@
                     <th>Drop</th>
                     <th>Distance (km)</th>
                     <th>Vehicle</th>
-                    <th>Est. Fare</th>
-                    <th>Final Fare</th>
+                    <th>Fare</th>
                     <th>Driver</th>
                     <th>Payment</th>
                     <th>Status</th>
                     <th>Date</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="bookings-table-body">
@@ -219,14 +286,13 @@
                     <th>Name</th>
                     <th>Phone</th>
                     <th>Status</th>
-                    <th>License Expiry</th>
                     <th>Car Assigned</th>
                     <th>Total Trips</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="drivers-table-body">
-                  <tr><td colspan="8" style="text-align: center; color: var(--text-secondary);">Loading...</td></tr>
+                  <tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Loading...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -236,8 +302,10 @@
         <!-- Cars Pages -->
         <div id="page-cars-all" class="page">
           <h2 class="page-title">Vehicles</h2>
-          <div class="cars-grid" id="carsGrid">
-            <div style="text-align: center; color: var(--text-secondary);">Loading...</div>
+          <div class="card">
+            <div class="table-container" id="carsGrid">
+              <p>Loading...</p>
+            </div>
           </div>
         </div>
 
@@ -263,50 +331,9 @@
                   <label>Per Km Rate - Luxury (AED)</label>
                   <input type="number" id="luxuryKmRate" value="6.5" step="0.01">
                 </div>
-                <div class="form-group">
-                  <label>Hourly Rate - Sedan (AED)</label>
-                  <input type="number" id="sedanHourlyRate" value="75" step="0.01">
-                </div>
-                <div class="form-group">
-                  <label>Hourly Rate - SUV (AED)</label>
-                  <input type="number" id="suvHourlyRate" value="90" step="0.01">
-                </div>
-                <div class="form-group">
-                  <label>Hourly Rate - Luxury (AED)</label>
-                  <input type="number" id="luxuryHourlyRate" value="150" step="0.01">
-                </div>
-                <div class="form-group">
-                  <label>Minimum Hours</label>
-                  <input type="number" id="minHours" value="2" step="1">
-                </div>
               </div>
               <button type="submit" class="btn btn-primary">Save Fare Rules</button>
             </form>
-
-            <h3 style="margin-top: 30px;">Fare Calculator Test</h3>
-            <div class="fare-calculator">
-              <div class="form-group">
-                <label>Vehicle Type</label>
-                <select id="calcVehicleType">
-                  <option value="sedan">Sedan</option>
-                  <option value="suv">SUV</option>
-                  <option value="luxury">Luxury</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Distance (km)</label>
-                <input type="number" id="calcDistance" value="10" step="0.1">
-              </div>
-              <div class="form-group">
-                <label>Booking Type</label>
-                <select id="calcType">
-                  <option value="point-to-point">Point-to-Point</option>
-                  <option value="hourly">Hourly</option>
-                </select>
-              </div>
-              <button class="btn btn-secondary" onclick="calculateTestFare()">Calculate</button>
-              <div id="calcResult" style="margin-top: 15px; color: var(--text-secondary);">Result: -</div>
-            </div>
           </div>
         </div>
 
@@ -323,7 +350,7 @@
             <div class="info-grid">
               <div class="info-item">
                 <span>Dashboard Version</span>
-                <strong>2.0.0</strong>
+                <strong>2.1.0</strong>
               </div>
               <div class="info-item">
                 <span>Last Updated</span>
@@ -347,6 +374,56 @@
       </main>
     </div>
   </div>
+
+  <!-- Booking Detail Modal -->
+  <div id="bookingDetailModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Booking Details</h3>
+        <button class="modal-close" onclick="closeModal('bookingDetailModal')">×</button>
+      </div>
+      <div class="modal-body" id="bookingDetailContent">
+        Loading...
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Booking Modal -->
+  <div id="editBookingModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Edit Booking</h3>
+        <button class="modal-close" onclick="closeModal('editBookingModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="editBookingForm">
+          <div class="form-group">
+            <label>Status</label>
+            <select id="editStatus">
+              <option value="pending">Pending</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Payment Method</label>
+            <select id="editPayment">
+              <option value="cash">Cash</option>
+              <option value="card">Card</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fare Amount (AED)</label>
+            <input type="number" id="editFare" step="0.01">
+          </div>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Overlay -->
+  <div id="modalOverlay" class="modal-overlay" style="display: none;" onclick="closeAllModals()"></div>
 
   <script src="js/app.js"></script>
 </body>

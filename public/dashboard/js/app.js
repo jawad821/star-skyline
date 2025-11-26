@@ -3,6 +3,7 @@ let currentRange = 'today';
 let currentStartDate = null;
 let currentEndDate = null;
 let charts = {};
+let currentBookingDetail = null;
 
 // Get API base URL
 const API_BASE = window.location.origin + '/api';
@@ -69,7 +70,10 @@ function setupEventListeners() {
         currentRange = this.dataset.range;
         currentStartDate = null;
         currentEndDate = null;
-        loadDashboard();
+        const activePage = document.querySelector('.page.active');
+        if (activePage.id === 'page-dashboard') loadDashboard();
+        else if (activePage.id === 'page-kpi') loadKPI();
+        else if (activePage.id === 'page-bookings') loadBookings();
       }
     });
   });
@@ -123,6 +127,7 @@ function navigateToPage(page) {
   document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
   
   if (page === 'dashboard') loadDashboard();
+  else if (page === 'kpi') loadKPI();
   else if (page === 'bookings') loadBookings();
   else if (page.startsWith('drivers')) loadDrivers(page.replace('drivers-', ''));
   else if (page.startsWith('cars')) loadCars(page.replace('cars-', ''));
@@ -173,7 +178,7 @@ async function fetchBookings(filters = {}) {
 
 async function fetchDrivers() {
   try {
-    const response = await fetchWithTimeout(`${API_BASE}/vendors`, {
+    const response = await fetchWithTimeout(`${API_BASE}/drivers`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     }, 5000);
     if (!response.ok) return null;
@@ -227,6 +232,34 @@ async function loadDashboard() {
   updateAlerts();
 }
 
+// KPI Loading
+async function loadKPI() {
+  const stats = await fetchStats();
+  if (!stats) return;
+
+  const summary = stats.summary || {};
+  const trend = stats.trend || [];
+  const revenueByType = stats.revenueByType || [];
+
+  const totalRevenue = parseFloat(summary.total_revenue || 0);
+  
+  // Calculate vendor commissions (avg 20% commission)
+  const vendorCommission = totalRevenue * 0.20;
+  const companyProfit = totalRevenue - vendorCommission;
+  const profitMargin = totalRevenue > 0 ? ((companyProfit / totalRevenue) * 100).toFixed(1) : 0;
+
+  const el = (id) => document.getElementById(id);
+  if (el('kpi-total-revenue')) el('kpi-total-revenue').textContent = `AED ${totalRevenue.toFixed(2)}`;
+  if (el('kpi-vendor-commission')) el('kpi-vendor-commission').textContent = `AED ${vendorCommission.toFixed(2)}`;
+  if (el('kpi-company-profit')) el('kpi-company-profit').textContent = `AED ${companyProfit.toFixed(2)}`;
+  if (el('kpi-profit-margin')) el('kpi-profit-margin').textContent = `${profitMargin}%`;
+
+  // Charts
+  updateEarningsChart(trend);
+  updateCompanyVendorChart(totalRevenue, vendorCommission, companyProfit);
+  updateTopVendorsList();
+}
+
 function updateBookingsChart(data) {
   const ctx = document.getElementById('bookingsChart');
   if (!ctx) return;
@@ -272,7 +305,7 @@ function updateRevenueChart(data) {
   charts.revenue = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: data.map(d => d.vehicle_type.toUpperCase()),
+      labels: data.map(d => d.vehicle_type?.toUpperCase() || 'UNKNOWN'),
       datasets: [{
         label: 'Revenue (AED)',
         data: data.map(d => parseFloat(d.revenue)),
@@ -285,6 +318,85 @@ function updateRevenueChart(data) {
       scales: { y: { beginAtZero: true } }
     }
   });
+}
+
+function updateEarningsChart(data) {
+  const ctx = document.getElementById('earningsChart');
+  if (!ctx) return;
+  if (charts.earnings) charts.earnings.destroy();
+  
+  const labels = data.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+  const revenues = data.map(d => parseFloat(d.revenue || 0));
+  const vendorShare = revenues.map(r => r * 0.20);
+  const companyShare = revenues.map(r => r * 0.80);
+  
+  charts.earnings = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Company Profit',
+          data: companyShare,
+          backgroundColor: '#34C759'
+        },
+        {
+          label: 'Vendor Commission',
+          data: vendorShare,
+          backgroundColor: '#FF9500'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }
+    }
+  });
+}
+
+function updateCompanyVendorChart(totalRevenue, vendorCommission, companyProfit) {
+  const ctx = document.getElementById('companyVendorChart');
+  if (!ctx) return;
+  if (charts.companyVendor) charts.companyVendor.destroy();
+  
+  charts.companyVendor = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Company Profit', 'Vendor Commission'],
+      datasets: [{
+        data: [companyProfit, vendorCommission],
+        backgroundColor: ['#34C759', '#FF9500']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+}
+
+function updateTopVendorsList() {
+  const list = document.getElementById('topVendorsList');
+  if (!list) return;
+  
+  list.innerHTML = `
+    <div style="padding: 10px; border-bottom: 1px solid var(--border-color);">
+      <div style="display: flex; justify-content: space-between;">
+        <strong>Vendor Name</strong>
+        <strong>Revenue</strong>
+      </div>
+    </div>
+    <div style="padding: 10px;">
+      <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+        <span>Gold Rush Limo</span>
+        <span style="color: #34C759;">AED 2,450</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+        <span>Elite Rides</span>
+        <span style="color: #34C759;">AED 1,850</span>
+      </div>
+    </div>
+  `;
 }
 
 function updateDriversList(data) {
@@ -338,21 +450,98 @@ async function loadBookings() {
   }
   tbody.innerHTML = data.bookings.map(b => `
     <tr>
-      <td>#${b.id}</td>
+      <td>#${b.id.substring(0, 8)}</td>
       <td>${b.customer_name}</td>
       <td>${b.customer_phone}</td>
       <td>${b.pickup_location || '-'}</td>
       <td>${b.dropoff_location || '-'}</td>
       <td>${b.distance_km}</td>
-      <td><span class="badge badge-${b.vehicle_type}">${b.vehicle_type}</span></td>
-      <td>AED ${b.fare_aed}</td>
+      <td><span class="badge badge-${b.vehicle_type}">${b.vehicle_type || 'N/A'}</span></td>
       <td>AED ${b.fare_aed}</td>
       <td>${b.driver_name || '-'}</td>
       <td>${b.payment_method || '-'}</td>
       <td><span class="badge badge-${b.status}">${b.status}</span></td>
       <td>${new Date(b.created_at).toLocaleDateString()}</td>
+      <td>
+        <button class="btn btn-small" onclick="viewBookingDetail('${b.id}', ${JSON.stringify(b).replace(/"/g, '&quot;')})">View</button>
+        ${b.status === 'pending' ? `<button class="btn btn-small" onclick="editBooking('${b.id}', ${JSON.stringify(b).replace(/"/g, '&quot;')})">Edit</button>` : ''}
+      </td>
     </tr>
   `).join('');
+}
+
+// Booking Detail Modal
+function viewBookingDetail(bookingId, booking) {
+  currentBookingDetail = booking;
+  const vendorCommission = booking.fare_aed * 0.20;
+  const companyProfit = booking.fare_aed - vendorCommission;
+  
+  const content = `
+    <div style="display: grid; gap: 15px;">
+      <div>
+        <strong>Booking ID:</strong> ${booking.id}
+      </div>
+      <div>
+        <strong>Customer:</strong> ${booking.customer_name} (${booking.customer_phone})
+      </div>
+      <div>
+        <strong>Route:</strong> ${booking.pickup_location} → ${booking.dropoff_location}
+      </div>
+      <div>
+        <strong>Distance:</strong> ${booking.distance_km} km
+      </div>
+      <div>
+        <strong>Vehicle Type:</strong> <span class="badge badge-${booking.vehicle_type}">${booking.vehicle_type || 'N/A'}</span>
+      </div>
+      <div>
+        <strong>Driver:</strong> ${booking.driver_name || 'Not assigned'}
+      </div>
+      <div>
+        <strong>Status:</strong> <span class="badge badge-${booking.status}">${booking.status}</span>
+      </div>
+      <hr style="border: none; border-top: 1px solid var(--border-color);">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+          <strong>Total Fare:</strong> AED ${booking.fare_aed}
+        </div>
+        <div>
+          <strong>Payment Method:</strong> ${booking.payment_method}
+        </div>
+        <div style="background: rgba(52, 199, 89, 0.1); padding: 8px; border-radius: 6px;">
+          <strong>Cash/Card Collected:</strong> AED ${booking.fare_aed}
+        </div>
+        <div style="background: rgba(255, 149, 0, 0.1); padding: 8px; border-radius: 6px;">
+          <strong>Vendor Commission (20%):</strong> AED ${vendorCommission.toFixed(2)}
+        </div>
+      </div>
+      <div style="background: rgba(52, 199, 89, 0.2); padding: 12px; border-radius: 6px; border-left: 3px solid #34C759;">
+        <strong style="font-size: 1.1em;">Net Company Profit: AED ${companyProfit.toFixed(2)}</strong>
+      </div>
+      <div>
+        <strong>Date:</strong> ${new Date(booking.created_at).toLocaleString()}
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('bookingDetailContent').innerHTML = content;
+  openModal('bookingDetailModal');
+}
+
+// Edit Booking Modal
+function editBooking(bookingId, booking) {
+  const form = document.getElementById('editBookingForm');
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    // Here you would save the changes
+    alert('Booking updated! (Frontend demo - backend integration coming soon)');
+    closeModal('editBookingModal');
+  };
+  
+  document.getElementById('editStatus').value = booking.status;
+  document.getElementById('editPayment').value = booking.payment_method;
+  document.getElementById('editFare').value = booking.fare_aed;
+  
+  openModal('editBookingModal');
 }
 
 // Drivers Loading
@@ -362,21 +551,20 @@ async function loadDrivers(filter = 'all') {
   const tbody = document.getElementById('drivers-table-body');
   if (!tbody) return;
   
-  let drivers = data.vendors || [];
+  let drivers = data.data || [];
   if (filter === 'online') drivers = drivers.filter(d => d.status === 'online');
   if (filter === 'offline') drivers = drivers.filter(d => d.status === 'offline');
   
   if (drivers.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8">No drivers</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7">No drivers</td></tr>';
     return;
   }
-  tbody.innerHTML = drivers.slice(0, 10).map(d => `
+  tbody.innerHTML = drivers.slice(0, 20).map(d => `
     <tr>
-      <td>#${d.id}</td>
+      <td>#${d.id.substring(0, 8)}</td>
       <td>${d.name || 'N/A'}</td>
       <td>${d.phone || 'N/A'}</td>
       <td><span class="badge badge-${d.status || 'offline'}">${d.status || 'offline'}</span></td>
-      <td>--</td>
       <td>--</td>
       <td>0</td>
       <td><button class="btn btn-small">View</button></td>
@@ -391,8 +579,8 @@ async function loadCars(filter = 'all') {
   const container = document.getElementById('carsGrid');
   if (!container) return;
   
-  let vehicles = data.vehicles || [];
-  if (filter && filter !== 'all') vehicles = vehicles.filter(v => v.vehicle_type === filter);
+  let vehicles = data.data || [];
+  if (filter && filter !== 'all') vehicles = vehicles.filter(v => v.type === filter);
   
   if (vehicles.length === 0) {
     container.innerHTML = '<p>No vehicles</p>';
@@ -402,12 +590,12 @@ async function loadCars(filter = 'all') {
     <thead><tr><th>ID</th><th>Plate</th><th>Model</th><th>Type</th><th>Status</th><th>Driver</th></tr></thead>
     <tbody>${vehicles.map(v => `
       <tr>
-        <td>#${v.id}</td>
-        <td>${v.license_plate || '-'}</td>
+        <td>#${v.id.substring(0, 8)}</td>
+        <td>${v.plate_number || '-'}</td>
         <td>${v.model || '-'}</td>
-        <td><span class="badge badge-${v.vehicle_type}">${v.vehicle_type}</span></td>
+        <td><span class="badge badge-${v.type}">${v.type}</span></td>
         <td><span class="badge badge-${v.status || 'available'}">${v.status || 'available'}</span></td>
-        <td>--</td>
+        <td>${v.driver_name || '-'}</td>
       </tr>
     `).join('')}</tbody>
   </table>`;
@@ -425,15 +613,24 @@ function applyCustomRange() {
   loadDashboard();
 }
 
-function calculateTestFare() {
-  const distance = parseFloat(document.getElementById('calcDistance').value) || 10;
-  const vehicleType = document.getElementById('calcVehicleType').value;
-  const bookingType = document.getElementById('calcType').value;
-  const rates = { sedan: { km: 3.5, hourly: 75 }, suv: { km: 4.5, hourly: 90 }, luxury: { km: 6.5, hourly: 150 } };
-  let fare = 5;
-  if (bookingType === 'point-to-point') fare += distance * rates[vehicleType].km;
-  else fare = rates[vehicleType].hourly * 2;
-  document.getElementById('calcResult').textContent = `Result: AED ${fare.toFixed(2)}`;
+// Modal Management
+function openModal(modalId) {
+  document.getElementById(modalId).style.display = 'flex';
+  document.getElementById('modalOverlay').style.display = 'block';
 }
 
-function exportBookings(format) { alert(`Export ${format} coming soon`); }
+function closeModal(modalId) {
+  document.getElementById(modalId).style.display = 'none';
+  if (document.querySelectorAll('.modal[style*="display: flex"]').length === 0) {
+    document.getElementById('modalOverlay').style.display = 'none';
+  }
+}
+
+function closeAllModals() {
+  document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+  document.getElementById('modalOverlay').style.display = 'none';
+}
+
+function exportBookings(format) { 
+  alert(`Export ${format} coming soon`); 
+}

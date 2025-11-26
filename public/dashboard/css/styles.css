@@ -679,3 +679,103 @@ input:focus, select:focus {
     padding: 8px;
   }
 }
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--card-bg);
+  border-radius: 12px;
+  z-index: 1001;
+  min-width: 500px;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: none;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: none;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.3em;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.modal-body {
+  padding: 20px;
+  flex: 1;
+}
+
+.modal-body .form-group {
+  margin-bottom: 15px;
+}
+
+.modal-body input,
+.modal-body select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 1em;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.badge-sedan { background: rgba(102, 126, 234, 0.2); color: #667eea; }
+.badge-suv { background: rgba(255, 149, 0, 0.2); color: #FF9500; }
+.badge-luxury { background: rgba(240, 147, 251, 0.2); color: #f093fb; }
+.badge-completed { background: rgba(52, 199, 89, 0.2); color: #34C759; }
+.badge-pending { background: rgba(255, 149, 0, 0.2); color: #FF9500; }
+.badge-cancelled { background: rgba(255, 59, 48, 0.2); color: #FF3B30; }
+.badge-online { background: rgba(52, 199, 89, 0.2); color: #34C759; }
+.badge-offline { background: rgba(142, 142, 147, 0.2); color: #8e8e93; }
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 0.9em;
+}
+
+@media (max-width: 768px) {
+  .modal {
+    min-width: 90%;
+    max-width: 95%;
+  }
+}
