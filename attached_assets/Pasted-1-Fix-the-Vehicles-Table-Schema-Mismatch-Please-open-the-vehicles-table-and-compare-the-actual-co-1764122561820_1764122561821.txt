@@ -1,0 +1,132 @@
+1️⃣ Fix the Vehicles Table Schema Mismatch
+
+Please open the vehicles table and compare the actual column names against what the seed script expects.
+
+Action:
+
+Update the seed script to match the actual DB schema
+or
+
+Update the DB schema to match the seed script structure (whichever is easier)
+
+Goal:
+✔ Seed data must run successfully
+✔ All demo data (drivers + vehicles + customers + bookings) should load in UI
+
+2️⃣ After Seed Script Works — Populate the Dashboard
+
+Once demo data is inserted:
+
+Dashboard should auto-populate with counts
+
+Customers module UI should show data
+
+Drivers & cars should show data
+
+Bookings table must show the seeded 15 bookings
+
+3️⃣ Add Vendor Login System (Next Priority)
+
+Vendor features needed:
+
+Vendor login
+
+Vendor sees ONLY their drivers, cars & bookings
+
+Vendor cannot see admin settings
+
+Vendor cannot edit fare rules or system configs
+
+You can create a new user role: vendor
+
+And provide:
+
+/vendor/login
+
+Role-based access filtering
+
+4️⃣ Add Email + WhatsApp Notification Structure (Don’t integrate yet)
+
+For now just create the structure, not the live integration.
+
+Create notification helpers:
+
+sendWhatsAppToCustomer()
+
+sendWhatsAppToDriver()
+
+sendWhatsAppToAdmin()
+
+sendEmailToCustomer()
+
+sendEmailToDriver()
+
+sendEmailToAdmin()
+
+Add:
+
+Logging table for notifications
+
+Config placeholders for WhatsApp Business API & Email SMTP
+
+No API keys needed right now.
+Just make the functions ready to be plugged in.
+
+5️⃣ Implement Booking Notification Workflow
+
+Whenever a booking is created:
+
+Trigger notifications to:
+
+Customer
+
+Driver
+
+Admin
+
+Use dummy console logs for now:
+
+Example:
+
+WhatsApp Message → [customer number] | Booking #123 Created
+Email Sent → [driver email] | New Booking Assigned
+
+
+Once WhatsApp API goes live, we will switch these logs to real messages.
+
+6️⃣ Operator Role Permissions Review
+
+Operator should NOT have access to:
+
+Fare rules
+
+API keys
+
+System settings
+
+Export data
+
+Vendor management
+
+Please confirm operator role is properly restricted.
+
+7️⃣ Prepare for Customer Profile Enhancements
+
+Customer profile must include:
+
+Past booking history
+
+Total spend
+
+Preferred car type
+
+Last ride date
+
+Notes field
+
+This will later connect to WhatsApp automation + marketing.
+
+8️⃣ Optional — Share Your Vehicles Table Schema
+
+If you want, I can fix the seed script instantly —
+just share the actual vehicles table schema (column names + types).

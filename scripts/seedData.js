@@ -50,23 +50,23 @@ const seedData = async () => {
       console.log(`✅ Created driver: ${d.name}`);
     }
 
-    // Create vehicles
+    // Create vehicles (using correct column names: plate_number, type)
     const vehicles = [
-      { vendor_id: vendorIds[0], license_plate: 'DXB-1001', model: 'Toyota Corolla', vehicle_type: 'sedan' },
-      { vendor_id: vendorIds[0], license_plate: 'DXB-1002', model: 'Toyota Camry', vehicle_type: 'sedan' },
-      { vendor_id: vendorIds[0], license_plate: 'DXB-2001', model: 'Ford Explorer', vehicle_type: 'suv' },
-      { vendor_id: vendorIds[0], license_plate: 'DXB-2002', model: 'GMC Yukon', vehicle_type: 'suv' },
-      { vendor_id: vendorIds[1], license_plate: 'ABU-1001', model: 'BMW 5 Series', vehicle_type: 'luxury' },
-      { vendor_id: vendorIds[1], license_plate: 'ABU-1002', model: 'Mercedes E-Class', vehicle_type: 'luxury' },
-      { vendor_id: vendorIds[1], license_plate: 'ABU-2001', model: 'Range Rover', vehicle_type: 'suv' },
-      { vendor_id: vendorIds[1], license_plate: 'ABU-3001', model: 'Honda Civic', vehicle_type: 'sedan' }
+      { vendor_id: vendorIds[0], driver_id: driverIds[0], plate_number: 'DXB-1001', model: 'Toyota Corolla', type: 'sedan' },
+      { vendor_id: vendorIds[0], driver_id: driverIds[1], plate_number: 'DXB-1002', model: 'Toyota Camry', type: 'sedan' },
+      { vendor_id: vendorIds[0], driver_id: driverIds[2], plate_number: 'DXB-2001', model: 'Ford Explorer', type: 'suv' },
+      { vendor_id: vendorIds[0], driver_id: driverIds[3], plate_number: 'DXB-2002', model: 'GMC Yukon', type: 'suv' },
+      { vendor_id: vendorIds[1], driver_id: driverIds[4], plate_number: 'ABU-1001', model: 'BMW 5 Series', type: 'luxury' },
+      { vendor_id: vendorIds[1], driver_id: driverIds[5], plate_number: 'ABU-1002', model: 'Mercedes E-Class', type: 'luxury' },
+      { vendor_id: vendorIds[1], driver_id: driverIds[6], plate_number: 'ABU-2001', model: 'Range Rover', type: 'suv' },
+      { vendor_id: vendorIds[1], driver_id: driverIds[7], plate_number: 'ABU-3001', model: 'Honda Civic', type: 'sedan' }
     ];
 
     let vehicleIds = [];
     for (const v of vehicles) {
       const result = await query(
-        'INSERT INTO vehicles (vendor_id, license_plate, model, vehicle_type, status) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-        [v.vendor_id, v.license_plate, v.model, v.vehicle_type, 'available']
+        'INSERT INTO vehicles (vendor_id, driver_id, plate_number, model, type, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+        [v.vendor_id, v.driver_id, v.plate_number, v.model, v.type, 'available']
       );
       vehicleIds.push(result.rows[0].id);
       console.log(`✅ Created vehicle: ${v.model}`);
@@ -98,7 +98,7 @@ const seedData = async () => {
       console.log(`✅ Created customer: ${c.name}`);
     }
 
-    // Create bookings (mix of completed, pending, cancelled)
+    // Create bookings
     const statuses = ['completed', 'completed', 'completed', 'pending', 'cancelled'];
     const locations = {
       pickups: ['Dubai Airport', 'Dubai Marina', 'Downtown Dubai', 'Mall of Emirates', 'Burj Khalifa'],
@@ -119,17 +119,16 @@ const seedData = async () => {
       const rates = { sedan: 3.5, suv: 4.5, luxury: 6.5 };
       const fare = 5 + (distance * rates[vehicleType]);
 
-      const result = await query(`
+      await query(`
         INSERT INTO bookings (
           customer_id, customer_name, customer_phone, driver_id, driver_name,
           pickup_location, dropoff_location, distance_km, fare_aed, vehicle_type,
           assigned_vehicle_id, vendor_id, status, payment_method, created_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 
                   NOW() - INTERVAL '${i} days')
-        RETURNING id
       `, [
         customerId,
-        customerIds[i % customerIds.length] ? `Customer ${i}` : 'Walk-in',
+        customers[i % customers.length].name,
         customers[i % customers.length].phone,
         driverId,
         drivers[i % drivers.length].name,
@@ -143,7 +142,7 @@ const seedData = async () => {
         status,
         ['cash', 'card'][i % 2]
       ]);
-      console.log(`✅ Created booking #${result.rows[0].id} - ${status}`);
+      console.log(`✅ Created booking - ${status}`);
     }
 
     console.log('\n✨ Seed data completed successfully!');
@@ -158,7 +157,7 @@ const seedData = async () => {
 
     process.exit(0);
   } catch (error) {
-    console.error('❌ Seed error:', error);
+    console.error('❌ Seed error:', error.message);
     process.exit(1);
   }
 };
