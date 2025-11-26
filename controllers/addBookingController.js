@@ -14,6 +14,8 @@ const addBookingController = {
         distance_km,
         booking_type,
         vehicle_type,
+        car_model,
+        driver_id,
         payment_method,
         status,
         notes
@@ -35,15 +37,15 @@ const addBookingController = {
       const result = await query(`
         INSERT INTO bookings 
           (customer_name, customer_phone, customer_email, pickup_location, dropoff_location, 
-           distance_km, fare_aed, booking_type, vehicle_type, payment_method, status, notes, created_at)
+           distance_km, fare_aed, booking_type, vehicle_type, driver_id, payment_method, status, notes, created_at)
         VALUES 
-          ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+          ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
         RETURNING *
       `, [
         customer_name, customer_phone, customer_email || null, pickup_location,
-        dropoff_location, distance_km, fare, booking_type, vehicle_type, payment_method || 'cash',
+        dropoff_location, distance_km, fare, booking_type, vehicle_type, driver_id || null, payment_method || 'cash',
         status || 'pending', notes || null
-      ]);
+      ])
 
       logger.info(`Manual booking created: ${result.rows[0].id}`);
       

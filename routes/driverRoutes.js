@@ -5,6 +5,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 const { rbacMiddleware } = require('../middleware/rbacMiddleware');
 
 router.get('/', driverController.getAllDrivers);
+router.get('/available', driverController.getAvailableDrivers);
 router.get('/:id', authMiddleware, driverController.getDriverById);
 router.put('/:id', authMiddleware, rbacMiddleware(['admin']), driverController.updateDriver);
 

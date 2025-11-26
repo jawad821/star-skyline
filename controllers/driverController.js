@@ -41,6 +41,24 @@ const driverController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  async getAvailableDrivers(req, res, next) {
+    try {
+      const { query } = require('../config/db');
+      const result = await query(`
+        SELECT id, name, license_number, auto_assign, status
+        FROM drivers
+        WHERE auto_assign = true
+        ORDER BY name
+      `);
+      res.json({
+        success: true,
+        data: result.rows
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 };
 
