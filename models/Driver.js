@@ -37,7 +37,7 @@ const Driver = {
     const result = await query(`
       SELECT 
         d.id, d.name, d.phone, d.status, d.license_number, 
-        d.license_issue_date, d.license_expiry_date, d.auto_assign,
+        d.license_issue_date, d.license_expiry_date, d.auto_assign, d.image_url,
         COUNT(b.id)::int as completed_rides,
         COALESCE(AVG(dr.driver_rating), 0)::float as avg_rating
       FROM drivers d
@@ -50,17 +50,18 @@ const Driver = {
   },
 
   async updateDriver(id, data) {
-    const { license_issue_date, license_expiry_date, auto_assign, status } = data;
+    const { license_issue_date, license_expiry_date, auto_assign, status, image_url } = data;
     const result = await query(`
       UPDATE drivers 
       SET license_issue_date = COALESCE($1, license_issue_date),
           license_expiry_date = COALESCE($2, license_expiry_date),
           auto_assign = COALESCE($3, auto_assign),
           status = COALESCE($4, status),
+          image_url = COALESCE($5, image_url),
           updated_at = NOW()
-      WHERE id = $5
+      WHERE id = $6
       RETURNING *
-    `, [license_issue_date, license_expiry_date, auto_assign, status, id]);
+    `, [license_issue_date, license_expiry_date, auto_assign, status, image_url, id]);
     return result.rows[0];
   }
 };

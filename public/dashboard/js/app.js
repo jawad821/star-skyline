@@ -905,6 +905,7 @@ async function viewDriverModal(driverId) {
       const d = result.driver;
       const expiry = d.license_expiry_date ? new Date(d.license_expiry_date).toLocaleDateString() : 'N/A';
       const status = d.license_expiry_date && new Date(d.license_expiry_date) < new Date() ? '⚠️ EXPIRED' : '✅ Valid';
+      document.getElementById('driverViewImage').src = d.image_url || 'https://via.placeholder.com/120?text=Driver';
       document.getElementById('driverViewContent').innerHTML = `
         <div style="display: grid; gap: 15px;">
           <div><strong>👤 Name:</strong> ${d.name}</div>
@@ -927,16 +928,50 @@ async function viewDriverModal(driverId) {
 
 async function openEditDriverModal(driverId, driver) {
   currentEditDriverId = driverId;
+  document.getElementById('editDriverImage').src = driver.image_url || 'https://via.placeholder.com/120?text=Driver';
   document.getElementById('editLicenseNumber').value = driver.license_number || '';
   document.getElementById('editLicenseIssue').value = driver.license_issue_date || '';
   document.getElementById('editLicenseExpiry').value = driver.license_expiry_date || '';
   document.getElementById('editAutoAssign').checked = driver.auto_assign !== false;
+  document.getElementById('editDriverImageFile').value = '';
   closeModal('driverViewModal');
   openModal('driverEditModal');
 }
 
+// Handle driver image preview
+document.addEventListener('DOMContentLoaded', function() {
+  const imageInput = document.getElementById('editDriverImageFile');
+  if (imageInput) {
+    imageInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          document.getElementById('editDriverImage').src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+});
+
 async function saveDriverChanges() {
   const token = localStorage.getItem('token');
+  const file = document.getElementById('editDriverImageFile').files[0];
+  let imageUrl = null;
+  
+  if (file) {
+    const maxSize = 2 * 1024 * 1024;
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (file.size > maxSize) { alert('❌ File size exceeds 2MB'); return; }
+    if (!validTypes.includes(file.type)) { alert('❌ Only JPG, PNG, WebP allowed'); return; }
+    const reader = new FileReader();
+    imageUrl = await new Promise((resolve) => {
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
+  }
+  
   try {
     const response = await fetch(`${API_BASE}/drivers/${currentEditDriverId}`, {
       method: 'PUT',
@@ -945,7 +980,8 @@ async function saveDriverChanges() {
         license_number: document.getElementById('editLicenseNumber').value,
         license_issue_date: document.getElementById('editLicenseIssue').value,
         license_expiry_date: document.getElementById('editLicenseExpiry').value,
-        auto_assign: document.getElementById('editAutoAssign').checked
+        auto_assign: document.getElementById('editAutoAssign').checked,
+        image_url: imageUrl
       })
     });
     const result = await response.json();
