@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const vehicleController = require('../controllers/vehicleController');
-const { authenticate } = require('../middleware/auth');
+const authMiddleware = require('../middleware/authMiddleware');
 
 router.get('/', vehicleController.getAvailableVehicles);
 router.get('/:id', vehicleController.getVehicleById);
-router.post('/', authenticate, vehicleController.createVehicle);
+router.post('/', authMiddleware, vehicleController.createVehicle);
 
 module.exports = router;
