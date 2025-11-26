@@ -579,7 +579,7 @@ async function loadCars(filter = 'all') {
   const container = document.getElementById('carsGrid');
   if (!container) return;
   
-  let vehicles = data.data || [];
+  let vehicles = data.vehicles || [];
   if (filter && filter !== 'all') vehicles = vehicles.filter(v => v.type === filter);
   
   if (vehicles.length === 0) {
