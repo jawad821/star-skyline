@@ -1,0 +1,177 @@
+We are now at the final blocker stage.
+All demo tables except bookings are populated.
+Please implement ALL items below in ONE go.
+
+✅ 1️⃣ FINAL 15 DEMO BOOKINGS — READY SQL (RUN THIS DIRECTLY)
+
+⚠️ Use ONLY this simple SQL (NO joins, NO subqueries, NO complex logic):
+
+INSERT INTO bookings 
+(vendor_id, customer_id, driver_id, vehicle_id, pickup_location, dropoff_location, distance_km, fare, status, payment_method, pickup_time, dropoff_time, passengers_count, luggage_count, created_at)
+VALUES
+(1, 1, 1, 1, 'Dubai Mall', 'DXB Airport', 18, 180, 'completed', 'cash', NOW(), NOW(), 2, 2, NOW()),
+(1, 2, 2, 2, 'Marina Walk', 'JBR Beach', 6, 90, 'completed', 'card', NOW(), NOW(), 3, 3, NOW()),
+(1, 3, 3, 3, 'Business Bay', 'Dubai Mall', 8, 110, 'pending', 'cash', NOW(), NOW(), 4, 2, NOW()),
+(1, 4, 4, 4, 'JBR', 'Mall of Emirates', 15, 160, 'cancelled', 'card', NOW(), NOW(), 5, 4, NOW()),
+(2, 5, 5, 5, 'Sharjah City', 'DXB Airport', 35, 320, 'completed', 'cash', NOW(), NOW(), 2, 2, NOW()),
+(2, 6, 6, 6, 'Sharjah Corniche', 'Deira', 22, 210, 'pending', 'card', NOW(), NOW(), 3, 3, NOW()),
+(2, 7, 7, 7, 'Ajman City', 'Dubai Marina', 40, 360, 'completed', 'cash', NOW(), NOW(), 4, 4, NOW()),
+(2, 8, 8, 8, 'Deira', 'Business Bay', 17, 170, 'completed', 'card', NOW(), NOW(), 2, 1, NOW()),
+
+(1, 9, 1, 1, 'Mall of Emirates', 'JBR', 14, 150, 'completed', 'cash', NOW(), NOW(), 2, 2, NOW()),
+(1, 10, 2, 2, 'Dubai Frame', 'Dubai Mall', 9, 120, 'pending', 'card', NOW(), NOW(), 3, 2, NOW()),
+(1, 11, 3, 3, 'Business Bay', 'Jumeirah', 11, 140, 'completed', 'cash', NOW(), NOW(), 4, 3, NOW()),
+(2, 12, 4, 4, 'Sharjah Industrial Area', 'DXB Airport', 38, 330, 'completed', 'card', NOW(), NOW(), 5, 5, NOW()),
+(1, 1, 5, 5, 'Dubai Silicon Oasis', 'Business Bay', 21, 220, 'pending', 'cash', NOW(), NOW(), 6, 6, NOW()),
+(2, 2, 6, 6, 'Ajman Corniche', 'Deira', 42, 390, 'completed', 'card', NOW(), NOW(), 7, 7, NOW()),
+(1, 3, 7, 7, 'JBR', 'DXB Airport', 27, 260, 'completed', 'cash', NOW(), NOW(), 4, 4, NOW());
+
+
+✅ After running this:
+
+bookings table MUST show 15 rows
+
+All foreign keys must match existing IDs
+
+✅ 2️⃣ LUGGAGE + PASSENGER CAPACITY — DATABASE UPDATE
+Add these columns to vehicles table:
+ALTER TABLE vehicles
+ADD COLUMN max_passengers INT DEFAULT 4,
+ADD COLUMN max_luggage INT DEFAULT 3,
+ADD COLUMN has_big_trunk BOOLEAN DEFAULT TRUE;
+
+✅ 3️⃣ STANDARD CAPACITY MAPPING (UPDATE DEMO VEHICLES)
+UPDATE vehicles SET max_passengers = 3, max_luggage = 3 WHERE type IN ('luxury', 'business', 'sedan');
+UPDATE vehicles SET max_passengers = 5, max_luggage = 6 WHERE type = 'suv';
+UPDATE vehicles SET max_passengers = 6, max_luggage = 7 WHERE type = 'luxury_suv';
+UPDATE vehicles SET max_passengers = 10, max_luggage = 12 WHERE type = 'mpv';
+
+✅ 4️⃣ BOOKINGS TABLE — MANDATORY FIELDS CHECK
+
+Ensure these fields exist (already used in SQL above):
+
+passengers_count
+
+luggage_count
+
+If missing, add:
+
+ALTER TABLE bookings
+ADD COLUMN passengers_count INT,
+ADD COLUMN luggage_count INT;
+
+✅ 5️⃣ SMART VEHICLE SUGGESTION LOGIC (BACKEND AUTO FILTER)
+
+When creating any booking:
+
+System must ONLY suggest vehicles where:
+vehicle.max_passengers >= booking.passengers_count
+AND
+vehicle.max_luggage >= booking.luggage_count
+AND
+vehicle.status = 'active'
+AND
+driver.status = 'online'
+
+If no exact match:
+
+➡ Automatically suggest next higher category vehicle
+➡ If still unavailable:
+Return:
+
+"No vehicle available for given passenger & luggage requirement"
+
+✅ 6️⃣ OPERATOR + AI BOOKING FORM UPDATE
+
+Add two mandatory inputs:
+
+passengers_count (1–10)
+
+luggage_count (0–15)
+
+No booking should save without these.
+
+✅ 7️⃣ API RESPONSE FORMAT FIX (BREAKING UI ISSUE)
+
+ALL list APIs must respond like this:
+
+{
+  "success": true,
+  "data": [...]
+}
+
+
+Critical endpoints to fix:
+
+/api/customers
+
+/api/drivers
+
+/api/vehicles
+
+/api/bookings
+
+/api/dashboard/stats
+
+Frontend must read:
+
+response.data.data
+
+✅ 8️⃣ DASHBOARD MUST USE PORT 8000 ONLY
+
+⚠️ Screenshot + API testing must use:
+
+http://localhost:8000
+
+
+NOT port 5000.
+
+✅ 9️⃣ WHATSAPP BUSINESS API — FINAL CONFIRMATION REQUIRED
+
+Please reply clearly:
+
+✅ Token placeholders added
+
+✅ Phone Number ID placeholder added
+
+✅ Message template handlers created
+
+✅ Notification logging already in DB
+
+When Meta approves, we will only paste:
+
+API Token
+
+Phone Number ID
+
+Business ID
+
+and system should start sending instantly.
+
+Reply only:
+
+✅ WhatsApp structure READY
+or
+❌ WhatsApp structure NOT READY
+
+✅ 10️⃣ AFTER COMPLETING ALL ABOVE — SEND PROOF
+
+Please send:
+
+Screenshot of Dashboard with real numbers
+
+Screenshot of Bookings table (15 rows)
+
+Screenshot of Customers
+
+Screenshot of Drivers
+
+Screenshot of Vehicles
+
+🚫 STOP ALL OTHER DEVELOPMENT UNTIL ABOVE IS 100% DONE
+
+No new features
+No UI redesign
+No vendor enhancements
+
+FIRST priority = DATA + LOGIC + DASHBOARD LIVE
