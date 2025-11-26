@@ -12,10 +12,16 @@ const Customer = {
   },
 
   async findAll(limit = 50, offset = 0) {
-    const result = await query(
-      'SELECT * FROM customers ORDER BY created_at DESC LIMIT $1 OFFSET $2',
-      [limit, offset]
-    );
+    const result = await query(`
+      SELECT c.*, 
+        COALESCE(COUNT(b.id), 0) as total_rides,
+        COALESCE(SUM(CASE WHEN b.status='completed' THEN b.fare_aed ELSE 0 END), 0) as lifetime_spend
+      FROM customers c
+      LEFT JOIN bookings b ON b.customer_phone = c.phone
+      GROUP BY c.id
+      ORDER BY c.created_at DESC 
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
     return result.rows;
   },
 

@@ -7,15 +7,8 @@ const customerController = {
       const limit = req.query.limit || 50;
       const offset = req.query.offset || 0;
       const customers = await Customer.findAll(limit, offset);
-      
-      const enriched = await Promise.all(
-        customers.map(async (c) => ({
-          ...c,
-          stats: await Customer.getStats(c.id)
-        }))
-      );
 
-      res.json({ success: true, data: enriched });
+      res.json({ success: true, data: customers });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }

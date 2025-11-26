@@ -26,6 +26,36 @@ app.use('/api/vendors', vendorRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/push', pushRoutes);
+app.get('/api/drivers', async (req, res) => {
+  try {
+    const { query: dbQuery } = require('./config/db');
+    const result = await dbQuery(`
+      SELECT d.*, v.name as vendor_name
+      FROM drivers d
+      LEFT JOIN vendors v ON d.vendor_id = v.id
+      ORDER BY d.created_at DESC
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get('/api/vehicles', async (req, res) => {
+  try {
+    const { query: dbQuery } = require('./config/db');
+    const result = await dbQuery(`
+      SELECT v.*, vn.name as vendor_name, d.name as driver_name
+      FROM vehicles v
+      LEFT JOIN vendors vn ON v.vendor_id = vn.id
+      LEFT JOIN drivers d ON v.driver_id = d.id
+      ORDER BY v.created_at DESC
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 app.use('/api/stats', statsRoutes);
 
 // Login page (public)
