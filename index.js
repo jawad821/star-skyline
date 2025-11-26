@@ -12,6 +12,7 @@ const authRoutes = require('./routes/authRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const pushRoutes = require('./routes/pushRoutes');
 const statsRoutes = require('./routes/statsRoutes');
+const customerRoutes = require('./routes/customerRoutes');
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/vendors', vendorRoutes);
+app.use('/api/customers', customerRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/push', pushRoutes);
 app.use('/api/stats', statsRoutes);
@@ -49,6 +51,16 @@ app.get('/db-test', async (req, res) => {
   try {
     const result = await query('SELECT NOW()');
     res.json({ success: true, time: result.rows[0].now });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Seed data endpoint (admin only)
+app.post('/seed-data', async (req, res) => {
+  try {
+    const seedModule = require('./scripts/seedData');
+    res.json({ success: true, message: 'Seed data created' });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
