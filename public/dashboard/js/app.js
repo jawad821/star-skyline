@@ -688,11 +688,13 @@ function initEditMapAutocomplete() {
   // Load all vehicles for model selection
   loadVehiclesForModels();
   
-  // Vehicle type change handler
+  // Vehicle type change handler - update models dropdown
   if (vehicleTypeSelect) {
     vehicleTypeSelect.addEventListener('change', () => {
-      updateVehicleModels(vehicleTypeSelect.value);
+      updateVehicleModels(vehicleTypeSelect.value, 'editVehicleModel');
     });
+    // Initialize on first load
+    updateVehicleModels(vehicleTypeSelect.value, 'editVehicleModel');
   }
   
   if (pickupInput) {
@@ -703,13 +705,18 @@ function initEditMapAutocomplete() {
       setTimeout(() => calculateDistanceAndFare(), 100);
     });
     
+    // Prevent Google's arrow key dropdown
+    pickupInput.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') e.preventDefault();
+    });
+    
     pickupInput.addEventListener('input', () => {
       if (pickupInput.value.length > 2) {
         const service = new google.maps.places.AutocompleteService();
         service.getPlacePredictions({ input: pickupInput.value, componentRestrictions: { country: 'ae' } }, (predictions, status) => {
           const suggestionsDiv = document.getElementById('pickupSuggestions');
-          if (suggestionsDiv && predictions) {
-            suggestionsDiv.innerHTML = predictions.map(p => '<div style="padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border); background: var(--bg-primary); color: var(--text); font-size: 13px;" onmouseover="this.style.background=\'var(--bg-secondary)\'" onmouseout="this.style.background=\'var(--bg-primary)\'" onclick="setLocation(\'editPickup\', \'' + p.description.replace(/'/g, "\\'") + '\')">' + p.description + '</div>').join('');
+          if (suggestionsDiv && predictions && predictions.length > 0) {
+            suggestionsDiv.innerHTML = predictions.map((p, idx) => '<div style="padding: 12px; cursor: pointer; border-bottom: 1px solid var(--border); background: var(--bg-primary); color: var(--text); font-size: 13px;" onmouseover="this.style.background=\'var(--bg-secondary)\'" onmouseout="this.style.background=\'var(--bg-primary)\'" onclick="setLocation(\'editPickup\', \'' + p.description.replace(/'/g, "\\'") + '\')" key="' + idx + '">' + p.description + '</div>').join('');
             suggestionsDiv.style.display = 'block';
           }
         });
@@ -727,13 +734,18 @@ function initEditMapAutocomplete() {
       setTimeout(() => calculateDistanceAndFare(), 100);
     });
     
+    // Prevent Google's arrow key dropdown
+    dropoffInput.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') e.preventDefault();
+    });
+    
     dropoffInput.addEventListener('input', () => {
       if (dropoffInput.value.length > 2) {
         const service = new google.maps.places.AutocompleteService();
         service.getPlacePredictions({ input: dropoffInput.value, componentRestrictions: { country: 'ae' } }, (predictions, status) => {
           const suggestionsDiv = document.getElementById('dropoffSuggestions');
-          if (suggestionsDiv && predictions) {
-            suggestionsDiv.innerHTML = predictions.map(p => '<div style="padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border); background: var(--bg-primary); color: var(--text); font-size: 13px;" onmouseover="this.style.background=\'var(--bg-secondary)\'" onmouseout="this.style.background=\'var(--bg-primary)\'" onclick="setLocation(\'editDropoff\', \'' + p.description.replace(/'/g, "\\'") + '\')">' + p.description + '</div>').join('');
+          if (suggestionsDiv && predictions && predictions.length > 0) {
+            suggestionsDiv.innerHTML = predictions.map((p, idx) => '<div style="padding: 12px; cursor: pointer; border-bottom: 1px solid var(--border); background: var(--bg-primary); color: var(--text); font-size: 13px;" onmouseover="this.style.background=\'var(--bg-secondary)\'" onmouseout="this.style.background=\'var(--bg-primary)\'" onclick="setLocation(\'editDropoff\', \'' + p.description.replace(/'/g, "\\'") + '\')" key="' + idx + '">' + p.description + '</div>').join('');
             suggestionsDiv.style.display = 'block';
           }
         });

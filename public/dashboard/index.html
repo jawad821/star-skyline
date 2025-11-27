@@ -614,15 +614,15 @@
               <option value="hourly_rental">Hourly Rental</option>
             </select>
           </div>
-          <div class="form-group">
+          <div class="form-group" style="position: relative;">
             <label>Pickup Location</label>
-            <input type="text" id="editPickup" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
-            <div id="pickupSuggestions" style="position: absolute; background: var(--bg-primary); border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; max-height: 150px; overflow-y: auto; z-index: 100; width: 280px; display: none;"></div>
+            <input type="text" id="editPickup" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; position: relative; z-index: 5;">
+            <div id="pickupSuggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-primary); border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; max-height: 150px; overflow-y: auto; z-index: 250; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none;"></div>
           </div>
-          <div class="form-group">
+          <div class="form-group" style="position: relative;">
             <label>Dropoff Location</label>
-            <input type="text" id="editDropoff" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
-            <div id="dropoffSuggestions" style="position: absolute; background: var(--bg-primary); border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; max-height: 150px; overflow-y: auto; z-index: 100; width: 280px; display: none;"></div>
+            <input type="text" id="editDropoff" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; position: relative; z-index: 5;">
+            <div id="dropoffSuggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-primary); border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; max-height: 150px; overflow-y: auto; z-index: 250; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none;"></div>
           </div>
           <div class="form-group">
             <label>Vehicle Type</label>
@@ -637,7 +637,9 @@
           </div>
           <div class="form-group">
             <label>Vehicle Model</label>
-            <input type="text" id="editVehicleModel" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+            <select id="editVehicleModel" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+              <option value="">-- Select Vehicle Model --</option>
+            </select>
           </div>
           <div class="form-group">
             <label>Payment Method</label>
@@ -815,6 +817,6 @@
   <!-- Modal Overlay -->
   <div id="modalOverlay" class="modal-overlay" style="display: none;" onclick="closeModal()"></div>
 
-  <script src="js/app.js"></script>
+  <script src="js/app.js?v=2"></script>
 </body>
 </html>
