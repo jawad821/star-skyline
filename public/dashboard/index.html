@@ -752,15 +752,15 @@
           <label>Phone</label>
           <input type="text" id="bookingCustomerPhone" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
         </div>
-        <div class="form-group">
+        <div class="form-group" style="position: relative;">
           <label>Pickup Location</label>
-          <input type="text" id="bookingPickup" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; position: relative;">
-          <div id="addPickupSuggestions" style="position: absolute; background: var(--bg-primary); border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; max-height: 150px; overflow-y: auto; z-index: 200; width: 280px; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+          <input type="text" id="bookingPickup" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; position: relative; z-index: 5;">
+          <div id="addPickupSuggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-primary); border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; max-height: 150px; overflow-y: auto; z-index: 250; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none;"></div>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="position: relative;">
           <label>Dropoff Location</label>
-          <input type="text" id="bookingDropoff" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; position: relative;">
-          <div id="addDropoffSuggestions" style="position: absolute; background: var(--bg-primary); border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; max-height: 150px; overflow-y: auto; z-index: 200; width: 280px; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+          <input type="text" id="bookingDropoff" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; position: relative; z-index: 5;">
+          <div id="addDropoffSuggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-primary); border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; max-height: 150px; overflow-y: auto; z-index: 250; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none;"></div>
         </div>
         <div class="form-group">
           <label>Distance (km)</label>
@@ -796,7 +796,9 @@
         </div>
         <div class="form-group">
           <label>Vehicle Model</label>
-          <input type="text" id="bookingVehicleModel" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+          <select id="bookingVehicleModel" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+            <option value="">-- Select Vehicle Model --</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Payment Method</label>

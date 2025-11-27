@@ -428,11 +428,13 @@ function initAddMapAutocomplete() {
   const dropoffInput = document.getElementById('bookingDropoff');
   const vehicleTypeSelect = document.getElementById('bookingVehicleType');
   
-  // Vehicle type change handler
+  // Vehicle type change handler - populate models dropdown
   if (vehicleTypeSelect) {
     vehicleTypeSelect.addEventListener('change', () => {
-      updateVehicleModels(vehicleTypeSelect.value);
+      updateVehicleModels(vehicleTypeSelect.value, 'bookingVehicleModel');
     });
+    // Initialize on first load
+    updateVehicleModels(vehicleTypeSelect.value, 'bookingVehicleModel');
   }
   
   if (pickupInput) {
@@ -442,13 +444,18 @@ function initAddMapAutocomplete() {
       if (place.formatted_address) pickupInput.value = place.formatted_address;
     });
     
+    // Prevent Google's built-in dropdown
+    pickupInput.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') e.preventDefault();
+    });
+    
     pickupInput.addEventListener('input', () => {
       if (pickupInput.value.length > 2) {
         const service = new google.maps.places.AutocompleteService();
         service.getPlacePredictions({ input: pickupInput.value, componentRestrictions: { country: 'ae' } }, (predictions, status) => {
           const suggestionsDiv = document.getElementById('addPickupSuggestions');
-          if (suggestionsDiv && predictions) {
-            suggestionsDiv.innerHTML = predictions.map(p => '<div style="padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border); background: var(--bg-primary); color: var(--text); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" onmouseover="this.style.background=\'var(--bg-secondary)\'" onmouseout="this.style.background=\'var(--bg-primary)\'" onclick="setLocationBooking(\'bookingPickup\', \'' + p.description.replace(/'/g, "\\'") + '\')">' + p.description + '</div>').join('');
+          if (suggestionsDiv && predictions && predictions.length > 0) {
+            suggestionsDiv.innerHTML = predictions.map((p, idx) => '<div style="padding: 12px; cursor: pointer; border-bottom: 1px solid var(--border); background: var(--bg-primary); color: var(--text); font-size: 13px;" onmouseover="this.style.background=\'var(--bg-secondary)\'" onmouseout="this.style.background=\'var(--bg-primary)\'" onclick="setLocationBooking(\'bookingPickup\', \'' + p.description.replace(/'/g, "\\'") + '\')" key="' + idx + '">' + p.description + '</div>').join('');
             suggestionsDiv.style.display = 'block';
           }
         });
@@ -465,13 +472,18 @@ function initAddMapAutocomplete() {
       if (place.formatted_address) dropoffInput.value = place.formatted_address;
     });
     
+    // Prevent Google's built-in dropdown
+    dropoffInput.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') e.preventDefault();
+    });
+    
     dropoffInput.addEventListener('input', () => {
       if (dropoffInput.value.length > 2) {
         const service = new google.maps.places.AutocompleteService();
         service.getPlacePredictions({ input: dropoffInput.value, componentRestrictions: { country: 'ae' } }, (predictions, status) => {
           const suggestionsDiv = document.getElementById('addDropoffSuggestions');
-          if (suggestionsDiv && predictions) {
-            suggestionsDiv.innerHTML = predictions.map(p => '<div style="padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border); background: var(--bg-primary); color: var(--text); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" onmouseover="this.style.background=\'var(--bg-secondary)\'" onmouseout="this.style.background=\'var(--bg-primary)\'" onclick="setLocationBooking(\'bookingDropoff\', \'' + p.description.replace(/'/g, "\\'") + '\')">' + p.description + '</div>').join('');
+          if (suggestionsDiv && predictions && predictions.length > 0) {
+            suggestionsDiv.innerHTML = predictions.map((p, idx) => '<div style="padding: 12px; cursor: pointer; border-bottom: 1px solid var(--border); background: var(--bg-primary); color: var(--text); font-size: 13px;" onmouseover="this.style.background=\'var(--bg-secondary)\'" onmouseout="this.style.background=\'var(--bg-primary)\'" onclick="setLocationBooking(\'bookingDropoff\', \'' + p.description.replace(/'/g, "\\'") + '\')" key="' + idx + '">' + p.description + '</div>').join('');
             suggestionsDiv.style.display = 'block';
           }
         });
@@ -746,13 +758,25 @@ function loadVehiclesForModels() {
   .catch(e => console.error('Error loading vehicles:', e));
 }
 
-function updateVehicleModels(vehicleType) {
-  const models = vehiclesList.filter(v => v.type === vehicleType).map(v => v.model);
-  const uniqueModels = [...new Set(models)];
-  const modelInput = document.getElementById('editVehicleModel');
-  if (modelInput) {
-    modelInput.value = '';
-    modelInput.placeholder = uniqueModels.length > 0 ? 'Select: ' + uniqueModels.join(', ') : 'No models available';
+function updateVehicleModels(vehicleType, targetId = 'editVehicleModel') {
+  const vehicles = vehiclesList.filter(v => v.type === vehicleType);
+  const select = document.getElementById(targetId);
+  
+  if (select) {
+    select.innerHTML = '<option value="">-- Select Vehicle Model --</option>';
+    if (vehicles.length > 0) {
+      vehicles.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v.model;
+        opt.textContent = v.model + ' (ID: ' + v.id.substring(0, 6) + ')';
+        select.appendChild(opt);
+      });
+    } else {
+      const opt = document.createElement('option');
+      opt.disabled = true;
+      opt.textContent = 'No vehicles available';
+      select.appendChild(opt);
+    }
   }
 }
 
