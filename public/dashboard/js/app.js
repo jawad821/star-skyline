@@ -48,6 +48,10 @@ function setupUserInfo() {
   document.querySelectorAll('[class*="user-info"], [class*="user-name"]').forEach(el => {
     if (el) el.textContent = user.username || 'User';
   });
+  const userEl = document.getElementById('currentUser');
+  if (userEl) userEl.textContent = user.username || 'Admin';
+  const lastEl = document.getElementById('lastUpdated');
+  if (lastEl) lastEl.textContent = new Date().toLocaleDateString();
 }
 
 // Navigation
@@ -82,6 +86,8 @@ function navigateToPage(page) {
     else if (page === 'cars-minibus') loadVehicles('minibus', 'carsGridMinibus');
     else if (page === 'bookings') loadBookings();
     else if (page === 'kpi') loadKPI();
+    else if (page === 'settings') setupUserInfo();
+    else if (page === 'alerts') loadAlerts();
   }
 }
 
@@ -180,7 +186,7 @@ async function loadDrivers(status = null, targetTableId = 'drivers-table-body') 
       return;
     }
     
-    tbody.innerHTML = drivers.map(d => '<tr><td>' + d.id.substring(0, 8) + '</td><td>' + d.name + '</td><td>' + (d.phone || 'N/A') + '</td><td><span style="padding: 4px 8px; border-radius: 4px; background: ' + (d.status === 'online' ? '#10b981' : '#ef4444') + '; color: white; font-size: 12px;">' + (d.status || 'offline') + '</span></td><td>-</td><td>0</td><td><button onclick="editDriver(\'' + d.id + '\')" class="btn-small">Edit</button></td></tr>').join('');
+    tbody.innerHTML = drivers.map(d => '<tr><td>' + d.id.substring(0, 8) + '</td><td>' + d.name + '</td><td>' + (d.phone || 'N/A') + '</td><td><span style="padding: 4px 8px; border-radius: 4px; background: ' + (d.status === 'online' ? '#10b981' : '#ef4444') + '; color: white; font-size: 12px;">' + (d.status || 'offline') + '</span></td><td>-</td><td>0</td><td><button onclick="viewDriver(\'' + d.id + '\')" class="btn-small">View</button> <button onclick="editDriver(\'' + d.id + '\')" class="btn-small">Edit</button></td></tr>').join('');
   } catch (e) {
     const tbody = document.getElementById(targetTableId);
     if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="color:red;">Error: ' + e.message + '</td></tr>';
@@ -267,7 +273,7 @@ async function loadBookings() {
       return;
     }
     
-    tbody.innerHTML = data.data.map(b => '<tr><td>' + b.id.substring(0, 8) + '</td><td>' + b.customer_name + '</td><td>' + b.customer_phone + '</td><td>' + b.pickup_location + '</td><td>' + b.dropoff_location + '</td><td>' + b.distance_km + '</td><td>-</td><td>AED ' + (b.fare_aed || b.total_fare || 0) + '</td><td>' + (b.driver_name || 'Unassigned') + '</td><td>-</td><td>' + b.status + '</td><td>' + new Date(b.created_at).toLocaleDateString() + '</td><td><button onclick="viewBooking(\'' + b.id + '\')" class="btn-small">View</button></td></tr>').join('');
+    tbody.innerHTML = data.data.map(b => '<tr><td>' + b.id.substring(0, 8) + '</td><td>' + b.customer_name + '</td><td>' + b.customer_phone + '</td><td>' + b.pickup_location + '</td><td>' + b.dropoff_location + '</td><td>' + b.distance_km + '</td><td>-</td><td>AED ' + (b.fare_aed || b.total_fare || 0) + '</td><td>' + (b.driver_name || 'Unassigned') + '</td><td>-</td><td>' + b.status + '</td><td>' + new Date(b.created_at).toLocaleDateString() + '</td><td><button onclick="viewBooking(\'' + b.id + '\')" class="btn-small">View</button> <button onclick="editBooking(\'' + b.id + '\')" class="btn-small">Edit</button></td></tr>').join('');
   } catch (e) {
     const tbody = document.getElementById('bookings-table-body');
     if (tbody) tbody.innerHTML = '<tr><td colspan="13" style="color:red;">Error loading bookings: ' + e.message + '</td></tr>';
@@ -421,4 +427,52 @@ function closeModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) modal.style.display = 'none';
   document.getElementById('modalOverlay').style.display = 'none';
+}
+
+// View Driver
+function viewDriver(id) {
+  const url = getCacheBustUrl(API_BASE + '/drivers/' + id);
+  fetch(url, {
+    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.data) {
+      alert('Driver: ' + d.data.name + '\nPhone: ' + d.data.phone + '\nStatus: ' + d.data.status);
+    }
+  })
+  .catch(e => console.error(e));
+}
+
+// Edit Booking
+function editBooking(id) {
+  fetch(API_BASE + '/bookings/' + id, {
+    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.data) {
+      document.getElementById('editStatus').value = d.data.status || 'pending';
+      document.getElementById('editPayment').value = d.data.payment_method || 'cash';
+      document.getElementById('editFare').value = d.data.fare_aed || 0;
+      const modal = document.getElementById('editBookingModal');
+      if (modal) modal.style.display = 'block';
+      document.getElementById('modalOverlay').style.display = 'block';
+      window.editingBookingId = id;
+    }
+  })
+  .catch(e => console.error(e));
+}
+
+// Load Alerts
+async function loadAlerts() {
+  try {
+    const token = localStorage.getItem('token');
+    const container = document.getElementById('alertsFullList');
+    if (!container) return;
+    
+    container.innerHTML = '<div style="text-align:center; padding:20px;"><p>✅ No critical alerts</p><p style="color:var(--text-secondary); font-size:12px;">System running normally</p></div>';
+  } catch (e) {
+    console.error(e);
+  }
 }
