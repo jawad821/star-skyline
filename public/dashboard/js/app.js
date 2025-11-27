@@ -218,7 +218,14 @@ function viewBooking(id) {
     .then(r => r.json())
     .then(d => {
       if (d.data) {
-        alert('Booking: ' + d.data.customer_name + '\nPhone: ' + d.data.customer_phone + '\nPickup: ' + d.data.pickup_location + '\nDropoff: ' + d.data.dropoff_location + '\nFare: AED ' + (d.data.fare_aed || d.data.total_fare || 0) + '\nStatus: ' + d.data.status);
+        const content = document.getElementById('bookingDetailContent');
+        if (content) {
+          content.innerHTML = '<div style="display: grid; gap: 12px;"><div><strong>Customer:</strong> ' + d.data.customer_name + '</div><div><strong>Phone:</strong> ' + d.data.customer_phone + '</div><div><strong>Pickup:</strong> ' + d.data.pickup_location + '</div><div><strong>Dropoff:</strong> ' + d.data.dropoff_location + '</div><div><strong>Distance:</strong> ' + d.data.distance_km + ' km</div><div><strong>Fare:</strong> AED ' + (d.data.fare_aed || d.data.total_fare || 0) + '</div><div><strong>Status:</strong> ' + d.data.status + '</div></div>';
+          const modal = document.getElementById('bookingDetailModal');
+          const overlay = document.getElementById('modalOverlay');
+          if (modal) modal.style.display = 'block';
+          if (overlay) overlay.style.display = 'block';
+        }
       }
     })
     .catch(e => console.log(e));
