@@ -19,21 +19,62 @@ function logout() {
 
 // Init
 document.addEventListener('DOMContentLoaded', init);
-window.addEventListener('load', () => {
-  if (window.google && window.google.maps) {
-    initGoogleMapsAutocomplete();
-  }
-});
-
 function init() {
   checkAuth();
   setupTheme();
+  setupUserInfo();
+  setupNavigation();
+  loadDashboard();
 }
 
 // Theme
 function setupTheme() {
   const isDark = localStorage.getItem('theme') === 'dark';
   document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  const toggle = document.getElementById('themeToggle');
+  if (toggle) toggle.addEventListener('click', toggleTheme);
+}
+
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  localStorage.setItem('theme', isDark ? 'light' : 'dark');
+}
+
+// User Info
+function setupUserInfo() {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  document.querySelectorAll('[class*="user-info"], [class*="user-name"]').forEach(el => {
+    if (el) el.textContent = user.username || 'User';
+  });
+}
+
+// Navigation
+function setupNavigation() {
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      const page = this.getAttribute('data-page');
+      if (page) navigateToPage(page);
+    });
+  });
+}
+
+function navigateToPage(page) {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  const active = document.querySelector(`[data-page="${page}"]`);
+  if (active) active.classList.add('active');
+  
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  const pageEl = document.getElementById(`page-${page}`);
+  if (pageEl) {
+    pageEl.style.display = 'block';
+    if (page === 'drivers') loadDrivers();
+    else if (page === 'vehicles') loadVehicles();
+    else if (page === 'bookings') loadBookings();
+    else if (page === 'vendors') loadVendors();
+    else if (page === 'driver-approvals') loadDriverApprovals();
+  }
 }
 
 // Modals
@@ -44,17 +85,390 @@ function closeAllModals() {
 }
 
 function closeModal(id) {
-  const modal = document.getElementById(id);
-  if (modal) modal.style.display = 'none';
-  const overlay = document.getElementById('modalOverlay');
-  if (overlay) overlay.style.display = 'none';
+  const m = document.getElementById(id);
+  if (m) m.style.display = 'none';
+  const o = document.getElementById('modalOverlay');
+  if (o) o.style.display = 'none';
 }
 
 function openModal(id) {
-  const modal = document.getElementById(id);
-  const overlay = document.getElementById('modalOverlay');
-  if (modal) modal.style.display = 'block';
-  if (overlay) overlay.style.display = 'block';
+  const o = document.getElementById('modalOverlay');
+  if (o) {
+    o.style.display = 'block';
+    o.onclick = () => closeAllModals();
+  }
+  const m = document.getElementById(id);
+  if (m) m.style.display = 'block';
+}
+
+// Dashboard
+async function loadDashboard() {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE}/stats/summary`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.data) {
+        document.getElementById('totalBookings').textContent = data.data.total_bookings || 0;
+        document.getElementById('totalRevenue').textContent = (data.data.total_revenue || 0).toFixed(2);
+        document.getElementById('totalDrivers').textContent = data.data.total_drivers || 0;
+        document.getElementById('totalVehicles').textContent = data.data.total_vehicles || 0;
+      }
+    }
+  } catch (e) {
+    console.log('Dashboard error:', e);
+  }
+}
+
+// Drivers
+async function loadDrivers() {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE}/drivers`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      const table = document.getElementById('driversTable');
+      if (!table) return;
+      
+      if (!data.data || !data.data.length) {
+        table.innerHTML = '<tr><td colspan="6">No drivers</td></tr>';
+        return;
+      }
+      
+      table.innerHTML = data.data.map(d => `
+        <tr>
+          <td>${d.name}</td>
+          <td>${d.license_number || 'N/A'}</td>
+          <td>${d.phone || 'N/A'}</td>
+          <td>${d.driver_registration_status || 'pending'}</td>
+          <td>⭐ ${d.avg_rating ? d.avg_rating.toFixed(1) : 'N/A'}</td>
+          <td>
+            <button onclick="viewDriver(${d.id})" class="btn-small">View</button>
+            <button onclick="editDriver(${d.id})" class="btn-small">Edit</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  } catch (e) {
+    console.log('Drivers error:', e);
+  }
+}
+
+function viewDriver(id) {
+  fetch(`${API_BASE}/drivers/${id}`)
+    .then(r => r.json())
+    .then(d => {
+      if (d.data) {
+        document.getElementById('viewDriverName').textContent = d.data.name;
+        document.getElementById('viewDriverLicense').textContent = d.data.license_number || 'N/A';
+        document.getElementById('viewDriverPhone').textContent = d.data.phone || 'N/A';
+        document.getElementById('viewDriverRating').textContent = d.data.avg_rating ? d.data.avg_rating.toFixed(1) : 'N/A';
+        openModal('viewDriverModal');
+      }
+    })
+    .catch(e => console.log(e));
+}
+
+function editDriver(id) {
+  fetch(`${API_BASE}/drivers/${id}`)
+    .then(r => r.json())
+    .then(d => {
+      if (d.data) {
+        document.getElementById('editDriverId').value = id;
+        document.getElementById('editDriverName').value = d.data.name || '';
+        document.getElementById('editDriverLicense').value = d.data.license_number || '';
+        document.getElementById('editDriverPhone').value = d.data.phone || '';
+        openModal('editDriverModal');
+      }
+    })
+    .catch(e => console.log(e));
+}
+
+async function saveDriver() {
+  const token = localStorage.getItem('token');
+  const id = document.getElementById('editDriverId').value;
+  const data = {
+    license_number: document.getElementById('editDriverLicense').value,
+    phone: document.getElementById('editDriverPhone').value
+  };
+  
+  try {
+    const response = await fetch(`${API_BASE}/drivers/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(data)
+    });
+    if (response.ok) {
+      closeModal('editDriverModal');
+      loadDrivers();
+    }
+  } catch (e) {
+    console.log('Save driver error:', e);
+  }
+}
+
+// Vehicles
+async function loadVehicles() {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE}/vehicles`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      const table = document.getElementById('vehiclesTable');
+      if (!table) return;
+      
+      if (!data.data || !data.data.length) {
+        table.innerHTML = '<tr><td colspan="6">No vehicles</td></tr>';
+        return;
+      }
+      
+      table.innerHTML = data.data.map(v => `
+        <tr>
+          <td>${v.model}</td>
+          <td>${v.vehicle_type}</td>
+          <td>${v.license_plate || 'N/A'}</td>
+          <td>${v.color || 'N/A'}</td>
+          <td>${v.status || 'active'}</td>
+          <td>
+            <button onclick="editVehicle(${v.id})" class="btn-small">Edit</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  } catch (e) {
+    console.log('Vehicles error:', e);
+  }
+}
+
+function editVehicle(id) {
+  fetch(`${API_BASE}/vehicles/${id}`)
+    .then(r => r.json())
+    .then(d => {
+      if (d.data) {
+        document.getElementById('editVehicleId').value = id;
+        document.getElementById('editVehicleModel').value = d.data.model || '';
+        document.getElementById('editVehicleType').value = d.data.vehicle_type || '';
+        document.getElementById('editVehicleLicensePlate').value = d.data.license_plate || '';
+        document.getElementById('editVehicleColor').value = d.data.color || '';
+        document.getElementById('editVehicleStatus').value = d.data.status || '';
+        openModal('editVehicleModal');
+      }
+    })
+    .catch(e => console.log(e));
+}
+
+async function saveVehicle() {
+  const token = localStorage.getItem('token');
+  const id = document.getElementById('editVehicleId').value;
+  const data = {
+    color: document.getElementById('editVehicleColor').value,
+    status: document.getElementById('editVehicleStatus').value
+  };
+  
+  try {
+    const response = await fetch(`${API_BASE}/vehicles/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(data)
+    });
+    if (response.ok) {
+      closeModal('editVehicleModal');
+      loadVehicles();
+    }
+  } catch (e) {
+    console.log('Save vehicle error:', e);
+  }
+}
+
+// Bookings
+async function loadBookings() {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE}/bookings`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      const table = document.getElementById('bookingsTable');
+      if (!table) return;
+      
+      if (!data.data || !data.data.length) {
+        table.innerHTML = '<tr><td colspan="7">No bookings</td></tr>';
+        return;
+      }
+      
+      table.innerHTML = data.data.map(b => `
+        <tr>
+          <td>${b.customer_name}</td>
+          <td>${b.pickup_location}</td>
+          <td>${b.dropoff_location}</td>
+          <td>${b.distance_km} km</td>
+          <td>AED ${b.total_fare || 0}</td>
+          <td>${b.status}</td>
+          <td>
+            <button onclick="viewBooking(${b.id})" class="btn-small">Detail</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  } catch (e) {
+    console.log('Bookings error:', e);
+  }
+}
+
+function viewBooking(id) {
+  fetch(`${API_BASE}/bookings/${id}`)
+    .then(r => r.json())
+    .then(d => {
+      if (d.data) {
+        document.getElementById('detailCustomer').textContent = d.data.customer_name;
+        document.getElementById('detailPhone').textContent = d.data.customer_phone;
+        document.getElementById('detailPickup').textContent = d.data.pickup_location;
+        document.getElementById('detailDropoff').textContent = d.data.dropoff_location;
+        document.getElementById('detailDistance').textContent = d.data.distance_km;
+        document.getElementById('detailFare').textContent = d.data.total_fare || 0;
+        document.getElementById('detailStatus').textContent = d.data.status;
+        document.getElementById('detailDriver').textContent = d.data.driver_name || 'Unassigned';
+        document.getElementById('detailVehicle').textContent = d.data.vehicle_model || 'N/A';
+        document.getElementById('detailPlate').textContent = d.data.license_plate || 'N/A';
+        openModal('bookingDetailModal');
+      }
+    })
+    .catch(e => console.log(e));
+}
+
+// Vendors
+async function loadVendors() {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE}/vendor-management/pending-vendors`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      const table = document.getElementById('vendorsTable');
+      if (!table) return;
+      
+      if (!data.data || !data.data.length) {
+        table.innerHTML = '<tr><td colspan="5">No pending vendors</td></tr>';
+        return;
+      }
+      
+      table.innerHTML = data.data.map(v => `
+        <tr>
+          <td>${v.company_name}</td>
+          <td>${v.contact_email}</td>
+          <td>${v.status}</td>
+          <td>${v.total_drivers || 0}</td>
+          <td>
+            <button onclick="approveVendor(${v.id})" class="btn-small">Approve</button>
+            <button onclick="rejectVendor(${v.id})" class="btn-small">Reject</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  } catch (e) {
+    console.log('Vendors error:', e);
+  }
+}
+
+async function approveVendor(id) {
+  const token = localStorage.getItem('token');
+  try {
+    await fetch(`${API_BASE}/vendor-management/approve-vendor/${id}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    loadVendors();
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+async function rejectVendor(id) {
+  const token = localStorage.getItem('token');
+  try {
+    await fetch(`${API_BASE}/vendor-management/reject-vendor/${id}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    loadVendors();
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+// Driver Approvals
+async function loadDriverApprovals() {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE}/vendor-management/pending-drivers`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      const table = document.getElementById('driverApprovalsTable');
+      if (!table) return;
+      
+      if (!data.data || !data.data.length) {
+        table.innerHTML = '<tr><td colspan="5">No pending drivers</td></tr>';
+        return;
+      }
+      
+      table.innerHTML = data.data.map(d => `
+        <tr>
+          <td>${d.name}</td>
+          <td>${d.email}</td>
+          <td>${d.license_number || 'N/A'}</td>
+          <td>${d.driver_registration_status || 'pending'}</td>
+          <td>
+            <button onclick="approveDriver(${d.id})" class="btn-small">Approve</button>
+            <button onclick="rejectDriver(${d.id})" class="btn-small">Reject</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  } catch (e) {
+    console.log('Driver approvals error:', e);
+  }
+}
+
+async function approveDriver(id) {
+  const token = localStorage.getItem('token');
+  try {
+    await fetch(`${API_BASE}/vendor-management/approve-driver/${id}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    loadDriverApprovals();
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+async function rejectDriver(id) {
+  const token = localStorage.getItem('token');
+  try {
+    await fetch(`${API_BASE}/vendor-management/reject-driver/${id}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    loadDriverApprovals();
+  } catch (e) {
+    console.log(e);
+  }
 }
 
 // Google Maps
@@ -123,7 +537,7 @@ function updateBookingFare() {
   }).catch(e => console.log(e));
 }
 
-// Booking
+// Booking Modal
 function openAddBookingModal() {
   pickupCoords = null;
   dropoffCoords = null;
@@ -154,7 +568,7 @@ async function loadDriversForBooking() {
         data.data.forEach(driver => {
           const option = document.createElement('option');
           option.value = driver.id;
-          option.textContent = driver.name + ' (' + (driver.license_number || 'No License') + ')';
+          option.textContent = driver.name + ' (' + (driver.license_number || 'N/A') + ')';
           select.appendChild(option);
         });
       }
@@ -199,16 +613,18 @@ async function createManualBooking() {
     if (result.success) {
       alert('Booking created!');
       closeModal('addBookingModal');
+      loadBookings();
     } else {
       alert('Error: ' + result.error);
     }
   } catch (error) {
     alert('Booking created!');
     closeModal('addBookingModal');
+    loadBookings();
   }
 }
 
-// Driver dropdown
+// Driver dropdown toggle
 document.addEventListener('DOMContentLoaded', () => {
   const driverIdSelect = document.getElementById('bookingDriverId');
   if (driverIdSelect) {
@@ -223,5 +639,12 @@ document.addEventListener('DOMContentLoaded', () => {
         driverSelect.value = '';
       }
     });
+  }
+});
+
+// Initialize maps when page loads
+window.addEventListener('load', () => {
+  if (window.google && window.google.maps) {
+    initGoogleMapsAutocomplete();
   }
 });
