@@ -105,7 +105,7 @@ function openModal(id) {
 async function loadDashboard() {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_BASE}/stats/summary`, {
+    const response = await fetch(`${API_BASE}/stats/summary?range=today`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     
