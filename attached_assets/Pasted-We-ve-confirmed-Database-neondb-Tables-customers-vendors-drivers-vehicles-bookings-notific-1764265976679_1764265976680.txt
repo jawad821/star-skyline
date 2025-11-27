@@ -1,0 +1,335 @@
+We’ve confirmed:
+
+Database: neondb
+
+Tables: customers, vendors, drivers, vehicles, bookings, notification_logs, ...
+
+Data exists:
+
+customers: 15
+
+vendors: 2
+
+drivers: 16
+
+vehicles: 16
+
+bookings: 116
+
+So the problem is NOT the DB. The problem is UI + API wiring + RBAC.
+
+Currently the issues are:
+
+Dashboard shows no numbers, and date filters (Today/Yesterday/Week/Month) are not working.
+
+Bookings list shows rows, but:
+
+"View" button does nothing.
+
+Pending bookings cannot be edited.
+
+Drivers:
+
+"All drivers" shows data.
+
+"Online drivers" and "Offline drivers" tabs show no data.
+
+Vehicles:
+
+Cars / vehicle screens show "No vehicles", even though there are 16 vehicles in DB.
+
+Filters like Sedan / SUV / Luxury / Vans / Bus / Mini Bus all show nothing.
+
+In many places I cannot click / edit things that should be editable.
+
+I want you to do a PROPER end-to-end debug and fix, not just schema talk.
+
+✅ STEP 1 — RUN APP, LOGIN AS ADMIN, OPEN BROWSER DEVTOOLS
+
+Run the app on port 8000.
+
+Login with admin credentials (not operator, not vendor):
+admin / admin123
+
+Open browser DevTools:
+
+Console tab
+
+Network tab
+
+Whenever you fix something below, actually click in UI and check Network + Console for errors.
+
+✅ STEP 2 — CHECK CORE APIs DIRECTLY (RAW JSON)
+
+Using either built-in HTTP client / curl / Postman-like tool, call these endpoints and show their JSON output:
+
+GET /api/dashboard/stats
+GET /api/bookings
+GET /api/drivers
+GET /api/vehicles
+
+
+If these endpoints do NOT exist with exactly these paths, find their actual paths and:
+
+Either align frontend to those paths
+
+Or add aliases so these paths work.
+
+Goal:
+All 4 endpoints must:
+
+Return 200 OK
+
+Return JSON like:
+
+{ "success": true, "data": ... }
+
+
+If any endpoint returns error or empty data while DB has rows → fix the controller FIRST before touching the frontend.
+
+✅ STEP 3 — FIX DASHBOARD (NUMBERS + FILTERS)
+
+Search the codebase for the Dashboard component (e.g. Dashboard.jsx, Dashboard.tsx, or similar).
+
+Open the Dashboard file and:
+
+Find where it calls the stats API.
+
+If it’s calling a wrong URL (e.g. /dashboard/stats, /api/stats, etc.), change it to the correct working stats endpoint from STEP 2.
+
+Make sure it reads data from response.data.data (if backend returns { success, data }).
+
+Find the code for the range buttons (Today / Yesterday / This Week / This Month / Custom).
+
+Add or fix the onClick handlers so they actually:
+
+Update a range state (e.g. 'today' | 'yesterday' | 'week' | 'month' | 'custom')
+
+Re-fetch the stats API with a query param like ?range=today etc.
+
+In the stats controller on backend:
+
+Implement logic for:
+
+today
+
+yesterday
+
+week
+
+month
+
+Make sure each returns real counts using the actual bookings table.
+
+Expected result:
+Dashboard cards show non-zero values and clicking filters calls the API and updates numbers.
+
+✅ STEP 4 — FIX BOOKINGS: VIEW + EDIT
+4.1 Backend
+
+Ensure these routes exist in the backend:
+
+GET /api/bookings/:id
+PUT /api/bookings/:id
+
+
+In the GET controller:
+
+Fetch booking by id (uuid) from bookings table.
+
+Return { success: true, data: booking }.
+
+In the PUT controller:
+
+Allow updating at least:
+
+status
+
+driver_id
+
+assigned_vehicle_id
+
+Return updated booking.
+
+Check RBAC/middleware:
+
+Ensure admin role is allowed to GET and PUT on /api/bookings/:id.
+
+Ensure operator is at least allowed to edit booking status and assignments.
+
+4.2 Frontend
+
+Search for the Bookings page component (e.g. BookingsList.jsx).
+
+Locate the table where each booking row is rendered.
+
+Find the “View” button:
+
+It should either:
+
+Use a <Link to={/bookings/${id}}>, or
+
+Have an onClick={() => navigate(/bookings/${id})}.
+
+If it does nothing / empty handler, implement proper navigation.
+
+Ensure there is a Booking Detail / Edit component for route:
+
+/bookings/:id
+
+In that component:
+
+On mount, call GET /api/bookings/:id.
+
+Populate the fields.
+
+On save, call PUT /api/bookings/:id.
+
+Expected result:
+
+Clicking View opens booking detail.
+
+Pending bookings can be edited by admin (and operator if allowed).
+
+✅ STEP 5 — FIX DRIVERS: ONLINE / OFFLINE TABS
+
+Confirm in DB that drivers.status contains 'online' / 'offline'.
+
+Find the Drivers page component.
+
+Locate code for:
+
+“All Drivers”
+
+“Online Drivers”
+
+“Offline Drivers”
+
+Implement one of these approaches:
+
+Option A – API-level filter
+
+/api/drivers → all
+
+/api/drivers?status=online → online only
+
+/api/drivers?status=offline → offline only
+
+Option B – Frontend filter
+
+Fetch all drivers once
+
+Compute:
+
+onlineDrivers = drivers.filter(d => d.status === 'online')
+
+offlineDrivers = drivers.filter(d => d.status === 'offline')
+
+Show relevant list when tab clicked.
+
+Expected result:
+Online/Offline tabs actually show drivers instead of being empty.
+
+Also ensure admin can click Edit on a driver:
+
+Backend: PUT /api/drivers/:id exists and allowed for admin.
+
+Frontend: Edit button opens a form / modal.
+
+✅ STEP 6 — FIX VEHICLES LIST & CATEGORY FILTERS
+
+Currently:
+
+vehicles table has 16 rows.
+
+Admin UI shows “No vehicles” and category tabs (Sedan, SUV, Luxury, Vans, Bus, Mini Bus) all appear empty.
+
+6.1 Backend
+
+Call SELECT * FROM vehicles LIMIT 5; to see real type values (e.g. sedan, suv, luxury, mpv, etc.).
+
+Open the vehicles API controller (e.g. vehiclesController.js).
+
+Ensure:
+
+/api/vehicles returns all active vehicles.
+
+When a type query param is passed (e.g. ?type=sedan), filter by:
+
+WHERE type = $1
+
+
+Make sure admin is not restricted by vendor when listing vehicles.
+
+6.2 Frontend
+
+Open the Vehicles page React component.
+
+Check the category filter buttons (Sedan/SUV/Luxury/Vans/Bus/Mini Bus).
+
+Fix them so they either:
+
+Call /api/vehicles?type=sedan etc., matching EXACT type strings from DB.
+
+Or filter locally on already-loaded list based on vehicle.type.
+
+If the frontend expects Luxury Sedan but DB has luxury, normalize either on backend or frontend.
+
+Expected result:
+
+Main Vehicles table shows multiple cars.
+
+Clicking Sedan/SUV/Luxury etc. shows filtered cars instead of “no vehicles”.
+
+✅ STEP 7 — RBAC (PERMISSIONS) NOT TOO STRICT
+
+Check RBAC middleware:
+
+Ensure admin can:
+
+List + view + edit bookings, drivers, vehicles, customers.
+
+Ensure operator can:
+
+List + view bookings
+
+Edit booking status and assignments
+
+List drivers / vehicles / customers
+
+If edit buttons are hidden or API blocked due to role, fix that.
+
+✅ STEP 8 — AFTER FIXES, PROVIDE THESE 6 SCREENSHOTS
+
+Once all fixes above are done, please provide:
+
+Dashboard showing non-zero numbers and a working date filter (e.g. Yesterday).
+
+Bookings list where View opens a detail page.
+
+Booking detail page open for a real booking.
+
+Drivers page showing:
+
+All drivers tab with data
+
+Online drivers tab with data
+
+Offline drivers tab with data
+
+Vehicles page showing multiple vehicles for admin.
+
+Vehicles category filter (e.g. SUV) showing non-empty list.
+
+📌 Important:
+Do NOT touch the database schema or reinsert demo data.
+The database is fine.
+The fix is:
+
+Correct API endpoints
+
+Correct response parsing
+
+Correct React routing / handlers
+
+Correct RBAC permissions.
