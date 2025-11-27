@@ -435,10 +435,12 @@ function initAddMapAutocomplete() {
         service.getPlacePredictions({ input: pickupInput.value, componentRestrictions: { country: 'ae' } }, (predictions, status) => {
           const suggestionsDiv = document.getElementById('addPickupSuggestions');
           if (suggestionsDiv && predictions) {
-            suggestionsDiv.innerHTML = predictions.map(p => '<div style="padding: 8px; cursor: pointer;" onclick="setLocation(\'bookingPickup\', \'' + p.description.replace(/'/g, "\\'") + '\')">' + p.description + '</div>').join('');
+            suggestionsDiv.innerHTML = predictions.map(p => '<div style="padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border); background: var(--bg-primary); color: var(--text); font-size: 13px;" onmouseover="this.style.background=\'var(--bg-secondary)\'" onmouseout="this.style.background=\'var(--bg-primary)\'" onclick="setLocation(\'bookingPickup\', \'' + p.description.replace(/'/g, "\\'") + '\')">' + p.description + '</div>').join('');
             suggestionsDiv.style.display = 'block';
           }
         });
+      } else {
+        document.getElementById('addPickupSuggestions').style.display = 'none';
       }
     });
   }
@@ -456,10 +458,12 @@ function initAddMapAutocomplete() {
         service.getPlacePredictions({ input: dropoffInput.value, componentRestrictions: { country: 'ae' } }, (predictions, status) => {
           const suggestionsDiv = document.getElementById('addDropoffSuggestions');
           if (suggestionsDiv && predictions) {
-            suggestionsDiv.innerHTML = predictions.map(p => '<div style="padding: 8px; cursor: pointer;" onclick="setLocation(\'bookingDropoff\', \'' + p.description.replace(/'/g, "\\'") + '\')">' + p.description + '</div>').join('');
+            suggestionsDiv.innerHTML = predictions.map(p => '<div style="padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border); background: var(--bg-primary); color: var(--text); font-size: 13px;" onmouseover="this.style.background=\'var(--bg-secondary)\'" onmouseout="this.style.background=\'var(--bg-primary)\'" onclick="setLocation(\'bookingDropoff\', \'' + p.description.replace(/'/g, "\\'") + '\')">' + p.description + '</div>').join('');
             suggestionsDiv.style.display = 'block';
           }
         });
+      } else {
+        document.getElementById('addDropoffSuggestions').style.display = 'none';
       }
     });
   }
@@ -638,12 +642,24 @@ function initEditMapAutocomplete() {
   
   const pickupInput = document.getElementById('editPickup');
   const dropoffInput = document.getElementById('editDropoff');
+  const vehicleTypeSelect = document.getElementById('editVehicleType');
+  
+  // Load all vehicles for model selection
+  loadVehiclesForModels();
+  
+  // Vehicle type change handler
+  if (vehicleTypeSelect) {
+    vehicleTypeSelect.addEventListener('change', () => {
+      updateVehicleModels(vehicleTypeSelect.value);
+    });
+  }
   
   if (pickupInput) {
     const pickupAuto = new google.maps.places.Autocomplete(pickupInput, { types: ['geocode'], componentRestrictions: { country: 'ae' } });
     pickupAuto.addListener('place_changed', () => {
       const place = pickupAuto.getPlace();
       if (place.formatted_address) pickupInput.value = place.formatted_address;
+      setTimeout(() => calculateDistanceAndFare(), 100);
     });
     
     pickupInput.addEventListener('input', () => {
@@ -652,10 +668,12 @@ function initEditMapAutocomplete() {
         service.getPlacePredictions({ input: pickupInput.value, componentRestrictions: { country: 'ae' } }, (predictions, status) => {
           const suggestionsDiv = document.getElementById('pickupSuggestions');
           if (suggestionsDiv && predictions) {
-            suggestionsDiv.innerHTML = predictions.map(p => '<div style="padding: 8px; cursor: pointer; hover: background: var(--bg-secondary);" onclick="setLocation(\'editPickup\', \'' + p.description.replace(/'/g, "\\'") + '\')">' + p.description + '</div>').join('');
+            suggestionsDiv.innerHTML = predictions.map(p => '<div style="padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border); background: var(--bg-primary); color: var(--text); font-size: 13px;" onmouseover="this.style.background=\'var(--bg-secondary)\'" onmouseout="this.style.background=\'var(--bg-primary)\'" onclick="setLocation(\'editPickup\', \'' + p.description.replace(/'/g, "\\'") + '\')">' + p.description + '</div>').join('');
             suggestionsDiv.style.display = 'block';
           }
         });
+      } else {
+        document.getElementById('pickupSuggestions').style.display = 'none';
       }
     });
   }
@@ -665,6 +683,7 @@ function initEditMapAutocomplete() {
     dropoffAuto.addListener('place_changed', () => {
       const place = dropoffAuto.getPlace();
       if (place.formatted_address) dropoffInput.value = place.formatted_address;
+      setTimeout(() => calculateDistanceAndFare(), 100);
     });
     
     dropoffInput.addEventListener('input', () => {
@@ -673,13 +692,75 @@ function initEditMapAutocomplete() {
         service.getPlacePredictions({ input: dropoffInput.value, componentRestrictions: { country: 'ae' } }, (predictions, status) => {
           const suggestionsDiv = document.getElementById('dropoffSuggestions');
           if (suggestionsDiv && predictions) {
-            suggestionsDiv.innerHTML = predictions.map(p => '<div style="padding: 8px; cursor: pointer;" onclick="setLocation(\'editDropoff\', \'' + p.description.replace(/'/g, "\\'") + '\')">' + p.description + '</div>').join('');
+            suggestionsDiv.innerHTML = predictions.map(p => '<div style="padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border); background: var(--bg-primary); color: var(--text); font-size: 13px;" onmouseover="this.style.background=\'var(--bg-secondary)\'" onmouseout="this.style.background=\'var(--bg-primary)\'" onclick="setLocation(\'editDropoff\', \'' + p.description.replace(/'/g, "\\'") + '\')">' + p.description + '</div>').join('');
             suggestionsDiv.style.display = 'block';
           }
         });
+      } else {
+        document.getElementById('dropoffSuggestions').style.display = 'none';
       }
     });
   }
+}
+
+let vehiclesList = [];
+
+function loadVehiclesForModels() {
+  const token = localStorage.getItem('token');
+  fetch(getCacheBustUrl(API_BASE + '/vehicles'), {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.data) vehiclesList = d.data;
+  })
+  .catch(e => console.error('Error loading vehicles:', e));
+}
+
+function updateVehicleModels(vehicleType) {
+  const models = vehiclesList.filter(v => v.type === vehicleType).map(v => v.model);
+  const uniqueModels = [...new Set(models)];
+  const modelInput = document.getElementById('editVehicleModel');
+  if (modelInput) {
+    modelInput.value = '';
+    modelInput.placeholder = uniqueModels.length > 0 ? 'Select: ' + uniqueModels.join(', ') : 'No models available';
+  }
+}
+
+function calculateDistanceAndFare() {
+  if (typeof google === 'undefined') return;
+  
+  const pickupInput = document.getElementById('editPickup');
+  const dropoffInput = document.getElementById('editDropoff');
+  const fareField = document.getElementById('editFare');
+  const vehicleTypeSelect = document.getElementById('editVehicleType');
+  
+  if (!pickupInput || !dropoffInput || !pickupInput.value || !dropoffInput.value) return;
+  
+  const service = new google.maps.DistanceMatrixService();
+  service.getDistanceMatrix({
+    origins: [pickupInput.value],
+    destinations: [dropoffInput.value],
+    travelMode: 'DRIVING',
+    unitSystem: google.maps.UnitSystem.METRIC
+  }, (response, status) => {
+    if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
+      const distanceKm = response.rows[0].elements[0].distance.value / 1000;
+      
+      // Get pricing for selected vehicle type
+      const vehicleType = vehicleTypeSelect.value;
+      const vehicle = vehiclesList.find(v => v.type === vehicleType);
+      
+      let fare = 5; // Base fare
+      if (vehicle) {
+        fare = 5 + (distanceKm * (vehicle.per_km_price || 3.5));
+      } else {
+        fare = 5 + (distanceKm * 3.5); // Default rate
+      }
+      
+      if (fareField) fareField.value = parseFloat(fare).toFixed(2);
+    }
+  });
 }
 
 function setLocation(fieldId, location) {
