@@ -1,0 +1,179 @@
+We are facing UI instability after refresh. This is NOT a database issue — it is a frontend + API sync problem. Please do a proper end-to-end debugging and stabilization.
+
+Step 1: Identify JS Runtime Errors
+
+Open browser console on:
+
+/dashboard
+
+/bookings
+
+/drivers
+
+/vehicles
+
+Paste ALL red console errors.
+
+Fix any:
+
+undefined functions
+
+JSON parse errors
+
+failed fetch requests
+
+Step 2: Verify API Responses (CRITICAL)
+
+For each endpoint, log raw JSON:
+
+GET /api/bookings
+
+GET /api/drivers
+
+GET /api/vehicles
+
+GET /api/stats/dashboard
+
+Then verify what frontend expects:
+
+Does frontend expect data[] or direct []?
+
+Align frontend mapping accordingly.
+
+Step 3: Fix “Loading…” Infinite State in Bookings
+
+Add catch() on bookings fetch.
+
+If API fails, show error instead of infinite loading.
+
+Ensure successful response clears loading state.
+
+Step 4: Permanently Restore Edit/View Actions
+
+These MUST work even after refresh:
+
+editDriver(id)
+
+saveDriverChanges()
+
+editVehicle(id)
+
+saveCarChanges()
+
+openBookingView(id)
+
+Remove ALL alert-only dummy functions.
+
+Step 5: Fix Cars Filters Rendering
+
+Ensure filters (sedan, suv, luxury, vans, bus, mini bus) are applied on:
+
+vehicles.type
+
+Ensure frontend loops correctly over response array.
+
+Ensure UI cards are rendered in proper container, not raw text.
+
+Step 6: Dashboard Stats Must Persist After Refresh
+
+Verify backend stats query returns correct numbers.
+
+Ensure frontend:
+
+calls stats API on DOMContentLoaded
+
+does NOT reset values if API call fails
+
+Step 7: Disable Caching During Debug
+
+Force:
+
+no-store / no-cache headers for dashboard JS
+
+or append cache-busting param to fetch URLs:
+fetch('/api/bookings?t=' + Date.now())
+
+Step 8: Final Verification (MANDATORY)
+
+After fixes, verify and confirm:
+✅ Dashboard shows real numbers after refresh
+✅ Bookings load without stuck “loading”
+✅ Driver edit works after refresh
+✅ Vehicle edit works
+✅ Car filters render correctly
+
+Share:
+
+Console screenshots
+
+Sample API JSON response
+
+Before vs After verification screenshots
+
+❗IMPORTANT:
+Do NOT change DB schema.
+Do NOT rewrite modules.
+Only stabilize frontend + API sync.
+
+✅ TUMHARE CURRENT “SETTINGS” PAGE KA ISSUE
+
+Settings page mein:
+
+User info blank (--)
+
+Last updated blank
+Is ka matlab:
+
+Frontend ka /api/auth/me ya similar endpoint ya to:
+
+exist nahi karta
+
+ya return format wrong hai
+
+ya token/session header missing hai
+
+Is ko bhi upar wale Step 2 (API verification) mein automatically diagnose ho jayega.
+
+✅ SAB SE IMPORTANT BAAT (STRATEGY)
+
+Ab tum:
+
+❌ Patch-by-patch fix mat karwao
+
+✅ Sirf global stability pass karwao (woh prompt upar diya)
+
+Is ke baad:
+
+system smooth ho jayega
+
+refresh pe data ghaib hona band
+
+buttons permanently stable
+
+filters predictable
+
+✅ NEXT ACTION
+
+Tum:
+
+Upar wala MASTER STABILITY PROMPT Replit ko paste karo
+
+Wo jo:
+
+console errors
+
+API JSON
+
+verification screenshots
+de → yahan bhej do
+
+Main phir:
+
+direct bataunga:
+
+kaunsa file
+
+kaunsi line
+
+kaunsa mapping toot raha hai
+10–15 minute mein permanent fix ka exact instruction milega.

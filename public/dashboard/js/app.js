@@ -2,6 +2,11 @@
 let currentRange = 'today';
 const API_BASE = window.location.origin + '/api';
 
+// Cache busting utility
+function getCacheBustUrl(url) {
+  return url + (url.indexOf('?') > -1 ? '&' : '?') + 't=' + Date.now();
+}
+
 // Auth
 function checkAuth() {
   if (!localStorage.getItem('token')) window.location.href = '/dashboard/login.html';
@@ -84,28 +89,31 @@ function navigateToPage(page) {
 async function loadDashboard() {
   try {
     const token = localStorage.getItem('token');
-    const range = localStorage.getItem('dashboardRange') || 'today';
-    const response = await fetch(API_BASE + '/stats/summary?range=' + range, {
+    const range = localStorage.getItem('dashboardRange') || 'month';
+    const url = getCacheBustUrl(API_BASE + '/stats/summary?range=' + range);
+    const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     
-    if (response.ok) {
-      const data = await response.json();
-      const d = data.data && data.data.summary ? data.data.summary : (data.data || {});
-      const stat = (id, val) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = val;
-      };
-      stat('stat-bookings', d.total_bookings || 0);
-      stat('stat-completed', d.completed_bookings || 0);
-      stat('stat-pending', d.pending_bookings || 0);
-      stat('stat-cancelled', d.cancelled_bookings || 0);
-      stat('stat-revenue', 'AED ' + ((d.total_revenue || 0).toFixed(2)));
-      stat('stat-cash', 'AED ' + ((d.cash_revenue || 0).toFixed(2)));
-      stat('stat-card', 'AED ' + ((d.card_revenue || 0).toFixed(2)));
-    }
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'API error');
+    
+    const d = data.data && data.data.summary ? data.data.summary : {};
+    const stat = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    };
+    stat('stat-bookings', d.total_bookings || '0');
+    stat('stat-completed', d.completed_bookings || '0');
+    stat('stat-pending', d.pending_bookings || '0');
+    stat('stat-cancelled', d.cancelled_bookings || '0');
+    stat('stat-revenue', 'AED ' + (parseFloat(d.total_revenue || 0).toFixed(2)));
+    stat('stat-cash', 'AED ' + (parseFloat(d.cash_revenue || 0).toFixed(2)));
+    stat('stat-card', 'AED ' + (parseFloat(d.card_revenue || 0).toFixed(2)));
   } catch (e) {
-    console.log('Dashboard error:', e);
+    console.error('Dashboard error:', e.message, e);
   }
 }
 
@@ -119,29 +127,32 @@ function setDashboardRange(range) {
 async function loadKPI() {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(API_BASE + '/stats/summary?range=month', {
+    const url = getCacheBustUrl(API_BASE + '/stats/summary?range=month');
+    const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     
-    if (response.ok) {
-      const data = await response.json();
-      const d = data.data && data.data.summary ? data.data.summary : (data.data || {});
-      const totalRev = d.total_revenue || 0;
-      const vendorComm = totalRev * 0.8;
-      const profit = totalRev * 0.2;
-      
-      const stat = (id, val) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = val;
-      };
-      
-      stat('kpi-total-revenue', 'AED ' + (totalRev.toFixed(2)));
-      stat('kpi-vendor-commission', 'AED ' + (vendorComm.toFixed(2)));
-      stat('kpi-company-profit', 'AED ' + (profit.toFixed(2)));
-      stat('kpi-profit-margin', (((profit / totalRev) * 100) || 0).toFixed(1) + '%');
-    }
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || 'API error');
+    
+    const d = data.data && data.data.summary ? data.data.summary : {};
+    const totalRev = parseFloat(d.total_revenue) || 0;
+    const vendorComm = totalRev * 0.8;
+    const profit = totalRev * 0.2;
+    
+    const stat = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    };
+    
+    stat('kpi-total-revenue', 'AED ' + totalRev.toFixed(2));
+    stat('kpi-vendor-commission', 'AED ' + vendorComm.toFixed(2));
+    stat('kpi-company-profit', 'AED ' + profit.toFixed(2));
+    stat('kpi-profit-margin', totalRev > 0 ? ((profit / totalRev) * 100).toFixed(1) + '%' : '0%');
   } catch (e) {
-    console.log('KPI error:', e);
+    console.error('KPI error:', e.message, e);
   }
 }
 
@@ -151,33 +162,41 @@ async function loadDrivers(status = null, targetTableId = 'drivers-table-body') 
     const token = localStorage.getItem('token');
     let url = API_BASE + '/drivers';
     if (status) url += '?status=' + status;
+    url = getCacheBustUrl(url);
+    
     const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     
-    if (response.ok) {
-      const data = await response.json();
-      const tbody = document.getElementById(targetTableId);
-      if (!tbody) return;
-      
-      const drivers = data.data || [];
-      if (!drivers || !drivers.length) {
-        tbody.innerHTML = '<tr><td colspan="7">No drivers</td></tr>';
-        return;
-      }
-      
-      tbody.innerHTML = drivers.map(d => '<tr><td>' + d.id.substring(0, 8) + '</td><td>' + d.name + '</td><td>' + (d.phone || 'N/A') + '</td><td><span style="padding: 4px 8px; border-radius: 4px; background: ' + (d.status === 'online' ? '#10b981' : '#ef4444') + '; color: white; font-size: 12px;">' + (d.status || 'offline') + '</span></td><td>-</td><td>0</td><td><button onclick="editDriver(\'' + d.id + '\')" class="btn-small">Edit</button></td></tr>').join('');
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    
+    const data = await response.json();
+    const tbody = document.getElementById(targetTableId);
+    if (!tbody) return;
+    
+    const drivers = data.data || [];
+    if (!drivers || !drivers.length) {
+      tbody.innerHTML = '<tr><td colspan="7">No drivers found</td></tr>';
+      return;
     }
+    
+    tbody.innerHTML = drivers.map(d => '<tr><td>' + d.id.substring(0, 8) + '</td><td>' + d.name + '</td><td>' + (d.phone || 'N/A') + '</td><td><span style="padding: 4px 8px; border-radius: 4px; background: ' + (d.status === 'online' ? '#10b981' : '#ef4444') + '; color: white; font-size: 12px;">' + (d.status || 'offline') + '</span></td><td>-</td><td>0</td><td><button onclick="editDriver(\'' + d.id + '\')" class="btn-small">Edit</button></td></tr>').join('');
   } catch (e) {
-    console.log('Drivers error:', e);
+    const tbody = document.getElementById(targetTableId);
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="color:red;">Error: ' + e.message + '</td></tr>';
+    console.error('Drivers error:', e.message, e);
   }
 }
 
 function editDriver(id) {
-  fetch(API_BASE + '/drivers/' + id, {
+  const url = getCacheBustUrl(API_BASE + '/drivers/' + id);
+  fetch(url, {
     headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
   })
-  .then(r => r.json())
+  .then(r => {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
   .then(d => {
     if (d.data) {
       const modal = document.getElementById('driverEditModal');
@@ -191,7 +210,7 @@ function editDriver(id) {
       }
     }
   })
-  .catch(e => console.log(e));
+  .catch(e => console.error('Edit driver error:', e));
 }
 
 // Vehicles
@@ -200,25 +219,29 @@ async function loadVehicles(type = null, targetContainerId = 'carsGrid') {
     const token = localStorage.getItem('token');
     let url = API_BASE + '/vehicles';
     if (type) url += '?type=' + type;
+    url = getCacheBustUrl(url);
+    
     const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     
-    if (response.ok) {
-      const data = await response.json();
-      const container = document.getElementById(targetContainerId);
-      if (!container) return;
-      
-      const vehicles = data.data || data.vehicles || [];
-      if (!vehicles || !vehicles.length) {
-        container.innerHTML = '<p>No vehicles found</p>';
-        return;
-      }
-      
-      container.innerHTML = '<div style="display: grid; gap: 15px;">' + vehicles.map(v => '<div style="border: 1px solid var(--border); border-radius: 8px; padding: 15px;"><h4>' + v.model + '</h4><p><strong>Type:</strong> ' + v.type + '</p><p><strong>Plate:</strong> ' + (v.plate_number || 'N/A') + '</p><p><strong>Capacity:</strong> ' + v.max_passengers + ' pax / ' + v.max_luggage + ' luggage</p><p><strong>Status:</strong> ' + (v.status || 'available') + '</p></div>').join('') + '</div>';
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    
+    const data = await response.json();
+    const container = document.getElementById(targetContainerId);
+    if (!container) return;
+    
+    const vehicles = data.data || data.vehicles || [];
+    if (!vehicles || !vehicles.length) {
+      container.innerHTML = '<p style="padding:20px; text-align:center;">No vehicles found</p>';
+      return;
     }
+    
+    container.innerHTML = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">' + vehicles.map(v => '<div style="border: 1px solid var(--border); border-radius: 8px; padding: 15px; background: var(--glass-bg);"><h4 style="margin-bottom:10px;">' + v.model + '</h4><p><strong>Type:</strong> ' + v.type + '</p><p><strong>Plate:</strong> ' + (v.plate_number || 'N/A') + '</p><p><strong>Capacity:</strong> ' + v.max_passengers + ' pax / ' + v.max_luggage + ' luggage</p><p><strong>Status:</strong> ' + (v.status || 'available') + '</p></div>').join('') + '</div>';
   } catch (e) {
-    console.log('Vehicles error:', e);
+    const container = document.getElementById(targetContainerId);
+    if (container) container.innerHTML = '<p style="color:red; padding:20px;">Error loading vehicles: ' + e.message + '</p>';
+    console.error('Vehicles error:', e.message, e);
   }
 }
 
@@ -226,30 +249,41 @@ async function loadVehicles(type = null, targetContainerId = 'carsGrid') {
 async function loadBookings() {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(API_BASE + '/bookings', {
+    const tbody = document.getElementById('bookings-table-body');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; padding:20px;">Loading bookings...</td></tr>';
+    
+    const url = getCacheBustUrl(API_BASE + '/bookings');
+    const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     
-    if (response.ok) {
-      const data = await response.json();
-      const tbody = document.getElementById('bookings-table-body');
-      if (!tbody) return;
-      
-      if (!data.data || !data.data.length) {
-        tbody.innerHTML = '<tr><td colspan="13">No bookings</td></tr>';
-        return;
-      }
-      
-      tbody.innerHTML = data.data.map(b => '<tr><td>' + b.id.substring(0, 8) + '</td><td>' + b.customer_name + '</td><td>' + b.customer_phone + '</td><td>' + b.pickup_location + '</td><td>' + b.dropoff_location + '</td><td>' + b.distance_km + '</td><td>-</td><td>' + (b.fare_aed || b.total_fare || 0) + '</td><td>' + (b.driver_name || 'Unassigned') + '</td><td>-</td><td>' + b.status + '</td><td>' + new Date(b.created_at).toLocaleDateString() + '</td><td><button onclick="viewBooking(\'' + b.id + '\')" class="btn-small">View</button></td></tr>').join('');
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    
+    const data = await response.json();
+    if (!tbody) return;
+    
+    if (!data.data || !data.data.length) {
+      tbody.innerHTML = '<tr><td colspan="13">No bookings found</td></tr>';
+      return;
     }
+    
+    tbody.innerHTML = data.data.map(b => '<tr><td>' + b.id.substring(0, 8) + '</td><td>' + b.customer_name + '</td><td>' + b.customer_phone + '</td><td>' + b.pickup_location + '</td><td>' + b.dropoff_location + '</td><td>' + b.distance_km + '</td><td>-</td><td>AED ' + (b.fare_aed || b.total_fare || 0) + '</td><td>' + (b.driver_name || 'Unassigned') + '</td><td>-</td><td>' + b.status + '</td><td>' + new Date(b.created_at).toLocaleDateString() + '</td><td><button onclick="viewBooking(\'' + b.id + '\')" class="btn-small">View</button></td></tr>').join('');
   } catch (e) {
-    console.log('Bookings error:', e);
+    const tbody = document.getElementById('bookings-table-body');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="13" style="color:red;">Error loading bookings: ' + e.message + '</td></tr>';
+    console.error('Bookings error:', e.message, e);
   }
 }
 
 function viewBooking(id) {
-  fetch(API_BASE + '/bookings/' + id)
-    .then(r => r.json())
+  const url = getCacheBustUrl(API_BASE + '/bookings/' + id);
+  fetch(url, {
+    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+  })
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
     .then(d => {
       if (d.data) {
         const content = document.getElementById('bookingDetailContent');
@@ -262,7 +296,7 @@ function viewBooking(id) {
         }
       }
     })
-    .catch(e => console.log(e));
+    .catch(e => console.error('View booking error:', e));
 }
 
 // Helper Functions
@@ -328,21 +362,25 @@ function saveDriverChanges() {
 
 function exportBookings(format) {
   const token = localStorage.getItem('token');
-  fetch(API_BASE + '/bookings', {
+  const url = getCacheBustUrl(API_BASE + '/bookings');
+  fetch(url, {
     headers: { 'Authorization': 'Bearer ' + token }
-  }).then(r => r.json()).then(d => {
+  }).then(r => {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(d => {
     if (!d.data) return;
     let csv = 'Customer,Phone,Pickup,Dropoff,Distance,Fare,Status\n';
     d.data.forEach(b => {
       csv += '"' + b.customer_name + '","' + b.customer_phone + '","' + b.pickup_location + '","' + b.dropoff_location + '",' + b.distance_km + ',' + (b.fare_aed || 0) + ',' + b.status + '\n';
     });
     const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
+    const objUrl = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
+    a.href = objUrl;
     a.download = 'bookings.' + format;
     a.click();
-  }).catch(e => console.log(e));
+  }).catch(e => console.error('Export error:', e));
 }
 
 function openAddBookingModal() {
