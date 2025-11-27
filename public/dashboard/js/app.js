@@ -4,19 +4,31 @@ const API_BASE = window.location.origin + '/api';
 
 // UAE Locations for Autocomplete (All Emirates & Areas)
 const UAE_LOCATIONS = [
-  // DUBAI
+  // DUBAI - MALLS & SHOPPING
   'Dubai Marina',
   'Dubai Marina Mall',
+  'Dubai Mall',
+  'Mall of the Emirates',
+  'Ibn Battuta Mall',
+  'Emirates Hills Shopping',
+  'Deira City Centre',
+  'Carrefour Dubai',
+  
+  // DUBAI - LANDMARKS & PARKS
   'Burj Khalifa',
   'Downtown Dubai',
-  'Dubai Mall',
   'Palm Jumeirah',
   'Jumeirah Beach',
   'Arabian Ranches',
+  'Zabeel Park',
+  'Safa Park',
+  'Al Mamzar Park',
+  'Mushrif National Park',
+  'Hatta',
+  'Hatta Dam',
+  
+  // DUBAI - BUSINESS & INDUSTRIAL
   'Business Bay',
-  'Deira',
-  'Bur Dubai',
-  'Al Baraha',
   'Sheikh Zayed Road',
   'Emirates Hills',
   'Motor City',
@@ -24,85 +36,159 @@ const UAE_LOCATIONS = [
   'Dubai Investment Park',
   'Dubai Silicon Oasis',
   'Dubai Internet City',
-  'Jebel Ali',
+  'Dubai Design District',
+  
+  // DUBAI - RESIDENTIAL
   'JBR',
   'Dubai Hills Estate',
   'Meadows',
   'Springs',
+  'Arabian Ranches',
+  'The Greens',
+  'Emirates Living',
+  'Jumeirah Islands',
+  'Palm Jumeirah West',
+  'Palm Jumeirah East',
+  
+  // DUBAI - PORTS & AIRPORTS
   'Dubai Airport',
+  'Al Maktoum Airport',
+  'Dubai Port',
+  'Dubai Jebel Ali Port',
+  
+  // DUBAI - OTHER AREAS
+  'Deira',
+  'Bur Dubai',
+  'Al Baraha',
+  'Jebel Ali',
   'International City',
   'Dip',
+  'Dubai South',
+  'Dubai Production City',
+  'Dubai Biotech Park',
+  'Ras Al Khor',
+  'Al Khawaneej',
+  'Warsan',
+  'Rashidiya',
+  'Karama',
   
-  // ABU DHABI
+  // ABU DHABI - LANDMARKS & MALLS
   'Abu Dhabi City',
   'Corniche Abu Dhabi',
-  'Sheikh Zayed Road Abu Dhabi',
-  'Al Marjan Island',
-  'Saadiyat Island',
+  'Louvre Abu Dhabi',
+  'Sheikh Zayed Grand Mosque',
   'Yas Island',
+  'Yas Island Theme Park',
+  'Ferrari World Abu Dhabi',
+  'Saadiyat Island',
+  'Al Marjan Island',
+  'Abu Dhabi Mall',
+  'Marina Mall Abu Dhabi',
+  'The Galleria Al Maryah',
+  'Al Ain Center Abu Dhabi',
+  
+  // ABU DHABI - BUSINESS & PORTS
+  'Sheikh Zayed Road Abu Dhabi',
   'Al Reem Island',
   'Downtown Abu Dhabi',
-  'Al Baraha Abu Dhabi',
+  'Abu Dhabi Airport',
+  'Abu Dhabi Port',
+  'Abu Dhabi Airport Road',
+  
+  // ABU DHABI - RESIDENTIAL
   'Khalifa City',
+  'Al Baraha Abu Dhabi',
   'Baniyas',
-  'Al Karama',
+  'Al Karama Abu Dhabi',
   'Mushrif',
   'Al Wathba',
-  'Abu Dhabi Airport',
+  
+  // ABU DHABI - OTHER
   'Madinat Zayed',
   'Al Ain Road',
+  'Emirates Road',
+  'Sheikh Zayed Road',
   
-  // SHARJAH
+  // SHARJAH - MALLS & LANDMARKS
   'Sharjah City',
   'Al Qasba',
   'Sharjah Corniche',
+  'Sharjah Museum',
+  'Sharjah Central Souk',
+  'Sharjah Mega Mall',
+  'City Centre Sharjah',
   'Al Marjan Island Sharjah',
+  
+  // SHARJAH - COASTAL AREAS
+  'Khorfakkan',
+  'Khor Fakkan Beach',
+  'Kalba',
+  'Dibba',
   'Mina Port Sharjah',
+  'Sharjah Beach',
+  
+  // SHARJAH - OTHER
   'Al Farjan',
   'Rolla',
   'Al Fisht',
-  'Khorfakkan',
-  'Khor Fakkan',
-  'Kalba',
-  'Dibba',
   'Sharjah Airport',
-  'Al Manara',
-  'Al Noor',
+  'Al Manara Sharjah',
+  'Al Noor Sharjah',
+  'Muwaileh',
+  'Al Qusais',
   
-  // AJMAN
+  // AJMAN - MALLS & LANDMARKS
   'Ajman City',
   'Ajman Corniche',
   'Ajman Beach',
+  'Ajman Mall',
+  'Ajman City Centre',
+  
+  // AJMAN - OTHER
   'Al Manara Ajman',
   'Ajman Port',
   'Masfoot',
   'Masfout',
-  'Sheikh Zayed Road Ajman',
+  'Nuaimiya',
+  'Ajman Airport Road',
   
-  // RAS AL KHAIMAH
+  // RAS AL KHAIMAH - MALLS & LANDMARKS
   'Ras Al Khaimah',
   'RAK City',
-  'Al Nakheel',
   'Ras Al Khaimah Corniche',
+  'Jebel Jais',
+  'Jebel Jais Viewpoint',
+  'Ras Al Khaimah Mall',
+  
+  // RAS AL KHAIMAH - OTHER
+  'Al Nakheel',
   'Khatt',
   'Rams',
   'Digdaga',
-  'Jebel Jais',
+  'Nakheel',
+  'Ghalila',
   
   // UMM AL QUWAIN
   'Umm Al Quwain',
   'UAQ City',
+  'Umm Al Quwain Beach',
   'Al Marjan Island UAQ',
   'Umm Al Quwain Port',
+  'UAQ City Centre',
   
-  // FUJAIRAH
+  // FUJAIRAH - MALLS & LANDMARKS
   'Fujairah City',
+  'Fujairah Beach',
+  'Fujairah Mall',
+  'Fujairah Museum',
+  
+  // FUJAIRAH - COASTAL AREAS
   'Dibba Fujairah',
   'Khorfakkan Fujairah',
   'Kalba Fujairah',
-  'Fujairah Beach',
-  'Wadi Mad',
   'Al Aqah',
+  'Wadi Mad',
+  'Sandy Beach Fujairah',
   
   // INTER-EMIRATE ROUTES
   'Emirates Road',
