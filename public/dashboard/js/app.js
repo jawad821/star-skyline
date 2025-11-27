@@ -2,8 +2,9 @@
 let currentRange = 'today';
 const API_BASE = window.location.origin + '/api';
 
-// Dubai Locations for Autocomplete (No API Key Issues)
-const DUBAI_LOCATIONS = [
+// UAE Locations for Autocomplete (All Emirates & Areas)
+const UAE_LOCATIONS = [
+  // DUBAI
   'Dubai Marina',
   'Dubai Marina Mall',
   'Burj Khalifa',
@@ -23,7 +24,94 @@ const DUBAI_LOCATIONS = [
   'Dubai Investment Park',
   'Dubai Silicon Oasis',
   'Dubai Internet City',
-  'Jebel Ali'
+  'Jebel Ali',
+  'JBR',
+  'Dubai Hills Estate',
+  'Meadows',
+  'Springs',
+  'Dubai Airport',
+  'International City',
+  'Dip',
+  
+  // ABU DHABI
+  'Abu Dhabi City',
+  'Corniche Abu Dhabi',
+  'Sheikh Zayed Road Abu Dhabi',
+  'Al Marjan Island',
+  'Saadiyat Island',
+  'Yas Island',
+  'Al Reem Island',
+  'Downtown Abu Dhabi',
+  'Al Baraha Abu Dhabi',
+  'Khalifa City',
+  'Baniyas',
+  'Al Karama',
+  'Mushrif',
+  'Al Wathba',
+  'Abu Dhabi Airport',
+  'Madinat Zayed',
+  'Al Ain Road',
+  
+  // SHARJAH
+  'Sharjah City',
+  'Al Qasba',
+  'Sharjah Corniche',
+  'Al Marjan Island Sharjah',
+  'Mina Port Sharjah',
+  'Al Farjan',
+  'Rolla',
+  'Al Fisht',
+  'Khorfakkan',
+  'Khor Fakkan',
+  'Kalba',
+  'Dibba',
+  'Sharjah Airport',
+  'Al Manara',
+  'Al Noor',
+  
+  // AJMAN
+  'Ajman City',
+  'Ajman Corniche',
+  'Ajman Beach',
+  'Al Manara Ajman',
+  'Ajman Port',
+  'Masfoot',
+  'Masfout',
+  'Sheikh Zayed Road Ajman',
+  
+  // RAS AL KHAIMAH
+  'Ras Al Khaimah',
+  'RAK City',
+  'Al Nakheel',
+  'Ras Al Khaimah Corniche',
+  'Khatt',
+  'Rams',
+  'Digdaga',
+  'Jebel Jais',
+  
+  // UMM AL QUWAIN
+  'Umm Al Quwain',
+  'UAQ City',
+  'Al Marjan Island UAQ',
+  'Umm Al Quwain Port',
+  
+  // FUJAIRAH
+  'Fujairah City',
+  'Dibba Fujairah',
+  'Khorfakkan Fujairah',
+  'Kalba Fujairah',
+  'Fujairah Beach',
+  'Wadi Mad',
+  'Al Aqah',
+  
+  // INTER-EMIRATE ROUTES
+  'Emirates Road',
+  'E11 Highway',
+  'Dubai to Abu Dhabi',
+  'Abu Dhabi to Dubai',
+  'Sharjah to Dubai',
+  'Dubai to Sharjah',
+  'Ajman to Dubai'
 ];
 
 // Cache busting utility
@@ -46,7 +134,7 @@ function setupLocationAutocomplete(inputId, suggestionsId) {
       suggestionsDiv.style.display = 'none';
       return;
     }
-    const matches = DUBAI_LOCATIONS.filter(loc => loc.toLowerCase().includes(value));
+    const matches = UAE_LOCATIONS.filter(loc => loc.toLowerCase().includes(value));
     if (matches.length > 0) {
       suggestionsDiv.innerHTML = matches.slice(0, 8).map((loc) => 
         `<div style="padding: 12px; cursor: pointer; border-bottom: 1px solid #e5e7eb; background: #ffffff; color: #1f2937; font-size: 13px;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='#ffffff'" onclick="setLocationAuto('${inputId}', '${loc}', '${suggestionsId}')">${loc}</div>`
