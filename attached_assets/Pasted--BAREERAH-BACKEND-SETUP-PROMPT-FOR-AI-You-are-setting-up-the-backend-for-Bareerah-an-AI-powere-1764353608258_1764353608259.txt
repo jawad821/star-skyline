@@ -1,0 +1,205 @@
+# BAREERAH BACKEND SETUP PROMPT FOR AI
+You are setting up the backend for "Bareerah" - an AI-powered WhatsApp booking system for Star Skyline Limousine in Dubai.
+## 🎯 YOUR TASK
+Create all necessary backend APIs, database tables, and logic to enable smooth communication between Bareerah (WhatsApp AI frontend) and your backend system for complete booking automation.
+---
+## 🔌 REQUIRED API ENDPOINTS (3 Total)
+### 1. AUTHENTICATION ENDPOINT
+**Endpoint:** `POST /auth/login`
+**Purpose:** Bareerah needs JWT token to authenticate all API calls
+**Request:**
+```json
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+Response (Success - 200):
+
+{
+  "success": true,
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+
+Error (401):
+
+{
+  "success": false,
+  "message": "Invalid credentials"
+}
+
+Notes:
+
+Token must be valid for at least 1 hour
+Bareerah calls this once on startup
+Use environment variables for credentials (not hardcoded)
+2. CALCULATE FARE ENDPOINT
+Endpoint: POST /bookings/calculate-fare
+Purpose: Calculate ride fare based on distance, vehicle type, and booking type
+
+Headers Required:
+
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+
+Request:
+
+{
+  "distance_km": 36.4,
+  "vehicle_type": "sedan",      // Allowed: "sedan", "suv", "van"
+  "booking_type": "point_to_point"  // Allowed: "point_to_point", "airport_transfer"
+}
+
+Response (Success - 200):
+
+{
+  "success": true,
+  "fare_aed": 132.40,
+  "distance_km": 36.4,
+  "vehicle_type": "sedan",
+  "booking_type": "point_to_point"
+}
+
+Error (400 - Invalid input):
+
+{
+  "success": false,
+  "error": "Distance must be greater than 0"
+}
+
+Error (401 - Invalid token):
+
+{
+  "success": false,
+  "error": "Unauthorized"
+}
+
+Error (500 - Server error):
+
+{
+  "success": false,
+  "error": "Internal server error"
+}
+
+Validation Rules:
+
+distance_km must be > 0
+vehicle_type must be one of: sedan, suv, van
+booking_type must be one of: point_to_point, airport_transfer
+Return fare > 0 for valid inputs
+For airport_transfer, add 20% surcharge to base fare
+Fare Formula (Example - UPDATE AS NEEDED):
+
+Base rate: AED 25 (min charge)
+Per km: AED 3.50
+Airport surcharge (20%): Only if booking_type = airport_transfer
+Van surcharge (15%): Only if vehicle_type = van
+SUV surcharge (10%): Only if vehicle_type = suv
+
+3. CREATE BOOKING ENDPOINT
+Endpoint: POST /bookings/create-booking
+Purpose: Save booking to database and return confirmation reference
+
+Headers Required:
+
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+
+Request:
+
+{
+  "customer_name": "Rameez",
+  "customer_phone": "+923212236688",
+  "customer_email": "rameez@gmail.com",
+  "pickup_location": "Dubai Marina Mall",
+  "dropoff_location": "Sharjah Airport",
+  "distance_km": 36.4,
+  "fare_aed": 132.40,
+  "vehicle_type": "sedan",
+  "booking_type": "point_to_point",
+  "passengers_count": 3,
+  "luggage_count": 2,
+  "caller_number": "+923212236688",
+  "confirmed_contact_number": "+923212236688",
+  "payment_method": "cash"
+}
+
+Response (Success - 201):
+
+{
+  "success": true,
+  "booking_reference": "BOOK-20251128-001",
+  "id": 123,
+  "status": "confirmed",
+  "created_at": "2025-11-28T18:00:00Z"
+}
+
+Error (400 - Missing required field):
+
+{
+  "success": false,
+  "error": "customer_name is required"
+}
+
+Error (401 - Invalid token):
+
+{
+  "success": false,
+  "error": "Unauthorized"
+}
+
+Error (500 - Database error):
+
+{
+  "success": false,
+  "error": "Failed to create booking"
+}
+
+Validation Rules:
+
+All fields except customer_email are required
+customer_name length: 2-100 characters
+customer_phone must be valid format (starts with +)
+fare_aed must be > 0
+passengers_count must be >= 1
+luggage_count must be >= 0
+Generate unique booking_reference like: BOOK-{YYYYMMDD}-{incremental}
+📊 DATABASE SCHEMA
+USERS TABLE (for authentication)
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  role VARCHAR(20) DEFAULT 'admin',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+BOOKINGS TABLE (main table)
+CREATE TABLE bookings (
+  id SERIAL PRIMARY KEY,
+  booking_reference VARCHAR(50) UNIQUE NOT NULL,
+  
+  -- Customer Info
+  customer_name VARCHAR(100) NOT NULL,
+  customer_phone VARCHAR(20) NOT NULL,
+  customer_email VARCHAR(100),
+  
+  -- Trip Details
+  pickup_location VARCHAR(255) NOT NULL,
+  dropoff_location VARCHAR(255) NOT NULL,
+  distance_km DECIMAL(10,2),
+  
+  -- Vehicle & Service
+  vehicle_type VARCHAR(20) NOT NULL,     -- sedan, suv, van
+  booking_type VARCHAR(50) NOT NULL,     -- point_to_point, airport_transfer
+  
+  -- Passengers & Luggage
+  passengers_count INT NOT NULL,
+  luggage_count INT NOT NULL,
+  
+  -- Fare
+  fare_aed DECIMAL(10,2) NOT NULL,
+  
+  -- Contact Numbers
+  caller_number VARCHAR(20) NOT NULL,
+  confirmed_contact_number VARCHAR(20) NOT NULL,
