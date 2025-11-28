@@ -1,0 +1,338 @@
+OBJECTIVE:
+Add a complete Vendor Management Module in the backend and a Vendor Login Panel — without breaking any existing booking, driver, vehicle, or payment system.
+
+⚠️ CRITICAL SAFETY RULES (MUST FOLLOW)
+
+❌ Do NOT change existing database schema unless explicitly required
+
+❌ Do NOT break auto-assignment, bookings, or drivers logic
+
+❌ Do NOT remove existing APIs or roles
+
+✅ Only EXTEND the current system with Vendor features
+
+✅ 1️⃣ ADMIN PANEL — ADD “VENDORS” TAB
+
+Create a new Vendors tab in Admin Panel showing:
+
+🔹 Vendor Listing (Grid/Table)
+
+For each vendor show:
+
+Vendor Name
+
+Phone
+
+Email
+
+Status (pending / approved / rejected)
+
+Fleet Summary
+
+Total Vehicles
+
+Vehicle Types Breakdown (e.g. 3 Sedan, 2 SUV)
+
+Business Summary
+
+Total Completed Bookings
+
+Total Earnings (from completed bookings)
+
+Pending Payout Amount
+
+🔹 Vendor Detail / Profile Page (Admin View)
+
+Inside each vendor profile show:
+
+A. Basic Info
+
+Vendor Name
+
+Phone
+
+Email
+
+Logo
+
+Status (pending / approved / rejected)
+
+B. Fleet Details (Full Table)
+
+For each vehicle of this vendor:
+
+Car Type
+
+Car Model
+
+Number Plate
+
+Color
+
+Assigned Driver
+
+Status (available/busy/inactive)
+
+C. Financial Summary
+
+Total Completed Bookings
+
+Total Earnings
+
+Last Payment to Vendor
+
+Pending Payment to Vendor
+
+Vendor Bank Account Number
+
+Bank Name
+
+Account Holder Name
+
+D. Admin Controls
+
+✅ Approve Vendor
+
+✅ Reject Vendor (with rejection reason)
+
+✅ Suspend / Activate Vendor
+
+⚠️ Rejecting vendor:
+
+Must NOT delete vendor
+
+Status becomes rejected
+
+Full data remains in DB
+
+✅ 2️⃣ NEW VENDOR REGISTRATION FLOW (APPROVAL SYSTEM)
+🔹 Vendor Signup (Public / Vendor Panel)
+
+Vendor must submit:
+
+Mandatory Fields (ALL REQUIRED):
+
+Company Name
+
+Owner Name
+
+Phone
+
+Email
+
+Password
+
+Logo
+
+Bank Account Number
+
+Bank Name
+
+Account Holder Name
+
+On submit:
+
+Vendor must be saved with:
+
+status = pending
+
+Vendor CANNOT login as active vendor yet
+
+🔹 Admin Approval Workflow
+
+In Admin Panel:
+
+New vendor requests must appear in:
+“New Vendor Requests”
+
+Admin can:
+
+✅ Approve → status becomes approved → Vendor can login
+
+❌ Reject → status becomes rejected → Vendor cannot login
+
+Rejection reason must be stored in DB
+
+✅ 3️⃣ VENDOR LOGIN PANEL (SEPARATE DASHBOARD)
+
+After approval, vendor can login and access Vendor Dashboard.
+
+Vendor can:
+
+🔹 Profile Management
+
+Update:
+
+Logo
+
+Phone
+
+Email
+
+Bank Details
+
+Cannot change approval status
+
+🔹 VEHICLE MANAGEMENT (VENDOR SIDE)
+
+Vendor can:
+
+Add Vehicle
+
+Edit Vehicle
+
+View Vehicle List
+
+✅ All These Fields MUST Be REQUIRED When Adding Vehicle:
+
+Vehicle Type (category)
+
+Vehicle Model
+
+Number Plate
+
+Color
+
+Max Passengers
+
+Max Luggage
+
+Hourly Price
+
+Per KM Price
+
+Status (available/busy)
+
+Assigned Driver (optional at add time)
+
+❌ Vehicle cannot be saved if any required field is missing.
+
+🔹 DRIVER MANAGEMENT (VENDOR SIDE)
+
+Vendor can:
+
+Add Driver
+
+Edit Driver
+
+View Own Drivers Only
+
+Required fields:
+
+Driver Name
+
+Phone
+
+License Number
+
+License Expiry
+
+National ID
+
+Date of Birth
+
+Assigned Vehicle (optional)
+
+🔹 VENDOR BOOKINGS VIEW (READ ONLY)
+
+Vendor can:
+
+See only his own bookings
+
+See:
+
+Status
+
+Fare
+
+Assigned vehicle
+
+Assigned driver
+
+❌ Cannot change fare, driver, or vehicle
+
+✅ 4️⃣ PAYOUT & EARNINGS LOGIC (ADMIN + VENDOR)
+🔹 For Admin:
+
+See:
+
+Vendor total earnings (from completed bookings)
+
+Last payout made
+
+Pending payout amount
+
+Can:
+
+Mark payout as paid
+
+Save payout record
+
+🔹 For Vendor:
+
+See:
+
+Total earnings
+
+Last payment received
+
+Pending payment
+
+✅ 5️⃣ DATA SOURCES (USE EXISTING TABLES)
+
+Use existing tables where possible:
+
+vendors
+
+vehicles
+
+drivers
+
+bookings
+
+vendor_payouts
+
+payouts
+
+❌ Do NOT introduce duplicate vendor or vehicle tables
+✅ Only extend with additional API logic if required
+
+✅ 6️⃣ ROLE-BASED ACCESS (STRICT)
+Action	Admin	Vendor	Operator
+View All Vendors	✅	❌	❌
+Approve / Reject Vendor	✅	❌	❌
+View Own Vendor Profile	✅	✅	❌
+Add Vehicle	✅	✅ (Own only)	❌
+Edit Vehicle	✅	✅ (Own only)	❌
+Add Driver	✅	✅ (Own only)	❌
+View Vendor Bookings	✅	✅ (Own only)	❌
+View Vendor Payouts	✅	✅ (Own only)	❌
+✅ 7️⃣ FINAL VERIFICATION REQUIRED
+
+After implementation, confirm with screenshots:
+
+✅ Admin Vendors List with fleet counts & earnings
+
+✅ Vendor Profile (fleet + bank + payouts)
+
+✅ New Vendor Requests Approval Screen
+
+✅ Vendor Login Dashboard
+
+✅ Vendor Add Vehicle Form (all fields required)
+
+✅ Vendor Add Driver Form
+
+✅ Vendor Bookings View
+
+✅ Vendor Earnings & Pending Payout Screen
+
+🚫 STRICTLY DO NOT
+
+Reset database
+
+Remove any existing booking logic
+
+Modify fare auto-assignment
+
+Touch notification system
