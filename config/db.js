@@ -3,9 +3,9 @@ const { DATABASE_URL } = require('./env');
 
 const pool = new Pool({
   connectionString: DATABASE_URL,
-  max: 20,
-  idleTimeoutMillis: 45000,
-  connectionTimeoutMillis: 10000,
+  max: 30,
+  idleTimeoutMillis: 60000,
+  connectionTimeoutMillis: 30000,
 });
 
 pool.on('connect', () => {
