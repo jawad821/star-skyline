@@ -2,6 +2,32 @@
 let currentRange = 'today';
 const API_BASE = window.location.origin + '/api';
 
+// Toast Notification System
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  
+  const icons = {
+    success: '✅',
+    error: '❌',
+    info: 'ℹ️'
+  };
+  
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type] || icons.success}</span>
+    <span>${message}</span>
+  `;
+  
+  container.appendChild(toast);
+  
+  // Auto-remove after 4 seconds
+  setTimeout(() => {
+    toast.classList.add('removing');
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
 // UAE COMPREHENSIVE Locations for Autocomplete (ALL EMIRATES & AREAS - 400+ Locations)
 const UAE_LOCATIONS = [
   // ===== DUBAI (120+ Locations) =====
@@ -775,7 +801,7 @@ function editDriver(id) {
   })
   .catch(e => {
     console.error('Edit driver error:', e);
-    alert('Error loading driver details');
+    showToast('Error loading driver details', 'error');
   });
 }
 
@@ -932,15 +958,15 @@ function saveDriverChanges() {
     })
   }).then(r => r.json()).then(d => {
     if (d.success) {
-      alert('Driver updated successfully!');
+      showToast('Driver updated successfully!', 'success');
       closeModal('driverEditModal');
       loadDrivers();
     } else {
-      alert('Error: ' + (d.error || 'Failed to update driver'));
+      showToast('Error: ' + (d.error || 'Failed to update driver'), 'error');
     }
   }).catch(e => {
     console.error('Save driver error:', e);
-    alert('Error saving driver changes');
+    showToast('Error saving driver changes', 'error');
   });
 }
 
@@ -1110,7 +1136,7 @@ function createManualBooking() {
   
   // Validate required fields
   if (!bookingType || !vehicleType) {
-    alert('Please select Booking Type and Vehicle Type');
+    showToast('Please select Booking Type and Vehicle Type', 'error');
     return;
   }
   
@@ -1147,14 +1173,14 @@ function createManualBooking() {
     body: JSON.stringify(body)
   }).then(r => r.json()).then(d => {
     if (d.success) {
-      alert('Booking created successfully!');
+      showToast('Booking created successfully!', 'success');
       closeModal('addBookingModal');
       loadBookings();
     } else {
-      alert('Error: ' + (d.error || 'Failed to create booking'));
+      showToast('Error: ' + (d.error || 'Failed to create booking'), 'error');
     }
   }).catch(e => {
-    alert('Error: ' + e.message);
+    showToast('Error: ' + e.message, 'error');
     console.error('Create booking error:', e);
   });
 }
@@ -1355,14 +1381,14 @@ function saveBookingChanges(e) {
   .then(r => r.json())
   .then(d => {
     if (d.success) {
-      alert('Booking updated successfully!');
+      showToast('Booking updated successfully!', 'success');
       closeModal('editBookingModal');
       loadBookings();
     } else {
-      alert('Error: ' + (d.error || 'Failed to update booking'));
+      showToast('Error: ' + (d.error || 'Failed to update booking'), 'error');
     }
   })
-  .catch(e => alert('Error: ' + e.message));
+  .catch(e => showToast('Error: ' + e.message, 'error'));
 }
 
 async function initEditMapAutocomplete() {
