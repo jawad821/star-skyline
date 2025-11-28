@@ -1074,12 +1074,36 @@ function viewDriver(id) {
     if (driver) {
       const modal = document.getElementById('driverViewModal');
       if (modal) {
-        document.getElementById('driverViewId').value = driver.id || '';
+        // Driver Image with fallback to placeholder
+        const imgElement = document.getElementById('driverViewImage');
+        if (driver.image_url) {
+          imgElement.src = driver.image_url;
+          imgElement.onerror = function() {
+            this.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(driver.name) + '&background=random&size=128&bold=true&font-size=0.4';
+          };
+        } else {
+          imgElement.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(driver.name) + '&background=random&size=128&bold=true&font-size=0.4';
+        }
+        
         document.getElementById('driverViewName').value = driver.name || '';
         document.getElementById('driverViewPhone').value = driver.phone || '';
-        document.getElementById('driverViewStatus').value = (driver.status || 'offline').toUpperCase();
         document.getElementById('driverViewEmail').value = driver.email || '';
+        document.getElementById('driverViewStatus').value = (driver.status || 'offline').toUpperCase();
+        
+        // Rating with star symbol
+        const rating = driver.avg_rating || 0;
+        document.getElementById('driverViewRating').value = '⭐ ' + rating + '/5';
+        
         document.getElementById('driverViewLicense').value = driver.license_number || '';
+        
+        // Format license expiry date
+        if (driver.license_expiry_date) {
+          const expiryDate = new Date(driver.license_expiry_date);
+          document.getElementById('driverViewLicenseExpiry').value = expiryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        } else {
+          document.getElementById('driverViewLicenseExpiry').value = 'N/A';
+        }
+        
         modal.style.display = 'block';
         document.getElementById('modalOverlay').style.display = 'block';
       }
