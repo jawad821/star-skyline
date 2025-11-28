@@ -74,14 +74,21 @@ const bookingController = {
       console.log('   🚗 Vehicle Type:', req.body.vehicle_type);
       console.log('   👥 Passengers:', req.body.passengers_count);
       console.log('   🧳 Luggage:', req.body.luggage_count);
+      console.log('   📊 Booking Type:', req.body.booking_type);
+      console.log('   📏 Distance:', req.body.distance_km, 'km');
       
-      const result = await bookingService.createBooking(req.body);
+      // Validate payload first
+      const bareerahService = require('../services/bareerahBookingService');
+      bareerahService.validateBareerahPayload(req.body);
+      
+      // Create with retry logic
+      const result = await bareerahService.createBookingWithRetry(req.body);
       
       console.log('✅ [BAREERAH] Booking created successfully!');
-      console.log('   🆔 Booking ID:', result.booking?.id);
-      console.log('   💰 Fare:', result.booking?.fare_aed, 'AED');
-      console.log('   🚗 Vehicle:', result.booking?.assigned_vehicle_id ? '✅ Assigned' : '⏳ Pending');
-      console.log('   👨‍🚗 Driver:', result.booking?.driver_id ? '✅ Assigned' : '⏳ Pending');
+      console.log('   🆔 Booking ID:', result.booking_id);
+      console.log('   💰 Fare: AED', result.fare);
+      console.log('   🚗 Vehicle:', result.vehicle?.model || '⏳ Pending');
+      console.log('   Retry attempts:', result.retry_attempts);
       
       res.json({
         success: true,
@@ -89,8 +96,8 @@ const bookingController = {
       });
     } catch (error) {
       console.log('❌ [BAREERAH] Booking creation failed!');
+      console.log('   Error Code:', error.code || error.statusCode);
       console.log('   Error:', error.message);
-      console.log('   Stack:', error.stack);
       next(error);
     }
   },
