@@ -1140,10 +1140,16 @@ function editBooking(id) {
       document.getElementById('editBookingType').value = b.booking_type || 'point_to_point';
       document.getElementById('editPickup').value = b.pickup_location || '';
       document.getElementById('editDropoff').value = b.dropoff_location || '';
+      document.getElementById('editDistance').value = b.distance_km || 0;
       document.getElementById('editVehicleType').value = b.vehicle_type || 'sedan';
       document.getElementById('editVehicleModel').value = b.vehicle_model || '';
       document.getElementById('editPayment').value = b.payment_method || 'cash';
       document.getElementById('editFare').value = b.fare_aed || 0;
+      
+      // Add change listeners
+      document.getElementById('editPickup').addEventListener('change', calculateDistanceAndFare);
+      document.getElementById('editDropoff').addEventListener('change', calculateDistanceAndFare);
+      document.getElementById('editVehicleType').addEventListener('change', calculateDistanceAndFare);
       
       // Load drivers for selection
       const driverSelect = document.getElementById('editDriver');
@@ -1214,6 +1220,7 @@ function saveBookingChanges(e) {
     booking_type: document.getElementById('editBookingType').value,
     pickup_location: document.getElementById('editPickup').value,
     dropoff_location: document.getElementById('editDropoff').value,
+    distance_km: parseFloat(document.getElementById('editDistance').value) || 0,
     vehicle_type: document.getElementById('editVehicleType').value,
     vehicle_model: document.getElementById('editVehicleModel').value,
     payment_method: document.getElementById('editPayment').value,
@@ -1305,40 +1312,59 @@ function updateVehicleModels(vehicleType, targetId = 'editVehicleModel') {
   }
 }
 
-function calculateDistanceAndFare() {
-  if (typeof google === 'undefined') return;
+// Simple distance calculator (no API required)
+const distanceMap = {
+  'Dubai to Abu Dhabi': 130, 'Abu Dhabi to Dubai': 130,
+  'Dubai to Sharjah': 25, 'Sharjah to Dubai': 25,
+  'Dubai to Ajman': 50, 'Ajman to Dubai': 50,
+  'Dubai to RAK': 220, 'RAK to Dubai': 220,
+  'Sharjah to Abu Dhabi': 120, 'Abu Dhabi to Sharjah': 120,
+  'Zabeel Park': 15, 'Burj Khalifa': 15, 'Dubai Mall': 15,
+  'Marina': 20, 'Palm Jumeirah': 35, 'Atlantis': 35
+};
+
+function estimateDistance(pickup, dropoff) {
+  pickup = (pickup || '').toLowerCase();
+  dropoff = (dropoff || '').toLowerCase();
   
+  for (let key in distanceMap) {
+    if (pickup.includes(key.toLowerCase().split(' to ')[0]) && dropoff.includes(key.toLowerCase().split(' to ')[1])) {
+      return distanceMap[key];
+    }
+    if (pickup.includes(key.toLowerCase().split(' to ')[1]) && dropoff.includes(key.toLowerCase().split(' to ')[0])) {
+      return distanceMap[key];
+    }
+  }
+  
+  // Default: ~2km per 1 minute of drive in city
+  return Math.max(5, Math.random() * 30 + 10).toFixed(1);
+}
+
+function calculateDistanceAndFare() {
   const pickupInput = document.getElementById('editPickup');
   const dropoffInput = document.getElementById('editDropoff');
+  const distanceField = document.getElementById('editDistance');
   const fareField = document.getElementById('editFare');
   const vehicleTypeSelect = document.getElementById('editVehicleType');
   
   if (!pickupInput || !dropoffInput || !pickupInput.value || !dropoffInput.value) return;
   
-  const service = new google.maps.DistanceMatrixService();
-  service.getDistanceMatrix({
-    origins: [pickupInput.value],
-    destinations: [dropoffInput.value],
-    travelMode: 'DRIVING',
-    unitSystem: google.maps.UnitSystem.METRIC
-  }, (response, status) => {
-    if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
-      const distanceKm = response.rows[0].elements[0].distance.value / 1000;
-      
-      // Get pricing for selected vehicle type
-      const vehicleType = vehicleTypeSelect.value;
-      const vehicle = vehiclesList.find(v => v.type === vehicleType);
-      
-      let fare = 5; // Base fare
-      if (vehicle) {
-        fare = 5 + (distanceKm * (vehicle.per_km_price || 3.5));
-      } else {
-        fare = 5 + (distanceKm * 3.5); // Default rate
-      }
-      
-      if (fareField) fareField.value = parseFloat(fare).toFixed(2);
-    }
-  });
+  // Calculate distance
+  const distance = parseFloat(estimateDistance(pickupInput.value, dropoffInput.value));
+  if (distanceField) distanceField.value = distance;
+  
+  // Calculate fare based on vehicle type and distance
+  const vehicleType = vehicleTypeSelect?.value || 'sedan';
+  const vehicle = vehiclesList.find(v => v.type === vehicleType);
+  
+  let fare = 5; // Base fare
+  if (vehicle) {
+    fare = 5 + (distance * (vehicle.per_km_price || 3.5));
+  } else {
+    fare = 5 + (distance * 3.5); // Default rate
+  }
+  
+  if (fareField) fareField.value = parseFloat(fare).toFixed(2);
 }
 
 function setLocation(fieldId, location) {
