@@ -976,6 +976,7 @@ async function openAddBookingModal() {
     document.getElementById('bookingPickup').value = '';
     document.getElementById('bookingDropoff').value = '';
     document.getElementById('bookingDistance').value = '';
+    document.getElementById('bookingFare').value = '';
     document.getElementById('bookingPassengers').value = '1';
     document.getElementById('bookingLuggage').value = '0';
     document.getElementById('bookingType').value = 'point-to-point';
@@ -990,14 +991,54 @@ async function openAddBookingModal() {
   }
 }
 
+function calculateCreateBookingDistanceAndFare() {
+  const pickupInput = document.getElementById('bookingPickup');
+  const dropoffInput = document.getElementById('bookingDropoff');
+  const distanceField = document.getElementById('bookingDistance');
+  const fareField = document.getElementById('bookingFare');
+  const vehicleTypeSelect = document.getElementById('bookingVehicleType');
+  
+  if (!pickupInput || !dropoffInput || !pickupInput.value || !dropoffInput.value) return;
+  
+  // Calculate distance
+  const distance = parseFloat(estimateDistance(pickupInput.value, dropoffInput.value));
+  if (distanceField) distanceField.value = distance;
+  
+  // Calculate fare based on vehicle type and distance
+  const vehicleType = vehicleTypeSelect?.value || 'sedan';
+  const vehicle = vehiclesList.find(v => v.type === vehicleType);
+  
+  let fare = 5; // Base fare
+  if (vehicle) {
+    fare = 5 + (distance * (vehicle.per_km_price || 3.5));
+  } else {
+    fare = 5 + (distance * 3.5); // Default rate
+  }
+  
+  if (fareField) fareField.value = parseFloat(fare).toFixed(2);
+}
+
 function initAddMapAutocomplete() {
   const vehicleTypeSelect = document.getElementById('bookingVehicleType');
+  const pickupInput = document.getElementById('bookingPickup');
+  const dropoffInput = document.getElementById('bookingDropoff');
   
   // Vehicle type change handler
   if (vehicleTypeSelect) {
     vehicleTypeSelect.addEventListener('change', () => {
       updateVehicleModels(vehicleTypeSelect.value, 'bookingVehicleModel');
+      calculateCreateBookingDistanceAndFare();
     });
+  }
+  
+  // Location change handlers
+  if (pickupInput) {
+    pickupInput.addEventListener('change', calculateCreateBookingDistanceAndFare);
+    pickupInput.addEventListener('blur', calculateCreateBookingDistanceAndFare);
+  }
+  if (dropoffInput) {
+    dropoffInput.addEventListener('change', calculateCreateBookingDistanceAndFare);
+    dropoffInput.addEventListener('blur', calculateCreateBookingDistanceAndFare);
   }
   
   // Setup location autocomplete
@@ -1026,6 +1067,7 @@ function createManualBooking() {
       pickup_location: document.getElementById('bookingPickup').value,
       dropoff_location: document.getElementById('bookingDropoff').value,
       distance_km: parseFloat(document.getElementById('bookingDistance').value) || 0,
+      fare_aed: parseFloat(document.getElementById('bookingFare').value) || 0,
       passengers_count: parseInt(document.getElementById('bookingPassengers').value) || 1,
       luggage_count: parseInt(document.getElementById('bookingLuggage').value) || 0,
       booking_type: document.getElementById('bookingType').value || 'point-to-point',
