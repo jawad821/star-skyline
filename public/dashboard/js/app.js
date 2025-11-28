@@ -1103,6 +1103,17 @@ function setCreateAssignmentMode(mode) {
 
 function createManualBooking() {
   const token = localStorage.getItem('token');
+  
+  // Get all values
+  const bookingType = document.getElementById('bookingType')?.value;
+  const vehicleType = document.getElementById('bookingVehicleType')?.value;
+  
+  // Validate required fields
+  if (!bookingType || !vehicleType) {
+    alert('Please select Booking Type and Vehicle Type');
+    return;
+  }
+  
   const body = {
     customer_name: document.getElementById('bookingCustomerName').value,
     customer_email: document.getElementById('bookingCustomerEmail').value,
@@ -1113,9 +1124,9 @@ function createManualBooking() {
     fare_aed: parseFloat(document.getElementById('bookingFare').value) || 0,
     passengers_count: parseInt(document.getElementById('bookingPassengers').value) || 1,
     luggage_count: parseInt(document.getElementById('bookingLuggage').value) || 0,
-    booking_type: document.getElementById('bookingType').value || 'point-to-point',
-    vehicle_type: document.getElementById('bookingVehicleType').value || 'sedan',
-    vehicle_model: document.getElementById('bookingVehicleModel').value,
+    booking_type: bookingType,
+    vehicle_type: vehicleType,
+    vehicle_model: document.getElementById('bookingVehicleModel').value || '',
     payment_method: document.getElementById('bookingPayment').value || 'cash'
   };
   
@@ -1124,6 +1135,8 @@ function createManualBooking() {
     const driverId = document.getElementById('createDriver').value;
     if (driverId) body.driver_id = driverId;
   }
+  
+  console.log('Creating booking with:', body);
   
   fetch(API_BASE + '/bookings/create-manual', {
     method: 'POST',
@@ -1142,7 +1155,7 @@ function createManualBooking() {
     }
   }).catch(e => {
     alert('Error: ' + e.message);
-    console.error(e);
+    console.error('Create booking error:', e);
   });
 }
 

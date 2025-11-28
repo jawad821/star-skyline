@@ -27,11 +27,13 @@ const addBookingController = {
       }
 
       // Calculate fare
-      const fare = fareCalculator.calculateFare({
-        distance_km: parseFloat(distance_km),
-        vehicle_type: vehicle_type.toLowerCase(),
-        booking_type: booking_type.toLowerCase()
-      });
+      const fareResult = fareCalculator.calculateFare(
+        booking_type.toLowerCase(),
+        vehicle_type.toLowerCase(),
+        parseFloat(distance_km),
+        0
+      );
+      const fare = fareResult.fare;
 
       // Create booking (database auto-generates UUID)
       const result = await query(`
