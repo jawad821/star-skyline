@@ -863,8 +863,8 @@ async function loadBookings() {
       const driverDisplay = b.driver_name || (b.driver_id ? 'Driver assigned' : 'Unassigned');
       const statusDisplay = b.status || 'pending';
       const paymentDisplay = (b.payment_method || 'cash').toUpperCase();
-      const vehicleType = (b.vehicle_type || 'sedan').toUpperCase();
-      return '<tr><td>' + b.id.substring(0, 8) + '</td><td>' + b.customer_name + '</td><td>' + b.customer_phone + '</td><td>' + b.pickup_location + '</td><td>' + b.dropoff_location + '</td><td>' + b.distance_km + '</td><td>' + vehicleType + '</td><td>AED ' + (b.fare_aed || b.total_fare || 0) + '</td><td>' + driverDisplay + '</td><td>' + paymentDisplay + '</td><td>' + statusDisplay + '</td><td>' + new Date(b.created_at).toLocaleDateString() + '</td><td><button onclick="viewBooking(\'' + b.id + '\')" class="btn-small">View</button> <button onclick="editBooking(\'' + b.id + '\')" class="btn-small">Edit</button></td></tr>';
+      const sourceLabel = (b.booking_source === 'bareerah' || b.booking_source === 'voice_agent') ? '📱 Bareerah' : '👤 Manual';
+      return '<tr><td>' + b.id.substring(0, 8) + '</td><td>' + b.customer_name + '</td><td>' + b.customer_phone + '</td><td>' + b.pickup_location + '</td><td>' + b.dropoff_location + '</td><td>' + b.distance_km + '</td><td>' + sourceLabel + '</td><td>AED ' + (b.fare_aed || b.total_fare || 0) + '</td><td>' + driverDisplay + '</td><td>' + paymentDisplay + '</td><td>' + statusDisplay + '</td><td>' + new Date(b.created_at).toLocaleDateString() + '</td><td><button onclick="viewBooking(\'' + b.id + '\')" class="btn-small">View</button> <button onclick="editBooking(\'' + b.id + '\')" class="btn-small">Edit</button></td></tr>';
     }).join('');
   } catch (e) {
     const tbody = document.getElementById('bookings-table-body');
