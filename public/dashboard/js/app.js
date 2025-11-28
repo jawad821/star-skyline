@@ -1513,7 +1513,21 @@ function loadVehiclesForModels() {
 }
 
 function updateVehicleModels(vehicleType, targetId = 'editVehicleModel') {
-  const vehicles = vehiclesList.filter(v => v.type === vehicleType);
+  // Map old vehicle type names to new category names
+  const typeMapping = {
+    'sedan': 'classic',
+    'executive': 'executive',
+    'suv': 'urban_suv',
+    'luxury': 'luxury_suv',
+    'van': 'elite_van',
+    'bus': 'mini_bus',
+    'minibus': 'mini_bus'
+  };
+  
+  const newType = typeMapping[vehicleType] || vehicleType;
+  
+  // Filter by new type name
+  const vehicles = vehiclesList.filter(v => v.type === newType);
   const select = document.getElementById(targetId);
   
   if (select) {
@@ -1604,11 +1618,16 @@ async function calculateDistanceAndFare() {
   
   // Map old vehicle types to new fare rule categories
   const vehicleType = vehicleTypeSelect?.value || 'sedan';
-  let fareRuleType = 'classic';
-  if (vehicleType === 'executive' || vehicleType === 'suv') fareRuleType = 'executive';
-  if (vehicleType === 'luxury') fareRuleType = 'luxury_suv';
-  if (vehicleType === 'van') fareRuleType = 'elite_van';
-  if (vehicleType === 'bus' || vehicleType === 'minibus') fareRuleType = 'mini_bus';
+  const typeMapping = {
+    'sedan': 'classic',
+    'executive': 'executive',
+    'suv': 'urban_suv',
+    'luxury': 'luxury_suv',
+    'van': 'elite_van',
+    'bus': 'mini_bus',
+    'minibus': 'mini_bus'
+  };
+  const fareRuleType = typeMapping[vehicleType] || 'classic';
   
   // Get fare rule from cache or API
   let baseFare = 95, perKmRate = 1;
