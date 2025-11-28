@@ -1058,7 +1058,7 @@ async function openAddBookingModal() {
   }
 }
 
-function calculateCreateBookingDistanceAndFare() {
+async function calculateCreateBookingDistanceAndFare() {
   const pickupInput = document.getElementById('bookingPickup');
   const dropoffInput = document.getElementById('bookingDropoff');
   const distanceField = document.getElementById('bookingDistance');
@@ -1071,17 +1071,42 @@ function calculateCreateBookingDistanceAndFare() {
   const distance = parseFloat(estimateDistance(pickupInput.value, dropoffInput.value));
   if (distanceField) distanceField.value = distance;
   
-  // Calculate fare based on vehicle type and distance
+  // Map old vehicle types to new fare rule categories
   const vehicleType = vehicleTypeSelect?.value || 'sedan';
-  const vehicle = vehiclesList.find(v => v.type === vehicleType);
+  const typeMapping = {
+    'sedan': 'classic',
+    'executive': 'executive',
+    'suv': 'urban_suv',
+    'luxury': 'luxury_suv',
+    'van': 'elite_van',
+    'bus': 'mini_bus',
+    'minibus': 'mini_bus'
+  };
+  const fareRuleType = typeMapping[vehicleType] || 'classic';
   
-  let fare = 5; // Base fare
-  if (vehicle) {
-    fare = 5 + (distance * (vehicle.per_km_price || 3.5));
+  // Get fare rule from cache or API
+  let baseFare = 95, perKmRate = 1;
+  if (fareRules[fareRuleType]) {
+    baseFare = parseFloat(fareRules[fareRuleType].base_fare);
+    perKmRate = parseFloat(fareRules[fareRuleType].per_km_rate);
   } else {
-    fare = 5 + (distance * 3.5); // Default rate
+    try {
+      const res = await fetch(API_BASE + '/fare-rules', { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }});
+      if (res.ok) {
+        const data = await res.json();
+        if (data.data && data.data.length) {
+          data.data.forEach(rule => { fareRules[rule.vehicle_type] = rule; });
+          if (fareRules[fareRuleType]) {
+            baseFare = parseFloat(fareRules[fareRuleType].base_fare);
+            perKmRate = parseFloat(fareRules[fareRuleType].per_km_rate);
+          }
+        }
+      }
+    } catch (e) {}
   }
   
+  // Calculate: base_fare + (distance * per_km_rate)
+  const fare = baseFare + (distance * perKmRate);
   if (fareField) fareField.value = parseFloat(fare).toFixed(2);
 }
 
