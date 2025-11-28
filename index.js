@@ -20,6 +20,9 @@ const fareRuleRoutes = require('./routes/fareRuleRoutes');
 
 const app = express();
 
+// Import Bareerah logging middleware
+const { bareerahLogger, bareerahErrorLogger } = require('./middleware/bareerahLogger');
+
 // CORS Configuration - Allow Replit preview and local development
 app.use(cors({
   origin: function(origin, callback) {
@@ -35,6 +38,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// Apply Bareerah logging to all requests
+app.use(bareerahLogger);
 
 // API routes BEFORE static files
 app.use('/api/auth', authRoutes);

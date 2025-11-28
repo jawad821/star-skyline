@@ -4,6 +4,7 @@ const { query } = require('../config/db');
 const bookingController = {
   async getAllBookings(req, res, next) {
     try {
+      console.log('📊 [BAREERAH] Fetching all bookings...');
       const result = await query(`
         SELECT b.*, 
                d.name as driver_name
@@ -11,8 +12,10 @@ const bookingController = {
         LEFT JOIN drivers d ON b.driver_id = d.id
         ORDER BY b.created_at DESC LIMIT 1000
       `);
+      console.log(`✅ [BAREERAH] Found ${result.rows.length} bookings`);
       res.json({ success: true, data: result.rows || [] });
     } catch (error) {
+      console.log('❌ [BAREERAH] Error fetching bookings:', error.message);
       next(error);
     }
   },
@@ -37,24 +40,57 @@ const bookingController = {
 
   async calculateFare(req, res, next) {
     try {
+      console.log('💰 [BAREERAH] Calculating fare...');
+      console.log('   🚗 Vehicle Type:', req.body.vehicle_type);
+      console.log('   📏 Distance:', req.body.distance_km, 'km');
+      console.log('   ⏱️  Time:', req.body.time_minutes, 'minutes');
+      
       const fare = bookingService.calculateFare(req.body);
+      
+      console.log('✅ [BAREERAH] Fare calculated:', {
+        base: fare.base,
+        perKm: fare.per_km,
+        perMin: fare.per_minute,
+        total: fare.total_fare
+      });
+      
       res.json({
         success: true,
         ...fare
       });
     } catch (error) {
+      console.log('❌ [BAREERAH] Fare calculation failed:', error.message);
       next(error);
     }
   },
 
   async createBooking(req, res, next) {
     try {
+      console.log('\n🎯 [BAREERAH] Creating new booking...');
+      console.log('   👤 Customer:', req.body.customer_name);
+      console.log('   📱 Phone:', req.body.customer_phone);
+      console.log('   📍 Pickup:', req.body.pickup_location);
+      console.log('   📍 Dropoff:', req.body.dropoff_location);
+      console.log('   🚗 Vehicle Type:', req.body.vehicle_type);
+      console.log('   👥 Passengers:', req.body.passengers_count);
+      console.log('   🧳 Luggage:', req.body.luggage_count);
+      
       const result = await bookingService.createBooking(req.body);
+      
+      console.log('✅ [BAREERAH] Booking created successfully!');
+      console.log('   🆔 Booking ID:', result.booking?.id);
+      console.log('   💰 Fare:', result.booking?.fare_aed, 'AED');
+      console.log('   🚗 Vehicle:', result.booking?.assigned_vehicle_id ? '✅ Assigned' : '⏳ Pending');
+      console.log('   👨‍🚗 Driver:', result.booking?.driver_id ? '✅ Assigned' : '⏳ Pending');
+      
       res.json({
         success: true,
         ...result
       });
     } catch (error) {
+      console.log('❌ [BAREERAH] Booking creation failed!');
+      console.log('   Error:', error.message);
+      console.log('   Stack:', error.stack);
       next(error);
     }
   },

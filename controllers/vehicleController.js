@@ -7,8 +7,13 @@ const vehicleController = {
     try {
       const { passengers_count, luggage_count } = req.query;
       
+      console.log('\n🚗 [BAREERAH] Suggesting vehicles...');
+      console.log('   👥 Passengers requested:', passengers_count);
+      console.log('   🧳 Luggage requested:', luggage_count);
+      
       // Validate input
       if (!passengers_count || !luggage_count) {
+        console.log('❌ [BAREERAH] Missing required parameters');
         return res.status(400).json({
           success: false,
           error: 'passengers_count and luggage_count are required'
@@ -19,6 +24,7 @@ const vehicleController = {
       const luggage = parseInt(luggage_count);
 
       if (pax < 1 || luggage < 0) {
+        console.log('❌ [BAREERAH] Invalid parameter values');
         return res.status(400).json({
           success: false,
           error: 'passengers_count must be >= 1, luggage_count must be >= 0'
@@ -26,6 +32,7 @@ const vehicleController = {
       }
 
       // Get all vehicles
+      console.log('   🔍 Searching database for matching vehicles...');
       const result = await query(`
         SELECT DISTINCT 
           type, 
@@ -39,11 +46,14 @@ const vehicleController = {
       `, [pax, luggage]);
 
       if (result.rows.length === 0) {
+        console.log(`❌ [BAREERAH] No vehicles found for ${pax} pax, ${luggage} luggage`);
         return res.status(400).json({
           success: false,
           error: `No vehicles available for ${pax} passengers and ${luggage} luggage`
         });
       }
+      
+      console.log(`✅ [BAREERAH] Found ${result.rows.length} matching vehicle types`);
 
       // Get fare rules for each vehicle type to include pricing
       const suggestions = [];
