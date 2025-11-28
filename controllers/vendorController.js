@@ -6,7 +6,7 @@ const vendorController = {
   async getAllVendors(req, res, next) {
     try {
       const vendors = await Vendor.findAll();
-      res.json({ success: true, vendors });
+      res.json({ success: true, data: vendors });
     } catch (error) {
       next(error);
     }
@@ -16,7 +16,7 @@ const vendorController = {
     try {
       const { status } = req.params;
       const vendors = await Vendor.findByStatus(status);
-      res.json({ success: true, vendors });
+      res.json({ success: true, data: vendors });
     } catch (error) {
       next(error);
     }
