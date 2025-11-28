@@ -1,0 +1,163 @@
+Add new booking auto/manual assignment logic + notification options without breaking any existing working features.
+
+⚠️ CRITICAL SAFETY RULE (MUST FOLLOW)
+
+❌ Do NOT refactor any working modules
+
+❌ Do NOT change database schema
+
+❌ Do NOT remove any existing API routes
+
+❌ Do NOT overwrite existing frontend logic
+
+✅ Only EXTEND the current system with the rules below
+
+✅ 1. DRIVER–VEHICLE TAGGING (BASE RULE)
+
+Every driver is permanently tagged with one specific vehicle.
+
+Auto system must always use tagged driver + tagged vehicle.
+
+✅ 2. AUTO BOOKING (SYSTEM / AI CREATED)
+
+When the system creates a booking:
+
+Vehicle is selected by vehicle type/model
+
+System finds a matching available vehicle
+
+System assigns that vehicle’s tagged driver
+
+Booking status becomes assigned
+
+No admin manual step required
+
+✅ 3. MANUAL BOOKING BY ADMIN
+
+At booking creation, Admin can:
+
+Select any driver
+
+Select any vehicle
+
+Assign a different car than the driver’s tagged car
+
+✅ Full manual override allowed at creation.
+
+✅ 4. PENDING BOOKING – ADMIN OVERRIDE
+
+If booking.status = pending:
+
+✅ Admin can change driver
+
+✅ Admin can change vehicle
+
+✅ Admin can change vehicle type & model
+
+✅ Admin can change fare
+
+✅ 5. ✅ ASSIGNED BOOKING – ADMIN OVERRIDE (UPDATED RULE)
+
+If booking.status = assigned:
+
+✅ Admin can STILL change:
+
+Driver
+
+Vehicle
+
+Fare
+
+If booking.status = in_progress or completed:
+
+❌ Driver change NOT allowed
+
+❌ Vehicle change NOT allowed
+
+❌ Fare change NOT allowed
+
+✅ These become LOCKED STATES.
+
+✅ 6. BOOKING EDIT – NOTIFICATION OPTIONS (NEW FEATURE)
+
+On the Booking Edit Screen, add selectable checkboxes:
+
+Notify Customer:
+
+☐ WhatsApp
+
+☐ Email
+
+Notify Driver:
+
+☐ WhatsApp
+
+☐ Email
+
+Notify Admin:
+
+☐ WhatsApp
+
+☐ Email
+
+On Save:
+
+Only the selected recipients & channels should receive notifications.
+
+All notifications must be logged in notification_logs.
+
+✅ 7. AUTO ASSIGNMENT DECISION LOGIC (TECH RULE)
+
+When system assigns automatically:
+
+Input:
+- passengers_count
+- luggage_count
+- vehicle_type
+
+Query vehicles table:
+- type = vehicle_type
+- max_passengers >= passengers_count
+- max_luggage >= luggage_count
+- status = 'available'
+- active = true
+
+Pick first match →
+Get its tagged driver →
+Assign to booking →
+Set booking.status = 'assigned'
+
+✅ 8. API PERMISSION MATRIX (ENFORCE STRICTLY)
+Action	Admin	Operator	System/AI	Vendor	Driver
+Create Manual Booking	✅	✅	❌	❌	❌
+Create Auto Booking	❌	❌	✅	❌	❌
+View Bookings	✅	✅	✅	✅ (own)	✅ (own)
+Edit Booking (pending)	✅	✅	❌	❌	❌
+Edit Booking (assigned)	✅	❌	❌	❌	❌
+Edit Booking (in_progress)	❌	❌	❌	❌	❌
+Edit Booking (completed)	❌	❌	❌	❌	❌
+Change Driver	✅	❌	❌	❌	❌
+Change Vehicle	✅	❌	❌	❌	❌
+Send Notifications	✅	❌	✅ (auto only)	❌	❌
+Export CSV	✅	❌	❌	❌	❌
+✅ 9. FRONTEND UI RULE (DO NOT REDESIGN)
+
+Booking list stays the same.
+
+Booking edit modal should ADD:
+
+Assignment controls (enabled only for pending & assigned)
+
+Notification checkboxes section
+
+In in_progress & completed, assignment fields must be disabled (readonly).
+
+✅ 10. FINAL VERIFICATION (MANDATORY BEFORE CLOSING TASK)
+
+After implementation, confirm:
+
+✅ Auto booking assigns tagged driver + vehicle
+✅ Admin can override in pending & assigned
+✅ Locked state works in in_progress & completed
+✅ Notification checkboxes work correctly
+✅ No existing dashboard, booking, driver, or car feature is broken
