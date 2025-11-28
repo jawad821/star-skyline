@@ -1312,32 +1312,59 @@ function updateVehicleModels(vehicleType, targetId = 'editVehicleModel') {
   }
 }
 
-// Simple distance calculator (no API required)
-const distanceMap = {
-  'Dubai to Abu Dhabi': 130, 'Abu Dhabi to Dubai': 130,
-  'Dubai to Sharjah': 25, 'Sharjah to Dubai': 25,
-  'Dubai to Ajman': 50, 'Ajman to Dubai': 50,
-  'Dubai to RAK': 220, 'RAK to Dubai': 220,
-  'Sharjah to Abu Dhabi': 120, 'Abu Dhabi to Sharjah': 120,
-  'Zabeel Park': 15, 'Burj Khalifa': 15, 'Dubai Mall': 15,
-  'Marina': 20, 'Palm Jumeirah': 35, 'Atlantis': 35
+// UAE Location Distance Map - More Accurate
+const locationDistances = {
+  'Burj Khalifa': { x: 10, y: 8 },
+  'Dubai Mall': { x: 10, y: 8 },
+  'Zabeel Park': { x: 10.5, y: 10 },
+  'Downtown Dubai': { x: 10, y: 8 },
+  'Marina': { x: 8, y: 12 },
+  'Palm Jumeirah': { x: 6, y: 14 },
+  'Atlantis': { x: 5, y: 16 },
+  'Jebel Ali': { x: 15, y: 18 },
+  'Dubai Airport': { x: 15, y: 5 },
+  'Deira': { x: 12, y: 6 },
+  'Bur Dubai': { x: 11, y: 7 },
+  'Sheikh Zayed Road': { x: 9, y: 10 },
+  'JBR': { x: 7, y: 11 },
+  'Arabian Ranches': { x: 9, y: 20 },
+  'Emirates Hills': { x: 7, y: 22 },
+  'Jumeirah Golf Estate': { x: 5, y: 19 },
+  'Sharjah Airport': { x: 25, y: 8 },
+  'Sharjah': { x: 25, y: 10 },
+  'Ajman': { x: 35, y: 8 },
+  'Abu Dhabi': { x: 8, y: -100 },
+  'RAK': { x: 60, y: 80 },
+  'Fujairah': { x: 80, y: 40 },
+  'Umm Al Quwain': { x: 50, y: 15 }
 };
 
 function estimateDistance(pickup, dropoff) {
   pickup = (pickup || '').toLowerCase();
   dropoff = (dropoff || '').toLowerCase();
   
-  for (let key in distanceMap) {
-    if (pickup.includes(key.toLowerCase().split(' to ')[0]) && dropoff.includes(key.toLowerCase().split(' to ')[1])) {
-      return distanceMap[key];
+  // Try to find matching locations
+  let pickupCoords = null, dropoffCoords = null;
+  
+  for (let loc in locationDistances) {
+    if (pickup.includes(loc.toLowerCase()) || loc.toLowerCase().includes(pickup)) {
+      pickupCoords = locationDistances[loc];
     }
-    if (pickup.includes(key.toLowerCase().split(' to ')[1]) && dropoff.includes(key.toLowerCase().split(' to ')[0])) {
-      return distanceMap[key];
+    if (dropoff.includes(loc.toLowerCase()) || loc.toLowerCase().includes(dropoff)) {
+      dropoffCoords = locationDistances[loc];
     }
   }
   
-  // Default: ~2km per 1 minute of drive in city
-  return Math.max(5, Math.random() * 30 + 10).toFixed(1);
+  // If both found, calculate distance using simple formula
+  if (pickupCoords && dropoffCoords) {
+    const dx = pickupCoords.x - dropoffCoords.x;
+    const dy = pickupCoords.y - dropoffCoords.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    return Math.max(2, Math.round(distance * 1.2 * 10) / 10); // Add 20% for actual road distance
+  }
+  
+  // Fallback: reasonable city distance
+  return (Math.random() * 25 + 10).toFixed(1);
 }
 
 function calculateDistanceAndFare() {
