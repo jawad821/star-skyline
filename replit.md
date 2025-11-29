@@ -6,54 +6,68 @@ This project is a production-ready Node.js backend application for a comprehensi
 
 Preferred communication style: Simple, everyday language. All features delivered production-ready.
 **Stability First**: System must remain stable as features expand. No compromise on reliability.
+**English/Roman Urdu Only** - No Hindi/Urdu script communication.
 
 # System Architecture
 
-The application is built on a complete MVC (Model-View-Controller) architecture using Express.js (v5.1.0). It runs on port 8000 and uses JWT-based authentication with Role-Based Access Control (RBAC) for admin, operator, vendor, and driver roles.
+The application is built on a complete MVC (Model-View-Controller) architecture using Express.js (v5.1.0). It runs on **port 5000** (changed from 8000 for Replit compatibility) and uses JWT-based authentication with Role-Based Access Control (RBAC) for admin, operator, vendor, and driver roles.
 
-## Recent Changes (2025-11-28)
+## Recent Changes (2025-11-29)
 
-### ✅ VENDOR MANAGEMENT MODULE IMPLEMENTED
-- **Database**: Added `auto_assign_disabled` column to vendors table for admin control
-- **Backend Vendor Model**: New methods for approve/reject/toggle auto-assignment
-- **Vendor Controller**: Enhanced with approval workflows, status filtering, vendor statistics
-- **Vendor Routes**: Added admin-protected endpoints for vendor management
-- **Smart Auto-Assignment Logic**: 
-  - STEP 1: Company vehicles (vendor_id IS NULL) - **Priority**
-  - STEP 2: Approved vendor vehicles (auto_assign_disabled = false)
-  - STEP 3: No vehicles - return null
+### ✅ PRODUCTION DEPLOYMENT COMPLETED
+- **Port Migration**: Changed from port 8000 → 5000 for Replit webview compatibility
+- **Database**: Created `users` table with proper schema for authentication
+- **Demo Credentials**: Added 4 demo accounts (Admin, Operator, Vendor, Driver) for testing
+- **Bareerah Integration**: Implemented comprehensive retry logic (3 attempts, exponential backoff)
+- **Logging System**: Complete request/response logging middleware with emoji indicators
+- **Live Deployment**: Dashboard, vendor portal, driver portal all accessible via live URLs
 
-### 🔄 Auto-Assignment Flow (After Bareerah Booking)
+### 🔄 Bareerah Booking Service (NEW - With Auto-Retry)
 ```
-Booking Created by Bareerah
+Request from Bareerah
     ↓
-Check Company Vehicles (vendor_id = NULL) - Available?
-    ├─ YES → Assign company vehicle ✅
+🔍 Payload Validation (strict)
+    ├─ Missing fields? → Reject immediately
     │
-    └─ NO → Check Approved Vendor Vehicles (status='approved', auto_assign_disabled=false)
-        ├─ YES → Assign vendor vehicle ✅ (Vendor gets booking + earnings)
-        │
-        └─ NO → Unassigned (Admin manual assignment needed)
-             → Admin receives notification ✅
+✅ Attempt 1 (500ms)
+    ├─ Success? → Return booking ✅
+    │
+❌ Failed? → Attempt 2 (1000ms exponential backoff)
+    ├─ Success? → Return booking ✅
+    │
+❌ Failed? → Attempt 3 (2000ms exponential backoff)
+    ├─ Success? → Return booking ✅
+    │
+❌ All Failed? → Return error with details
 ```
 
-### 📊 Admin Control Features
-- Approve/Reject new vendor requests
-- View all vendors with fleet summary & earnings
-- Toggle auto-assignment on/off for any approved vendor
-- When disabled: That vendor's vehicles never auto-assigned
-- Full vendor statistics (total bookings, earnings, pending payouts)
+### 📊 Console Logging for Bareerah Requests
+```
+🔔 BAREERAH INCOMING REQUEST
+⏰ Time: 2025-11-29T22:28:19.219Z
+📍 Method: POST
+🔗 Path: /api/bookings/create-manual
+📋 Payload: [complete booking data]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 [BAREERAH-BOOKING] Attempt 1/3
+📋 Data: {customer, phone, passengers, luggage, booking_type, vehicle_type}
+✅ [BAREERAH-BOOKING] SUCCESS!
+🆔 Booking ID: xxxxx
+💰 Fare: AED 125.50
+🚗 Vehicle: Toyota Corolla
+```
 
 ## UI/UX Decisions
 - Admin Dashboard: Features real-time statistics, booking management, driver/vehicle oversight, and KPI tracking. Includes view/edit modals and CSV export functionality.
 - Vendor Portal: Provides vendor-specific login, signup, and a dashboard to track earnings.
 - Driver Portal: Offers driver-specific login, signup, and a dashboard for managing their activities and stats.
+- Operator Portal: NEW - Full access to booking management, driver coordination (same dashboard as admin).
 - Design: Professional 2-column layouts, clear labels, solid white dropdowns with proper contrast, and responsive design with dark mode toggle.
 - Error Display: User-friendly error messages are displayed directly on the UI for failed API calls.
 
 ## Technical Implementations
 - **Core Logic**: Dynamic fare calculation based on distance, time, and vehicle type. Fare rules are admin-editable and stored in database.
-- **Booking Assignment**: Automatic driver-vehicle tagging and assignment based on `assigned_vehicle_id` and vehicle's `driver_id`. Manual override for vehicle selection in admin. **NEW: Smart vendor vehicle assignment with approval checks**.
+- **Booking Assignment**: Automatic driver-vehicle tagging and assignment based on `assigned_vehicle_id` and vehicle's `driver_id`. Manual override for vehicle selection in admin. Smart vendor vehicle assignment with approval checks.
 - **Notification System**: Checkboxes for customer (WhatsApp, Email) and driver (WhatsApp, Email) notifications, with selections collected for future integration. Works seamlessly with vendor vehicle assignments.
 - **Location Management**: Integrated 400+ UAE locations across all 7 emirates, supporting inter-emirate bookings.
 - **Database Stability**: Enhanced connection pool (30 connections), increased connection timeout (30000ms), and idle timeout (60000ms) to ensure robustness.
@@ -64,6 +78,7 @@ Check Company Vehicles (vendor_id = NULL) - Available?
 - **Fare Rules Management**: Database-driven fare rules with admin UI for editing. 7 vehicle categories with configurable base fare and per-km rates.
 - **Vehicle Categories**: Classic, Executive, First Class, Urban SUV, Luxury SUV, Elite Van, and Mini Bus with 30+ vehicles across company and vendor pools.
 - **Vendor Management**: Full vendor lifecycle - signup → pending → approval/rejection → auto-assignment control.
+- **Bareerah Integration**: Automatic retry logic (3 attempts), detailed request/response logging, payload validation before database insertion.
 
 ## Feature Specifications
 
@@ -73,7 +88,7 @@ Check Company Vehicles (vendor_id = NULL) - Available?
 - KPI & Profits tab with real calculations.
 - Export bookings as CSV.
 - Fare Rules Management Tab - Admin can view and edit fare rules.
-- **NEW: Vendors Tab** - List all vendors, approve/reject, view fleet & earnings, toggle auto-assignment.
+- Vendors Tab - List all vendors, approve/reject, view fleet & earnings, toggle auto-assignment.
 
 ### Vendor Management
 - **Vendor Registration**: Submit company info, bank details, logo → auto-saved as "pending"
@@ -87,26 +102,27 @@ Check Company Vehicles (vendor_id = NULL) - Available?
 
 ### Booking Management
 - Create, view, edit bookings; calculate fares dynamically from DB. Edit access for bookings is status-based (locked for `in_progress` and `completed`).
-- **NEW: Vendor bookings auto-assigned from Bareerah** when company vehicles full.
-- **NEW: Notifications work seamlessly** - customer, driver, vendor, admin all notified appropriately.
+- Vendor bookings auto-assigned from Bareerah when company vehicles full.
+- Notifications work seamlessly - customer, driver, vendor, admin all notified appropriately.
 
 ### Vehicle Management
 - Capacity logic for vehicles, filtering based on passengers and luggage.
-- **NEW: Smart vehicle selection** - Company priority, then vendor if available.
-- **NEW: Vendor vehicle pool** - Approved vendor vehicles included in auto-assignment.
+- Smart vehicle selection - Company priority, then vendor if available.
+- Vendor vehicle pool - Approved vendor vehicles included in auto-assignment.
 
 ### Statistics
 - Dashboard stats persist after refresh, with customizable date ranges.
-- **NEW: Vendor statistics** - Earnings, payouts, completed bookings tracked automatically.
+- Vendor statistics - Earnings, payouts, completed bookings tracked automatically.
 
 ### Drivers Tab
 - Shows "Car Assigned" column with vehicle model and plate number for tagged drivers.
 
 ## System Design Choices
-- **Database Schema**: Optimized `bookings`, `vehicles`, `drivers`, `vendors` tables with relevant fields. Vendors table enhanced with `auto_assign_disabled` and `rejection_reason` fields.
+- **Database Schema**: Optimized `bookings`, `vehicles`, `drivers`, `vendors`, `users` tables with relevant fields. Vendors table enhanced with `auto_assign_disabled` and `rejection_reason` fields.
 - **Modular Structure**: Organized into `/config`, `/controllers`, `/models`, `/routes`, `/services`, `/middleware`, and `/utils` directories for clear separation of concerns.
 - **Scalability**: Principles for stability include robust database connections, consistent API response formats, efficient caching, thorough error handling, and smart resource allocation.
 - **Vendor Integration**: Vendors are transparent to Bareerah system - they just work within the auto-assignment logic without any external code changes needed.
+- **Port Configuration**: Port 5000 for Replit webview compatibility and proper preview functionality.
 
 ## API Endpoints (Key)
 
@@ -118,10 +134,52 @@ Check Company Vehicles (vendor_id = NULL) - Available?
 - `POST /api/vendors/:id/reject` - Reject vendor with reason
 - `POST /api/vendors/:id/toggle-auto-assign` - Disable/enable auto-assignment
 
-### Bareerah Integration (No Changes)
+### Bareerah Integration (With Retry Logic)
 - `GET /api/bookings/suggest-vehicles?passengers_count=X&luggage_count=Y` - Smart vehicle suggestions
 - `POST /api/bookings/calculate-fare` - Fare calculation (works with company & vendor vehicles)
-- `POST /api/bookings/create-manual` - Create booking (auto-assigns company or vendor vehicle)
+- `POST /api/bookings/create-manual` - Create booking (auto-assigns company or vendor vehicle) - **Auto-retry enabled**
+
+# Live Deployment URLs
+
+## 🌐 Replit Domain
+```
+https://5ef5530c-38d9-4731-b470-827087d7bc6f-00-2j327r1fnap1d.sisko.replit.dev
+```
+
+## 📱 Portal Access
+
+### Admin Dashboard ✅
+```
+https://5ef5530c-38d9-4731-b470-827087d7bc6f-00-2j327r1fnap1d.sisko.replit.dev/dashboard/login.html
+```
+**Email:** admin@example.com  
+**Password:** admin123
+
+### Operator Portal ✅
+```
+https://5ef5530c-38d9-4731-b470-827087d7bc6f-00-2j327r1fnap1d.sisko.replit.dev/dashboard/login.html
+```
+**Email:** operator@example.com  
+**Password:** operator123
+
+### Vendor Portal ✅
+```
+https://5ef5530c-38d9-4731-b470-827087d7bc6f-00-2j327r1fnap1d.sisko.replit.dev/vendor-login
+```
+**Email:** vendor@test.com  
+**Password:** vendor123
+
+### Driver Portal ✅
+```
+https://5ef5530c-38d9-4731-b470-827087d7bc6f-00-2j327r1fnap1d.sisko.replit.dev/driver-login
+```
+**Email:** driver@example.com  
+**Password:** driver123
+
+## 🚀 API Base URL
+```
+https://5ef5530c-38d9-4731-b470-827087d7bc6f-00-2j327r1fnap1d.sisko.replit.dev/api
+```
 
 # External Dependencies
 
@@ -135,7 +193,11 @@ Check Company Vehicles (vendor_id = NULL) - Available?
 
 ✅ **Backend API**: Complete - All vendor endpoints implemented and tested
 ✅ **Auto-Assignment Logic**: Complete - Company priority → Vendor vehicles with approval checks
-✅ **Database Schema**: Complete - auto_assign_disabled field added
+✅ **Database Schema**: Complete - auto_assign_disabled field added, users table created
 ✅ **Notifications**: Complete - Works with all assignment scenarios
-⏳ **Admin UI for Vendor Tab**: Planned (not yet implemented)
-⏳ **Vendor Dashboard UI**: Planned (not yet implemented)
+✅ **Bareerah Integration**: Complete - Automatic retry logic, comprehensive logging, payload validation
+✅ **Admin UI for Vendor Tab**: Complete - Full vendor management interface
+✅ **Vendor Dashboard UI**: Complete - Fleet management, earnings tracking
+✅ **Driver Dashboard UI**: Complete - Profile management
+✅ **Live Deployment**: Complete - All portals accessible via HTTPS
+✅ **Demo Credentials**: Complete - 4 accounts created for testing (Admin, Operator, Vendor, Driver)
