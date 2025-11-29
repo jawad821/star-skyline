@@ -1077,6 +1077,8 @@ function viewVehicleDetails(vehicleId) {
 
 function editVehicleModal(vehicleId) {
   const token = localStorage.getItem('token');
+  
+  // Load vehicle data
   fetch(getCacheBustUrl(API_BASE + '/vehicles/' + vehicleId), {
     headers: { 'Authorization': 'Bearer ' + token }
   })
@@ -1094,6 +1096,10 @@ function editVehicleModal(vehicleId) {
         document.getElementById('vehicleLuggage').value = v.max_luggage || 2;
         document.getElementById('vehicleHourly').value = v.hourly_price || 0;
         document.getElementById('vehiclePerKm').value = v.per_km_price || 2.5;
+        document.getElementById('vehicleDriver').value = v.driver_id || '';
+        
+        // Load drivers list
+        loadDriversForVehicleEdit();
         
         const modal = document.getElementById('vehicleEditModal');
         if (modal) {
@@ -1103,6 +1109,25 @@ function editVehicleModal(vehicleId) {
       }
     })
     .catch(e => console.error('Error loading vehicle for edit:', e));
+}
+
+function loadDriversForVehicleEdit() {
+  const token = localStorage.getItem('token');
+  fetch(getCacheBustUrl(API_BASE + '/drivers'), {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+    .then(r => r.json())
+    .then(data => {
+      const drivers = data.data || [];
+      const driverSelect = document.getElementById('vehicleDriver');
+      if (driverSelect) {
+        const currentValue = driverSelect.value;
+        driverSelect.innerHTML = '<option value="">-- No Driver --</option>' + 
+          drivers.map(d => '<option value="' + d.id + '">' + d.name + ' (' + (d.phone || 'N/A') + ')</option>').join('');
+        driverSelect.value = currentValue;
+      }
+    })
+    .catch(e => console.error('Error loading drivers:', e));
 }
 
 // Bookings
@@ -1200,6 +1225,8 @@ function applyCustomRange() {
 function saveVehicleChanges() {
   const id = document.getElementById('vehicleEditId').value;
   const token = localStorage.getItem('token');
+  const driverId = document.getElementById('vehicleDriver').value;
+  
   const vehicleData = {
     model: document.getElementById('vehicleModel').value,
     plate_number: document.getElementById('vehiclePlate').value,
@@ -1211,6 +1238,11 @@ function saveVehicleChanges() {
     hourly_price: parseFloat(document.getElementById('vehicleHourly').value) || 0,
     per_km_price: parseFloat(document.getElementById('vehiclePerKm').value) || 2.5
   };
+  
+  // Add driver_id if selected
+  if (driverId) {
+    vehicleData.driver_id = driverId;
+  }
   
   fetch(API_BASE + '/vehicles/' + id, {
     method: 'PUT',
@@ -1224,6 +1256,8 @@ function saveVehicleChanges() {
       showToast('Vehicle updated successfully!', 'success');
       closeModal('vehicleEditModal');
       loadVehicles();
+      // Reload drivers to see updated assignments
+      loadDrivers();
     } else {
       showToast('Error updating vehicle', 'error');
     }

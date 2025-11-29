@@ -960,6 +960,13 @@
           <label>📏 Per KM Rate (AED)</label>
           <input type="number" id="vehiclePerKm" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;" step="0.01" min="0">
         </div>
+        <div class="form-group">
+          <label>👨‍✈️ Assign Driver (Company Vehicles)</label>
+          <select id="vehicleDriver" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+            <option value="">-- No Driver --</option>
+          </select>
+          <small style="color: var(--text-secondary); display: block; margin-top: 4px;">Select a driver to assign to this vehicle</small>
+        </div>
         <button onclick="saveVehicleChanges()" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1em; margin-top: 10px;">💾 Save Changes</button>
       </div>
     </div>

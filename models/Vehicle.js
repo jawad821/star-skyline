@@ -142,17 +142,20 @@ const Vehicle = {
 
   async getAll(type = null) {
     let sql = `
-      SELECT id, plate_number, model, type, status, color, image_url, 
-             max_passengers, max_luggage, per_km_price, hourly_price
-      FROM vehicles
-      WHERE active = true
+      SELECT v.id, v.plate_number, v.model, v.type, v.status, v.color, v.image_url, 
+             v.max_passengers, v.max_luggage, v.per_km_price, v.hourly_price,
+             v.driver_id,
+             d.name as driver_name, d.phone as driver_phone
+      FROM vehicles v
+      LEFT JOIN drivers d ON v.driver_id = d.id
+      WHERE v.active = true
     `;
     const params = [];
     if (type) {
-      sql += ' AND type = $1';
+      sql += ' AND v.type = $1';
       params.push(type);
     }
-    sql += ' ORDER BY model';
+    sql += ' ORDER BY v.model';
     const result = await query(sql, params);
     return result.rows;
   },
@@ -171,16 +174,24 @@ const Vehicle = {
   },
 
   async updateVehicle(id, data) {
-    const { color, image_url, status } = data;
+    const { model, plate_number, color, type, status, max_passengers, max_luggage, hourly_price, per_km_price, image_url, driver_id } = data;
     const result = await query(`
       UPDATE vehicles 
-      SET color = COALESCE($1, color), 
-          image_url = COALESCE($2, image_url),
-          status = COALESCE($3, status),
+      SET model = COALESCE($1, model),
+          plate_number = COALESCE($2, plate_number),
+          color = COALESCE($3, color),
+          type = COALESCE($4, type),
+          status = COALESCE($5, status),
+          max_passengers = COALESCE($6, max_passengers),
+          max_luggage = COALESCE($7, max_luggage),
+          hourly_price = COALESCE($8, hourly_price),
+          per_km_price = COALESCE($9, per_km_price),
+          image_url = COALESCE($10, image_url),
+          driver_id = COALESCE(NULLIF($11, ''), driver_id),
           updated_at = NOW()
-      WHERE id = $4
+      WHERE id = $12
       RETURNING *
-    `, [color, image_url, status, id]);
+    `, [model, plate_number, color, type, status, max_passengers, max_luggage, hourly_price, per_km_price, image_url, driver_id || null, id]);
     return result.rows[0];
   }
 };
