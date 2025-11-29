@@ -620,6 +620,22 @@
     </div>
   </div>
 
+  <!-- Vehicle Detail Modal -->
+  <div id="vehicleDetailModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Vehicle Details</h3>
+        <button class="modal-close" onclick="closeModal('vehicleDetailModal')">×</button>
+      </div>
+      <div class="modal-body" id="vehicleDetailContent">
+        Loading...
+      </div>
+      <div style="padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end;">
+        <button onclick="closeModal('vehicleDetailModal')" class="btn" style="background: var(--bg-secondary);">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Edit Booking Modal -->
   <div id="editBookingModal" class="modal" style="display: none;">
     <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
@@ -882,36 +898,69 @@
 
   <!-- Vehicle Edit Modal -->
   <div id="vehicleEditModal" class="modal" style="display: none;">
-    <div class="modal-content">
+    <div class="modal-content" style="max-height: 85vh; overflow-y: auto;">
       <div class="modal-header">
-        <h3>Edit Vehicle</h3>
+        <h3>✏️ Edit Vehicle</h3>
         <button class="modal-close" onclick="closeModal('vehicleEditModal')">×</button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="vehicleEditId">
-        <div class="form-group">
-          <label>Model</label>
-          <input type="text" id="vehicleModel" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label>🚗 Model</label>
+            <input type="text" id="vehicleModel" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;" required>
+          </div>
+          <div class="form-group">
+            <label>📍 Plate Number</label>
+            <input type="text" id="vehiclePlate" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;" required>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label>🎨 Color</label>
+            <input type="text" id="vehicleColor" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+          </div>
+          <div class="form-group">
+            <label>📋 Type</label>
+            <select id="vehicleType" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+              <option value="sedan">Sedan</option>
+              <option value="suv">SUV</option>
+              <option value="luxury">Luxury</option>
+              <option value="van">Van</option>
+              <option value="bus">Bus</option>
+              <option value="minibus">Mini Bus</option>
+            </select>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label>✅ Status</label>
+            <select id="vehicleStatus" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+              <option value="available">Available</option>
+              <option value="on_duty">On Duty</option>
+              <option value="maintenance">Maintenance</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>👥 Max Passengers</label>
+            <input type="number" id="vehiclePassengers" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;" min="1" max="9">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label>🧳 Max Luggage</label>
+            <input type="number" id="vehicleLuggage" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;" min="0" max="10">
+          </div>
+          <div class="form-group">
+            <label>💰 Hourly Rate (AED)</label>
+            <input type="number" id="vehicleHourly" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;" step="0.01" min="0">
+          </div>
         </div>
         <div class="form-group">
-          <label>Type</label>
-          <select id="vehicleType" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
-            <option value="sedan">Sedan</option>
-            <option value="suv">SUV</option>
-            <option value="luxury">Luxury</option>
-            <option value="van">Van</option>
-            <option value="minibus">Mini Bus</option>
-          </select>
+          <label>📏 Per KM Rate (AED)</label>
+          <input type="number" id="vehiclePerKm" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;" step="0.01" min="0">
         </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select id="vehicleStatus" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
-            <option value="available">Available</option>
-            <option value="on_trip">On Trip</option>
-            <option value="maintenance">Maintenance</option>
-          </select>
-        </div>
-        <button onclick="saveCarChanges()" class="btn btn-primary" style="width: 100%;">Save Changes</button>
+        <button onclick="saveVehicleChanges()" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1em; margin-top: 10px;">💾 Save Changes</button>
       </div>
     </div>
   </div>

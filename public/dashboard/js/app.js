@@ -950,16 +950,159 @@ async function loadVehicles(type = null, targetContainerId = 'carsGrid') {
     
     const vehicles = data.data || data.vehicles || [];
     if (!vehicles || !vehicles.length) {
-      container.innerHTML = '<p style="padding:20px; text-align:center;">No vehicles found</p>';
+      container.innerHTML = '<p style="padding:20px; text-align:center; color: var(--text-secondary);">No vehicles found</p>';
       return;
     }
     
-    container.innerHTML = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">' + vehicles.map(v => '<div style="border: 1px solid var(--border); border-radius: 8px; padding: 15px; background: var(--glass-bg);"><h4 style="margin-bottom:10px;">' + v.model + '</h4><p><strong>Type:</strong> ' + v.type + '</p><p><strong>Plate:</strong> ' + (v.plate_number || 'N/A') + '</p><p><strong>Capacity:</strong> ' + v.max_passengers + ' pax / ' + v.max_luggage + ' luggage</p><p><strong>Status:</strong> ' + (v.status || 'available') + '</p></div>').join('') + '</div>';
+    const vehicleCardsHtml = vehicles.map(v => {
+      const typeEmoji = v.type === 'sedan' ? '🚗' : v.type === 'suv' ? '🚙' : v.type === 'luxury' ? '💎' : v.type === 'van' ? '🚐' : v.type === 'bus' ? '🚌' : '🚐';
+      const statusColor = v.status === 'available' ? '#10b981' : v.status === 'on_duty' ? '#3b82f6' : '#ef4444';
+      const imageSrc = v.image_url || 'https://via.placeholder.com/300x200/e5e7eb/999999?text=' + encodeURIComponent(v.model);
+      
+      return `
+        <div class="vehicle-card">
+          <div class="vehicle-image">
+            <img src="${imageSrc}" alt="${v.model}" onerror="this.src='https://via.placeholder.com/300x200/e5e7eb/999999?text=' + encodeURIComponent('${v.model}')">
+            <div class="vehicle-type-badge">${typeEmoji} ${v.type.toUpperCase()}</div>
+            <div class="vehicle-status-badge" style="background: ${statusColor};">${(v.status || 'available').toUpperCase()}</div>
+          </div>
+          <div class="vehicle-content">
+            <h3 class="vehicle-model">${v.model}</h3>
+            <div class="vehicle-details">
+              <div class="detail-row">
+                <span class="detail-label">Plate Number:</span>
+                <span class="detail-value">${v.plate_number || 'N/A'}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Color:</span>
+                <span class="detail-value">${v.color || 'N/A'}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Capacity:</span>
+                <span class="detail-value">👥 ${v.max_passengers || 4} / 🧳 ${v.max_luggage || 2}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Hourly Rate:</span>
+                <span class="detail-value">AED ${v.hourly_price || 0}/hr</span>
+              </div>
+            </div>
+            <div class="vehicle-actions">
+              <button onclick="viewVehicleDetails(${v.id})" class="btn-action btn-view">👁️ View Details</button>
+              <button onclick="editVehicleModal(${v.id})" class="btn-action btn-edit">✏️ Edit</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    container.innerHTML = '<div class="vehicles-grid">' + vehicleCardsHtml + '</div>';
   } catch (e) {
     const container = document.getElementById(targetContainerId);
     if (container) container.innerHTML = '<p style="color:red; padding:20px;">Error loading vehicles: ' + e.message + '</p>';
     console.error('Vehicles error:', e.message, e);
   }
+}
+
+function viewVehicleDetails(vehicleId) {
+  const token = localStorage.getItem('token');
+  fetch(getCacheBustUrl(API_BASE + '/vehicles/' + vehicleId), {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.data || data.vehicle) {
+        const v = data.data || data.vehicle;
+        const modal = document.getElementById('vehicleDetailModal');
+        const content = document.getElementById('vehicleDetailContent');
+        if (content) {
+          const statusColor = v.status === 'available' ? '#10b981' : v.status === 'on_duty' ? '#3b82f6' : '#ef4444';
+          const imageSrc = v.image_url || 'https://via.placeholder.com/400x300/e5e7eb/999999?text=' + encodeURIComponent(v.model);
+          
+          content.innerHTML = `
+            <div class="detail-modal-content">
+              <img src="${imageSrc}" alt="${v.model}" class="detail-image" onerror="this.src='https://via.placeholder.com/400x300/e5e7eb/999999?text=' + encodeURIComponent('${v.model}')">
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <label>Model:</label>
+                  <strong>${v.model}</strong>
+                </div>
+                <div class="detail-item">
+                  <label>Type:</label>
+                  <strong>${(v.type || 'N/A').toUpperCase()}</strong>
+                </div>
+                <div class="detail-item">
+                  <label>Plate Number:</label>
+                  <strong>${v.plate_number || 'N/A'}</strong>
+                </div>
+                <div class="detail-item">
+                  <label>Color:</label>
+                  <strong>${v.color || 'N/A'}</strong>
+                </div>
+                <div class="detail-item">
+                  <label>Status:</label>
+                  <strong style="color: ${statusColor};">${(v.status || 'available').toUpperCase()}</strong>
+                </div>
+                <div class="detail-item">
+                  <label>Max Passengers:</label>
+                  <strong>${v.max_passengers || 4}</strong>
+                </div>
+                <div class="detail-item">
+                  <label>Max Luggage:</label>
+                  <strong>${v.max_luggage || 2}</strong>
+                </div>
+                <div class="detail-item">
+                  <label>Hourly Rate (AED):</label>
+                  <strong>${v.hourly_price || 0}</strong>
+                </div>
+                <div class="detail-item">
+                  <label>Per KM Rate (AED):</label>
+                  <strong>${v.per_km_price || 2.5}</strong>
+                </div>
+                <div class="detail-item">
+                  <label>Driver:</label>
+                  <strong>${v.driver_name || 'Unassigned'}</strong>
+                </div>
+              </div>
+            </div>
+          `;
+          if (modal) {
+            modal.style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+          }
+        }
+      }
+    })
+    .catch(e => console.error('Error loading vehicle details:', e));
+}
+
+function editVehicleModal(vehicleId) {
+  const token = localStorage.getItem('token');
+  fetch(getCacheBustUrl(API_BASE + '/vehicles/' + vehicleId), {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.data || data.vehicle) {
+        const v = data.data || data.vehicle;
+        document.getElementById('vehicleEditId').value = v.id;
+        document.getElementById('vehicleModel').value = v.model || '';
+        document.getElementById('vehiclePlate').value = v.plate_number || '';
+        document.getElementById('vehicleColor').value = v.color || '';
+        document.getElementById('vehicleType').value = v.type || 'sedan';
+        document.getElementById('vehicleStatus').value = v.status || 'available';
+        document.getElementById('vehiclePassengers').value = v.max_passengers || 4;
+        document.getElementById('vehicleLuggage').value = v.max_luggage || 2;
+        document.getElementById('vehicleHourly').value = v.hourly_price || 0;
+        document.getElementById('vehiclePerKm').value = v.per_km_price || 2.5;
+        
+        const modal = document.getElementById('vehicleEditModal');
+        if (modal) {
+          modal.style.display = 'block';
+          document.getElementById('modalOverlay').style.display = 'block';
+        }
+      }
+    })
+    .catch(e => console.error('Error loading vehicle for edit:', e));
 }
 
 // Bookings
@@ -1054,26 +1197,44 @@ function applyCustomRange() {
   loadDashboard();
 }
 
-function saveCarChanges() {
+function saveVehicleChanges() {
   const id = document.getElementById('vehicleEditId').value;
   const token = localStorage.getItem('token');
+  const vehicleData = {
+    model: document.getElementById('vehicleModel').value,
+    plate_number: document.getElementById('vehiclePlate').value,
+    color: document.getElementById('vehicleColor').value,
+    type: document.getElementById('vehicleType').value,
+    status: document.getElementById('vehicleStatus').value,
+    max_passengers: parseInt(document.getElementById('vehiclePassengers').value) || 4,
+    max_luggage: parseInt(document.getElementById('vehicleLuggage').value) || 2,
+    hourly_price: parseFloat(document.getElementById('vehicleHourly').value) || 0,
+    per_km_price: parseFloat(document.getElementById('vehiclePerKm').value) || 2.5
+  };
+  
   fetch(API_BASE + '/vehicles/' + id, {
     method: 'PUT',
     headers: { 
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
     },
-    body: JSON.stringify({
-      model: document.getElementById('vehicleModel').value,
-      type: document.getElementById('vehicleType').value,
-      status: document.getElementById('vehicleStatus').value
-    })
+    body: JSON.stringify(vehicleData)
   }).then(r => r.json()).then(d => {
     if (d.success) {
+      showToast('Vehicle updated successfully!', 'success');
       closeModal('vehicleEditModal');
       loadVehicles();
+    } else {
+      showToast('Error updating vehicle', 'error');
     }
-  }).catch(e => console.log(e));
+  }).catch(e => {
+    console.error('Error:', e);
+    showToast('Error updating vehicle: ' + e.message, 'error');
+  });
+}
+
+function saveCarChanges() {
+  saveVehicleChanges();
 }
 
 function saveDriverChanges() {
