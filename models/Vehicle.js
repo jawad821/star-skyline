@@ -2,10 +2,13 @@ const { query } = require('../config/db');
 
 const Vehicle = {
   async findById(id) {
-    const result = await query(
-      'SELECT * FROM vehicles WHERE id = $1',
-      [id]
-    );
+    const result = await query(`
+      SELECT v.*, 
+             d.name as driver_name, d.phone as driver_phone
+      FROM vehicles v
+      LEFT JOIN drivers d ON v.driver_id = d.id
+      WHERE v.id = $1
+    `, [id]);
     return result.rows[0] || null;
   },
 
