@@ -987,8 +987,8 @@ async function loadVehicles(type = null, targetContainerId = 'carsGrid') {
               </div>
             </div>
             <div class="vehicle-actions">
-              <button onclick="viewVehicleDetails(${v.id})" class="btn-action btn-view">👁️ View Details</button>
-              <button onclick="editVehicleModal(${v.id})" class="btn-action btn-edit">✏️ Edit</button>
+              <button onclick="viewVehicleDetails('${v.id}')" class="btn-action btn-view">👁️ View Details</button>
+              <button onclick="editVehicleModal('${v.id}')" class="btn-action btn-edit">✏️ Edit</button>
             </div>
           </div>
         </div>
