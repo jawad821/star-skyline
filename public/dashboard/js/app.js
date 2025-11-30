@@ -644,6 +644,21 @@ function setupNavigation() {
       if (page) navigateToPage(page);
     });
   });
+  hideAdminOnlyTabs();
+}
+
+// Hide admin-only tabs for operators
+function hideAdminOnlyTabs() {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (user.role === 'operator') {
+    const adminOnlyPages = ['vendors', 'fares', 'rental-rules', 'settings'];
+    adminOnlyPages.forEach(page => {
+      const element = document.querySelector('[data-page="' + page + '"]');
+      if (element) {
+        element.style.display = 'none';
+      }
+    });
+  }
 }
 
 function navigateToPage(page) {

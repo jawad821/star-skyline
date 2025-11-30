@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { query } = require('../config/db');
 const { JWT_SECRET, ADMIN_USER, ADMIN_PASS } = require('../config/env');
 
 const authController = {
@@ -14,6 +15,36 @@ const authController = {
         });
       }
       
+      // First try to find user by email in database
+      const result = await query('SELECT id, email, role, password_hash FROM users WHERE email = $1 OR (role = $2 AND $3 = $4)', 
+        [username, 'admin', username, ADMIN_USER]);
+      
+      if (result.rows.length > 0) {
+        const user = result.rows[0];
+        const isValidPassword = await bcrypt.compare(password, user.password_hash);
+        
+        if (!isValidPassword) {
+          return res.status(401).json({
+            success: false,
+            error: 'Invalid credentials'
+          });
+        }
+        
+        const token = jwt.sign(
+          { username: user.email, role: user.role },
+          JWT_SECRET,
+          { expiresIn: '24h' }
+        );
+        
+        res.json({
+          success: true,
+          token,
+          user: { username: user.email, role: user.role }
+        });
+        return;
+      }
+      
+      // Fallback to hardcoded admin credentials
       if (username !== ADMIN_USER) {
         return res.status(401).json({
           success: false,
