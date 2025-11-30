@@ -2583,13 +2583,26 @@ window.createManualBooking = async function() {
 // ============ HOURLY RENTAL RULES MANAGEMENT ============
 function loadRentalRules() {
   const token = localStorage.getItem('token');
+  
+  // Vehicle model mappings
+  const modelMap = {
+    'classic': 'Sedans: Toyota Camry, BMW 5 Series, BYD Han',
+    'elite_van': 'Premium Vans: Mercedes V Class, Luxury Vans',
+    'executive': 'Executive: Lexus ES 300H, Tesla Model 3/Y',
+    'first_class': 'First Class: BMW 7 Series, Mercedes S Class, Audi A8',
+    'luxury': 'Luxury: Range Rover, Lexus, BMW 7 Series, Mercedes E-Class',
+    'luxury_suv': 'Luxury SUVs: Cadillac Escalade, GMC Yukon',
+    'mini_bus': 'Mini Bus: Mercedes Sprinter (8-10 passengers)',
+    'urban_suv': 'Urban SUVs: Toyota Highlander, BYD Song'
+  };
+  
   fetch(API_BASE + '/bookings/rental-rules/all', {
     headers: { 'Authorization': 'Bearer ' + token }
   })
   .then(r => r.json())
   .then(d => {
     if (!d.success || !d.data) {
-      document.getElementById('rentalRulesTableBody').innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-secondary);">No rental rules found</td></tr>';
+      document.getElementById('rentalRulesTableBody').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-secondary);">No rental rules found</td></tr>';
       return;
     }
     let html = '';
@@ -2598,9 +2611,12 @@ function loadRentalRules() {
       const total3h = rate * 3;
       const total14h = rate * 14;
       const status = rule.is_active ? '<span style="color: #10b981; font-weight: 600;">✅ Active</span>' : '<span style="color: #ef4444; font-weight: 600;">❌ Inactive</span>';
+      const typeLabel = rule.vehicle_type.replace(/_/g, ' ').toUpperCase();
+      const models = modelMap[rule.vehicle_type] || 'Multiple vehicle types';
       html += `
         <tr style="border-bottom: 1px solid var(--border); hover: background-color: var(--bg-secondary);">
-          <td style="padding: 12px; text-align: left; font-weight: 500; text-transform: capitalize;">${rule.vehicle_type}</td>
+          <td style="padding: 12px; text-align: left; font-weight: 500;">${typeLabel}</td>
+          <td style="padding: 12px; text-align: left; font-size: 0.9em; color: var(--text-secondary);">${models}</td>
           <td style="padding: 12px; text-align: center; font-weight: 600; color: var(--text-primary);">AED ${rate.toFixed(2)}</td>
           <td style="padding: 12px; text-align: center; color: var(--text-secondary);">AED ${total3h.toFixed(2)}</td>
           <td style="padding: 12px; text-align: center; color: var(--text-secondary);">AED ${total14h.toFixed(2)}</td>
@@ -2615,7 +2631,7 @@ function loadRentalRules() {
   })
   .catch(e => {
     console.error('Error loading rental rules:', e);
-    document.getElementById('rentalRulesTableBody').innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-secondary);">Error loading rental rules</td></tr>';
+    document.getElementById('rentalRulesTableBody').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-secondary);">Error loading rental rules</td></tr>';
   });
 }
 
