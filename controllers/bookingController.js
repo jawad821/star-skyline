@@ -45,18 +45,17 @@ const bookingController = {
       console.log('   📏 Distance:', req.body.distance_km, 'km');
       console.log('   ⏱️  Time:', req.body.time_minutes, 'minutes');
       
-      const fare = bookingService.calculateFare(req.body);
+      const fare = await bookingService.calculateFare(req.body);
       
       console.log('✅ [BAREERAH] Fare calculated:', {
-        base: fare.base,
-        perKm: fare.per_km,
-        perMin: fare.per_minute,
-        total: fare.total_fare
+        base: fare.base_fare || 0,
+        perKm: fare.per_km_rate || 0,
+        total: fare.fare || 0
       });
       
       res.json({
         success: true,
-        ...fare
+        data: fare
       });
     } catch (error) {
       console.log('❌ [BAREERAH] Fare calculation failed:', error.message);

@@ -62,12 +62,12 @@ const bookingService = {
   /**
    * Calculate fare with strict validation and surcharges
    */
-  calculateFare(data) {
+  async calculateFare(data) {
     this.validateFareInput(data);
     const { booking_type, vehicle_type, distance_km, hours } = data;
     
     try {
-      const result = calculateFare(booking_type, vehicle_type, distance_km || 0, hours || 0);
+      const result = await calculateFare(booking_type, vehicle_type, distance_km || 0, hours || 0);
       return result;
     } catch (error) {
       throw new ValidationError(error.message);

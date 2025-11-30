@@ -105,6 +105,34 @@ const addBookingController = {
             finalDriverId = vehicleResult.rows[0].driver_id; // Auto-assign tagged driver if no driver specified
           }
           finalVehicleModelForBooking = vehicleResult.rows[0].model; // Store the actual vehicle model
+        } else {
+          // Vehicle doesn't exist - for Bareerah, auto-assign instead of failing
+          if (finalBookingSource === 'bareerah_ai') {
+            const autoVehicleResult = await query(`
+              SELECT id, driver_id, model FROM vehicles 
+              WHERE type = $1 AND status = 'available' AND active = true
+              AND max_passengers >= $2 AND max_luggage >= $3
+              ORDER BY per_km_price ASC
+              LIMIT 1
+            `, [vehicle_type.toLowerCase(), passengers_count, luggage_count]);
+            
+            if (autoVehicleResult.rows.length > 0) {
+              finalAssignedVehicleId = autoVehicleResult.rows[0].id;
+              if (autoVehicleResult.rows[0].driver_id && !driver_id) {
+                finalDriverId = autoVehicleResult.rows[0].driver_id;
+              }
+              finalVehicleModelForBooking = autoVehicleResult.rows[0].model;
+            } else {
+              // No vehicle available, allow null assignment
+              finalAssignedVehicleId = null;
+            }
+          } else {
+            // Non-Bareerah booking with invalid vehicle - reject
+            return res.status(400).json({ 
+              success: false, 
+              error: `Vehicle ID ${assigned_vehicle_id} not found in system` 
+            });
+          }
         }
       }
       
