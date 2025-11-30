@@ -831,7 +831,10 @@ function setDashboardRange(range) {
 async function loadKPI() {
   try {
     const token = localStorage.getItem('token');
-    const url = getCacheBustUrl(API_BASE + '/stats/summary?range=month');
+    const range = document.querySelector('.filter-group .filter-btn.active')?.dataset?.range || 'month';
+    
+    // Load KPI cards
+    const url = getCacheBustUrl(API_BASE + '/stats/summary?range=' + range);
     const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -855,8 +858,88 @@ async function loadKPI() {
     stat('kpi-vendor-commission', 'AED ' + vendorComm.toFixed(2));
     stat('kpi-company-profit', 'AED ' + profit.toFixed(2));
     stat('kpi-profit-margin', totalRev > 0 ? ((profit / totalRev) * 100).toFixed(1) + '%' : '0%');
+    
+    // Load Chart Data
+    await loadKPICharts(range);
+    
   } catch (e) {
     console.error('KPI error:', e.message, e);
+  }
+}
+
+async function loadKPICharts(range = 'month') {
+  try {
+    const token = localStorage.getItem('token');
+    
+    // Fetch earnings breakdown
+    const earningsUrl = getCacheBustUrl(API_BASE + '/stats/earnings-breakdown?range=' + range);
+    const earningsRes = await fetch(earningsUrl, { headers: { 'Authorization': 'Bearer ' + token } });
+    const earningsData = earningsRes.ok ? await earningsRes.json() : { data: [] };
+    
+    // Fetch vendors earnings
+    const vendorUrl = getCacheBustUrl(API_BASE + '/stats/vendor-earnings?range=' + range);
+    const vendorRes = await fetch(vendorUrl, { headers: { 'Authorization': 'Bearer ' + token } });
+    const vendorData = vendorRes.ok ? await vendorRes.json() : { data: {} };
+    
+    // Render Earnings Breakdown Chart
+    const earningsCtx = document.getElementById('earningsChart');
+    if (earningsCtx && earningsData.data && earningsData.data.length > 0) {
+      if (window.earningsChartInstance) window.earningsChartInstance.destroy();
+      window.earningsChartInstance = new Chart(earningsCtx, {
+        type: 'bar',
+        data: {
+          labels: earningsData.data.map(e => e.day || e.date || e.period || ''),
+          datasets: [{
+            label: 'Revenue (AED)',
+            data: earningsData.data.map(e => parseFloat(e.earnings || 0)),
+            backgroundColor: '#3b82f6',
+            borderColor: '#1e40af',
+            borderWidth: 1
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { display: true } }, scales: { y: { beginAtZero: true } } }
+      });
+    }
+    
+    // Render Company vs Vendor Chart
+    const vendorCtx = document.getElementById('companyVendorChart');
+    if (vendorCtx && vendorData.data) {
+      const companyProfit = parseFloat(vendorData.data.company_profit || 0);
+      const vendorComm = parseFloat(vendorData.data.vendor_commission || 0);
+      if (window.vendorChartInstance) window.vendorChartInstance.destroy();
+      window.vendorChartInstance = new Chart(vendorCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Company Profit', 'Vendor Commission'],
+          datasets: [{
+            data: [companyProfit, vendorComm],
+            backgroundColor: ['#10b981', '#f59e0b'],
+            borderColor: ['#047857', '#d97706'],
+            borderWidth: 2
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+      });
+    }
+    
+    // Load Top Vendors List
+    const topVendorsUrl = getCacheBustUrl(API_BASE + '/stats/top-vendors?range=' + range);
+    const topVendorsRes = await fetch(topVendorsUrl, { headers: { 'Authorization': 'Bearer ' + token } });
+    const topVendorsData = topVendorsRes.ok ? await topVendorsRes.json() : { data: [] };
+    
+    const topVendorsList = document.getElementById('topVendorsList');
+    if (topVendorsList) {
+      if (topVendorsData.data && topVendorsData.data.length > 0) {
+        topVendorsList.innerHTML = topVendorsData.data.slice(0, 5).map(v => {
+          return '<div style="padding: 10px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;"><span>' + (v.vendor_name || v.name || 'Unknown') + '</span><strong>AED ' + parseFloat(v.earnings || 0).toFixed(2) + '</strong></div>';
+        }).join('');
+      } else {
+        topVendorsList.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">No vendor data</div>';
+      }
+    }
+    
+  } catch (e) {
+    console.error('KPI charts error:', e.message, e);
   }
 }
 

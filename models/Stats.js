@@ -141,6 +141,44 @@ const Stats = {
     `, params);
 
     return result.rows;
+  },
+
+  async getEarningsBreakdown(startDate, endDate) {
+    const result = await query(`
+      SELECT
+        DATE(b.created_at) as day,
+        SUM(CAST(b.fare_aed AS DECIMAL)) as earnings,
+        COUNT(*) as bookings
+      FROM bookings b
+      WHERE b.created_at >= $1 AND b.created_at < $2 AND b.status = 'completed'
+      GROUP BY DATE(b.created_at)
+      ORDER BY DATE(b.created_at) ASC
+    `, [startDate, endDate]);
+
+    return result.rows.map(r => ({
+      day: r.day ? new Date(r.day).toLocaleDateString('en-AE') : '',
+      earnings: parseFloat(r.earnings || 0),
+      bookings: r.bookings
+    }));
+  },
+
+  async getTopVendors(startDate, endDate) {
+    const result = await query(`
+      SELECT
+        v.id,
+        v.name as vendor_name,
+        COUNT(b.id) as bookings,
+        SUM(CAST(b.fare_aed AS DECIMAL)) as total_revenue,
+        ROUND(SUM(CAST(b.fare_aed AS DECIMAL)) * 0.8, 2) as earnings
+      FROM vendors v
+      LEFT JOIN bookings b ON v.id = b.vendor_id AND b.created_at >= $1 AND b.created_at < $2 AND b.status = 'completed'
+      WHERE v.status = 'approved'
+      GROUP BY v.id, v.name
+      ORDER BY earnings DESC
+      LIMIT 5
+    `, [startDate, endDate]);
+
+    return result.rows;
   }
 };
 

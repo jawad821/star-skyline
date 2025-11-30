@@ -72,6 +72,85 @@ const statsController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  async getEarningsBreakdown(req, res, next) {
+    try {
+      const { range } = req.query;
+      let startDate, endDate;
+
+      if (range) {
+        const dates = await Stats.getDateRange(range);
+        if (!dates) {
+          return res.status(400).json({ error: 'Invalid range' });
+        }
+        startDate = dates.startDate;
+        endDate = dates.endDate;
+      } else {
+        return res.status(400).json({ error: 'Provide range' });
+      }
+
+      const data = await Stats.getEarningsBreakdown(startDate, endDate);
+      res.json({ success: true, data: data || [] });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async getVendorEarnings(req, res, next) {
+    try {
+      const { range } = req.query;
+      let startDate, endDate;
+
+      if (range) {
+        const dates = await Stats.getDateRange(range);
+        if (!dates) {
+          return res.status(400).json({ error: 'Invalid range' });
+        }
+        startDate = dates.startDate;
+        endDate = dates.endDate;
+      } else {
+        return res.status(400).json({ error: 'Provide range' });
+      }
+
+      const summary = await Stats.getSummary(startDate, endDate);
+      const vendorComm = (summary?.total_revenue || 0) * 0.8;
+      const companyProfit = (summary?.total_revenue || 0) * 0.2;
+
+      res.json({
+        success: true,
+        data: {
+          vendor_commission: vendorComm,
+          company_profit: companyProfit,
+          total_revenue: summary?.total_revenue || 0
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async getTopVendors(req, res, next) {
+    try {
+      const { range } = req.query;
+      let startDate, endDate;
+
+      if (range) {
+        const dates = await Stats.getDateRange(range);
+        if (!dates) {
+          return res.status(400).json({ error: 'Invalid range' });
+        }
+        startDate = dates.startDate;
+        endDate = dates.endDate;
+      } else {
+        return res.status(400).json({ error: 'Provide range' });
+      }
+
+      const data = await Stats.getTopVendors(startDate, endDate);
+      res.json({ success: true, data: data || [] });
+    } catch (error) {
+      next(error);
+    }
   }
 };
 
