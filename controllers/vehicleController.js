@@ -159,8 +159,8 @@ const vehicleController = {
       // Get old vehicle data for change tracking
       const oldVehicle = await Vehicle.findById(id);
       
-      // Get user info from token
-      const user = req.user || { id: 'unknown', name: 'Unknown', role: 'admin' };
+      // Get user info from token (JWT has username, not name)
+      const user = req.user || { username: 'unknown', role: 'admin' };
       
       // Update vehicle
       const vehicle = await Vehicle.updateVehicle(id, req.body);
@@ -174,7 +174,7 @@ const vehicleController = {
       }
       
       if (Object.keys(changes).length > 0) {
-        await auditLogger.logChange('vehicle', id, 'UPDATE', changes, user.id, user.name, user.role);
+        await auditLogger.logChange('vehicle', id, 'UPDATE', changes, user.username, user.username, user.role);
       }
       
       res.json({
