@@ -14,6 +14,23 @@ The application is built on an MVC (Model-View-Controller) architecture using Ex
 
 ## Recent Changes (2025-11-30) ✅
 
+### 🛣️ Multi-Stop & Round-Trip Bookings ✅ LIVE & TESTED
+- **Database**: `booking_stops` table created for multi-leg journey tracking
+- **Multi-Stop Booking** (`POST /api/bookings/create-multi-stop`):
+  - Supports 2+ stops: Pickup → Stop 1 → Stop 2 → ... → Dropoff
+  - Fare calculated: Base + (total_distance × per_km) + (waiting_time / 60 × hourly_rate)
+  - Auto-inserts stops into `booking_stops` table with stop_number, location, duration_minutes
+  - Response includes stops array with full details
+  - Use case: Multi-location deliveries, customer itineraries, tour routes
+- **Round-Trip Booking** (`POST /api/bookings/create-round-trip`):
+  - Format: Pickup → Meeting Location → Return after X hours → Original Pickup
+  - Fare: 2× base fare + (2× distance × per_km) + (return_hours × hourly_rate)
+  - Auto-creates 3-stop journey (pickup→intermediate→dropoff)
+  - Use case: Airport returns, hotel check-outs, hourly customer waiting
+- **Fare Rates Applied**: Same 7-vehicle system (Classic, Executive, First Class, Urban SUV, Luxury SUV, Elite Van, Mini Bus)
+- **Integration Ready**: Both endpoints accept `booking_source: bareerah_ai` for Bareerah AI bookings
+- **Test Results**: ✅ Endpoints responding, multi-stop table structure verified, fare calculations tested
+
 ### 📝 Booking Notes Feature ✅ LIVE & TESTED
 - **Database**: `notes` column added to bookings table (TEXT, nullable)
 - **Backend**: Notes fully integrated in `Booking.create()` and `bookingService.createBooking()`

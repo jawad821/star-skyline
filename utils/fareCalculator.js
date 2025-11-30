@@ -15,10 +15,6 @@ const LEGACY_RATES = {
   }
 };
 
-/**
- * Get fare rules from database for a vehicle type (with slab logic)
- * Returns: base_fare, per_km_rate, included_km
- */
 async function getFareRuleForType(vehicleType) {
   try {
     const result = await query(
@@ -37,7 +33,6 @@ async function getFareRuleForType(vehicleType) {
     console.error('Error fetching fare rules:', error);
   }
   
-  // Fallback to legacy rates with default included_km
   const legacyType = vehicleType.toLowerCase();
   return {
     base_fare: 0,
@@ -46,78 +41,33 @@ async function getFareRuleForType(vehicleType) {
   };
 }
 
-/**
- * DYNAMIC fare calculation using DB rules
- * @param {string} booking_type - point_to_point, airport_transfer, city_tour, hourly_rental
- * @param {string} vehicle_type - vehicle category from fare_rules table
- * @param {number} distance_km - required for distance-based bookings
- * @param {number} hours - required for time-based bookings
- * @returns {object} {distance_km, vehicle_type, booking_type, fare, currency}
- */
-async function calculateFare(booking_type, vehicle_type, distance_km = 0, hours = 0) {
-  // STRICT validation - no fallbacks
-  if (!booking_type || !vehicle_type) {
-    throw new Error('Missing required fields: booking_type and vehicle_type');
-  }
+async function calculateFare(booking_type, vehicle_type, distance_km, hours) {
+  const fareRule = await getFareRuleForType(vehicle_type);
+  
+  let fare = fareRule.base_fare;
 
-  if (!distance_km && !hours) {
-    throw new Error('Either distance_km or hours must be provided');
-  }
-
-  const validTypes = ['point_to_point', 'airport_transfer', 'city_tour', 'hourly_rental'];
-  if (!validTypes.includes(booking_type)) {
-    throw new Error(`Invalid booking_type. Must be one of: ${validTypes.join(', ')}`);
-  }
-
-  let fare = 0;
-
-  if (booking_type === 'hourly_rental' || booking_type === 'city_tour') {
-    // Time-based: use hourly rate from legacy
-    if (!hours || hours <= 0) {
-      throw new Error('hours is required and must be > 0 for hourly bookings');
+  if (booking_type === 'point_to_point' || booking_type === 'airport_transfer') {
+    const distance = distance_km || 0;
+    if (distance > fareRule.included_km) {
+      fare += (distance - fareRule.included_km) * fareRule.per_km_rate;
     }
-    const hourlyRate = LEGACY_RATES.hourly[vehicle_type.toLowerCase()] || LEGACY_RATES.hourly.sedan;
-    fare = hours * hourlyRate;
-  } else {
-    // Distance-based: use dynamic fare rules from DB with slab logic
-    if (!distance_km || distance_km <= 0) {
-      throw new Error('distance_km is required and must be > 0 for distance-based bookings');
-    }
-
-    const fareRule = await getFareRuleForType(vehicle_type);
-    const baseFare = fareRule.base_fare || 0;
-    const perKmRate = fareRule.per_km_rate || 0;
-    const includedKm = fareRule.included_km || 20;
-
-    // CLIENT-APPROVED SLAB LOGIC:
-    // If distance <= included_km: fare = base_fare
-    // Else: fare = base_fare + ((distance - included_km) × per_km_rate)
-    let calculatedFare;
-    if (distance_km <= includedKm) {
-      calculatedFare = baseFare;
-    } else {
-      calculatedFare = baseFare + ((distance_km - includedKm) * perKmRate);
-    }
-
-    // Apply surcharges
-    if (booking_type === 'airport_transfer') {
-      calculatedFare = calculatedFare * 1.10; // +10% surcharge
-    }
-
-    fare = calculatedFare;
+  } else if (booking_type === 'hourly_rental' || booking_type === 'city_tour') {
+    const hourlyRate = LEGACY_RATES.hourly[vehicle_type.toLowerCase()] || 75;
+    fare = (hours || 1) * hourlyRate;
   }
-
-  // Round to 2 decimals
-  fare = Math.round(fare * 100) / 100;
 
   return {
     distance_km: distance_km || 0,
-    hours: hours || 0,
     vehicle_type,
     booking_type,
-    fare,
-    currency: 'AED'
+    fare: Math.round(fare * 100) / 100,
+    currency: 'AED',
+    hours: hours || 0
   };
 }
 
 module.exports = {
+  LEGACY_RATES,
+  calculateFare,
+  getFareRuleForType
+};
