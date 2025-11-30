@@ -22,7 +22,7 @@ The application is built on an MVC (Model-View-Controller) architecture using Ex
 - **Core Logic**: Dynamic slab-based fare calculation based on distance, time, and vehicle type. Fare rules are admin-editable and stored in the database, including `included_km` for slab calculations.
 - **Booking Management**: Supports point-to-point, multi-stop, and round-trip bookings with automated fare calculation and `booking_stops` table for multi-leg journeys. Includes a `notes` field for special instructions.
 - **Booking Assignment**: Automatic driver-vehicle tagging and assignment based on `assigned_vehicle_id` and vehicle's `driver_id`. Manual override and smart vendor vehicle assignment with approval checks.
-- **Notification System**: Checkboxes for customer (WhatsApp, Email) and driver (WhatsApp, Email) notifications, including `vehicle_model` and `vehicle_color`.
+- **Email Notification System**: Professional HTML email templates with luxury design (gradient header, premium typography, clear CTAs). Includes all booking details: passengers, luggage, vehicle model/color, journey visualization (multi-leg paths for round-trip/multi-stop), return time, fare breakdown, special instructions, and 24/7 support contact. Integrated with Resend API. **Note**: Resend in testing mode sends emails to verified account (aizaz.dmp@gmail.com). For production, verify domain at resend.com/domains to send to customer emails.
 - **Location Management**: Integrated 400+ UAE locations across all 7 emirates, supporting inter-emirate bookings.
 - **API Standardization**: All API endpoints return consistent `{"success":true,"data":...}` format.
 - **Caching**: Cache-busting implemented for all API calls.
