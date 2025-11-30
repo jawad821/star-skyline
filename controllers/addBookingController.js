@@ -208,6 +208,71 @@ const addBookingController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  async createHourlyRentalBooking(req, res, next) {
+    try {
+      const rentalRulesService = require('../services/rentalRulesService');
+      const {
+        customer_name,
+        customer_phone,
+        customer_email,
+        pickup_location,
+        vehicle_type,
+        vehicle_model,
+        vehicle_color,
+        passengers_count,
+        luggage_count,
+        rental_hours,
+        payment_method,
+        notes,
+        booking_source
+      } = req.body;
+
+      if (!customer_name || !customer_phone || !pickup_location || !vehicle_type || !rental_hours) {
+        return res.status(400).json({ success: false, error: 'Missing required fields' });
+      }
+
+      // Calculate rental fare
+      const fareData = await rentalRulesService.calculateRentalFare(vehicle_type, rental_hours);
+      
+      // Create booking
+      const result = await query(`
+        INSERT INTO bookings 
+          (customer_name, customer_phone, customer_email, pickup_location, dropoff_location, 
+           booking_type, vehicle_type, vehicle_model, vehicle_color, 
+           passengers_count, luggage_count, fare_aed, rental_hours, hourly_rate_aed,
+           payment_method, booking_source, status, notes, created_at)
+        VALUES 
+          ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'pending', $17, NOW())
+        RETURNING *
+      `, [
+        customer_name, customer_phone, customer_email || null, pickup_location, pickup_location,
+        'hourly_rental', vehicle_type, vehicle_model || null, vehicle_color || null,
+        passengers_count || 1, luggage_count || 0, fareData.total_fare, rental_hours, fareData.hourly_rate,
+        payment_method || 'card', booking_source || 'admin', notes || null
+      ]);
+
+      const booking = result.rows[0];
+
+      // Send email notification
+      if (customer_email) {
+        try {
+          const emailService = require('../utils/emailService');
+          await emailService.sendCustomerNotification(booking, null);
+        } catch (emailError) {
+          console.error('Email error:', emailError.message);
+        }
+      }
+
+      res.status(201).json({
+        success: true,
+        message: 'Hourly rental booking created successfully',
+        booking: booking
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 };
 

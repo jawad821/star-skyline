@@ -4,15 +4,43 @@ const { calculateFare } = require('../utils/fareCalculator');
 const bookingController = {
   async getAllBookings(req, res, next) {
     try {
+      const { booking_type, limit = 30, offset = 0 } = req.query;
+      
+      let whereClause = '';
+      let params = [];
+      
+      if (booking_type && booking_type !== 'all') {
+        whereClause = 'WHERE b.booking_type = $1';
+        params.push(booking_type);
+      }
+      
+      const paramOffset = params.length + 1;
+      const paramLimit = params.length + 2;
+      
       const result = await query(`
         SELECT b.*, 
                d.name as driver_name
         FROM bookings b
         LEFT JOIN drivers d ON b.driver_id = d.id
-        ORDER BY b.created_at DESC LIMIT 1000
-      `);
-      console.log(`✅ [BAREERAH] Found ${result.rows.length} bookings`);
-      res.json({ success: true, data: result.rows || [] });
+        ${whereClause}
+        ORDER BY b.created_at DESC 
+        LIMIT $${paramLimit} OFFSET $${paramOffset}
+      `, [...params, parseInt(limit) || 30, parseInt(offset) || 0]);
+      
+      const countResult = await query(`
+        SELECT COUNT(*) as total FROM bookings b ${whereClause}
+      `, params);
+      
+      console.log(`✅ [BAREERAH] Found ${result.rows.length} of ${countResult.rows[0].total} bookings`);
+      res.json({ 
+        success: true, 
+        data: result.rows || [],
+        pagination: {
+          limit: parseInt(limit) || 30,
+          offset: parseInt(offset) || 0,
+          total: parseInt(countResult.rows[0].total)
+        }
+      });
     } catch (error) {
       console.log('❌ [BAREERAH] Error fetching bookings:', error.message);
       next(error);

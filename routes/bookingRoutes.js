@@ -3,6 +3,7 @@ const router = express.Router();
 const bookingController = require('../controllers/bookingController');
 const addBookingController = require('../controllers/addBookingController');
 const vehicleController = require('../controllers/vehicleController');
+const rentalRulesController = require('../controllers/rentalRulesController');
 const authMiddleware = require('../middleware/authMiddleware');
 const { rbacMiddleware, operatorRestrictions } = require('../middleware/rbacMiddleware');
 
@@ -20,5 +21,13 @@ router.post('/assign-vehicle-type', authMiddleware, rbacMiddleware(['admin']), b
 router.post('/resend-notifications', authMiddleware, rbacMiddleware(['admin']), bookingController.resendNotifications);
 router.post('/create-multi-stop', authMiddleware, rbacMiddleware(['admin', 'operator']), bookingController.createMultiStopBooking);
 router.post('/create-round-trip', authMiddleware, rbacMiddleware(['admin', 'operator']), bookingController.createRoundTripBooking);
+
+// Rental Routes
+router.post('/create-hourly-rental', authMiddleware, rbacMiddleware(['admin', 'operator']), addBookingController.createHourlyRentalBooking);
+router.get('/rental-rules/all', authMiddleware, rbacMiddleware(['admin']), rentalRulesController.getAllRentalRules);
+router.get('/rental-rules/:vehicleType', authMiddleware, rbacMiddleware(['admin']), rentalRulesController.getRentalRule);
+router.put('/rental-rules/:vehicleType', authMiddleware, rbacMiddleware(['admin']), rentalRulesController.updateRentalRule);
+router.post('/rental-rules/create', authMiddleware, rbacMiddleware(['admin']), rentalRulesController.createRentalRule);
+router.post('/rental-rules/calculate-fare', authMiddleware, rentalRulesController.calculateRentalFare);
 
 module.exports = router;
