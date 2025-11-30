@@ -1135,7 +1135,7 @@ async function loadBookings() {
   try {
     const token = localStorage.getItem('token');
     const tbody = document.getElementById('bookings-table-body');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; padding:20px;">Loading bookings...</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="14" style="text-align:center; padding:20px;">Loading bookings...</td></tr>';
     
     const url = getCacheBustUrl(API_BASE + '/bookings');
     const response = await fetch(url, {
@@ -1148,7 +1148,7 @@ async function loadBookings() {
     if (!tbody) return;
     
     if (!data.data || !data.data.length) {
-      tbody.innerHTML = '<tr><td colspan="13">No bookings found</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="14">No bookings found</td></tr>';
       return;
     }
     
@@ -1157,11 +1157,15 @@ async function loadBookings() {
       const statusDisplay = b.status || 'pending';
       const paymentDisplay = (b.payment_method || 'cash').toUpperCase();
       const sourceLabel = (b.booking_source === 'bareerah' || b.booking_source === 'voice_agent') ? '📱 Bareerah' : '👤 Manual';
-      return '<tr><td>' + b.id.substring(0, 8) + '</td><td>' + b.customer_name + '</td><td>' + b.customer_phone + '</td><td>' + b.pickup_location + '</td><td>' + b.dropoff_location + '</td><td>' + b.distance_km + '</td><td>' + sourceLabel + '</td><td>AED ' + (b.fare_aed || b.total_fare || 0) + '</td><td>' + driverDisplay + '</td><td>' + paymentDisplay + '</td><td>' + statusDisplay + '</td><td>' + new Date(b.created_at).toLocaleDateString() + '</td><td><button onclick="viewBooking(\'' + b.id + '\')" class="btn-small">View</button> <button onclick="editBooking(\'' + b.id + '\')" class="btn-small">Edit</button></td></tr>';
+      const createdTime = new Date(b.created_at);
+      const updatedTime = new Date(b.updated_at);
+      const createdStr = createdTime.toLocaleDateString() + ' ' + createdTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+      const updatedStr = updatedTime.toLocaleDateString() + ' ' + updatedTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+      return '<tr><td>' + b.id.substring(0, 8) + '</td><td>' + b.customer_name + '</td><td>' + b.customer_phone + '</td><td>' + b.pickup_location + '</td><td>' + b.dropoff_location + '</td><td>' + b.distance_km + '</td><td>' + sourceLabel + '</td><td>AED ' + (b.fare_aed || b.total_fare || 0) + '</td><td>' + driverDisplay + '</td><td>' + paymentDisplay + '</td><td>' + statusDisplay + '</td><td style="font-size: 12px;">' + createdStr + '</td><td style="font-size: 12px;">' + updatedStr + '</td><td><button onclick="viewBooking(\'' + b.id + '\')" class="btn-small">View</button> <button onclick="editBooking(\'' + b.id + '\')" class="btn-small">Edit</button></td></tr>';
     }).join('');
   } catch (e) {
     const tbody = document.getElementById('bookings-table-body');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="13" style="color:red;">Error loading bookings: ' + e.message + '</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="14" style="color:red;">Error loading bookings: ' + e.message + '</td></tr>';
     console.error('Bookings error:', e.message, e);
   }
 }
@@ -1186,8 +1190,12 @@ function viewBooking(id) {
           const vehicleModelDisplay = b.vehicle_model && b.vehicle_model !== 'Not specified' ? b.vehicle_model : (b.car_model || 'N/A');
           const assignedVehicleDisplay = b.assigned_vehicle_model ? b.assigned_vehicle_model : (b.assigned_vehicle_id ? b.assigned_vehicle_id.substring(0, 8) : 'None');
           const sourceDisplay = (b.booking_source === 'bareerah' || b.booking_source === 'voice_agent') ? '📱 Bareerah Voice Agent' : '👤 Manually Created';
+          const createdTime = new Date(b.created_at);
+          const updatedTime = new Date(b.updated_at);
+          const createdStr = createdTime.toLocaleDateString() + ' ' + createdTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+          const updatedStr = updatedTime.toLocaleDateString() + ' ' + updatedTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
           
-          content.innerHTML = '<div style="display: grid; gap: 12px; font-size: 14px;"><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Booking ID:</strong><br>' + b.id.substring(0, 8) + '</div><div><strong>Status:</strong><br><span style="padding: 2px 6px; border-radius: 3px; background: ' + (b.status === 'completed' ? '#10b981' : b.status === 'in-process' ? '#3b82f6' : b.status === 'pending' ? '#f59e0b' : '#ef4444') + '; color: white; font-size: 12px;">' + (b.status || 'pending').toUpperCase() + '</span></div></div><div><strong>Source:</strong><br>' + sourceDisplay + '</div><div><strong>Customer:</strong><br>' + b.customer_name + ' (' + b.customer_phone + ')</div><div><strong>Pickup:</strong><br>' + b.pickup_location + '</div><div><strong>Dropoff:</strong><br>' + b.dropoff_location + '</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Distance:</strong><br>' + b.distance_km + ' km</div><div><strong>Fare:</strong><br>AED ' + (b.fare_aed || b.total_fare || 0) + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Booking Type:</strong><br>' + bookingTypeDisplay + '</div><div><strong>Payment:</strong><br>' + (b.payment_method || 'N/A').toUpperCase() + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Vehicle Type:</strong><br>' + (b.vehicle_type || 'N/A').toUpperCase() + '</div><div><strong>Vehicle Model:</strong><br>' + vehicleModelDisplay + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Assigned Vehicle:</strong><br>' + assignedVehicleDisplay + '</div><div><strong>Driver:</strong><br>' + driverInfo + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Passengers:</strong><br>' + (b.passengers_count || 1) + '</div><div><strong>Luggage:</strong><br>' + (b.luggage_count || 0) + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Date:</strong><br>' + new Date(b.created_at).toLocaleDateString() + '</div><div><strong>Time:</strong><br>' + new Date(b.created_at).toLocaleTimeString() + '</div></div></div>';
+          content.innerHTML = '<div style="display: grid; gap: 12px; font-size: 14px;"><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Booking ID:</strong><br>' + b.id.substring(0, 8) + '</div><div><strong>Status:</strong><br><span style="padding: 2px 6px; border-radius: 3px; background: ' + (b.status === 'completed' ? '#10b981' : b.status === 'in-process' ? '#3b82f6' : b.status === 'pending' ? '#f59e0b' : '#ef4444') + '; color: white; font-size: 12px;">' + (b.status || 'pending').toUpperCase() + '</span></div></div><div><strong>Source:</strong><br>' + sourceDisplay + '</div><div><strong>Customer:</strong><br>' + b.customer_name + ' (' + b.customer_phone + ')</div><div><strong>Pickup:</strong><br>' + b.pickup_location + '</div><div><strong>Dropoff:</strong><br>' + b.dropoff_location + '</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Distance:</strong><br>' + b.distance_km + ' km</div><div><strong>Fare:</strong><br>AED ' + (b.fare_aed || b.total_fare || 0) + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Booking Type:</strong><br>' + bookingTypeDisplay + '</div><div><strong>Payment:</strong><br>' + (b.payment_method || 'N/A').toUpperCase() + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Vehicle Type:</strong><br>' + (b.vehicle_type || 'N/A').toUpperCase() + '</div><div><strong>Vehicle Model:</strong><br>' + vehicleModelDisplay + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Assigned Vehicle:</strong><br>' + assignedVehicleDisplay + '</div><div><strong>Driver:</strong><br>' + driverInfo + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Passengers:</strong><br>' + (b.passengers_count || 1) + '</div><div><strong>Luggage:</strong><br>' + (b.luggage_count || 0) + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Created:</strong><br><span style="font-size: 12px; color: var(--text-secondary);">' + createdStr + '</span></div><div><strong>Last Updated:</strong><br><span style="font-size: 12px; color: var(--text-secondary);">' + updatedStr + '</span></div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Date:</strong><br>' + new Date(b.created_at).toLocaleDateString() + '</div><div><strong>Time:</strong><br>' + new Date(b.created_at).toLocaleTimeString() + '</div></div></div>';
           const modal = document.getElementById('bookingDetailModal');
           const overlay = document.getElementById('modalOverlay');
           if (modal) modal.style.display = 'block';
