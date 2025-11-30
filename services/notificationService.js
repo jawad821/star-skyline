@@ -10,6 +10,8 @@ Dropoff: ${bookingData.dropoff_location}
 Fare: AED ${bookingData.fare_aed}
 Driver: ${bookingData.driver_name}
 Driver Phone: ${bookingData.driver_phone}
+Vehicle: ${bookingData.vehicle_model || 'N/A'} (${bookingData.vehicle_color || 'N/A'})
+Plate: ${bookingData.plate_number || 'N/A'}
 
 Track your ride: [Link coming soon]
   `.trim();
@@ -89,7 +91,10 @@ Booking Details:
 - Pickup: ${bookingData.pickup_location}
 - Dropoff: ${bookingData.dropoff_location}
 - Distance: ${bookingData.distance_km} km
-- Vehicle: ${bookingData.vehicle_type.toUpperCase()}
+- Vehicle Type: ${bookingData.vehicle_type.toUpperCase()}
+- Vehicle Model: ${bookingData.vehicle_model || 'N/A'}
+- Vehicle Color: ${bookingData.vehicle_color || 'N/A'}
+- License Plate: ${bookingData.plate_number || 'N/A'}
 - Total Fare: AED ${bookingData.fare_aed}
 - Driver: ${bookingData.driver_name}
 - Driver Phone: ${bookingData.driver_phone}

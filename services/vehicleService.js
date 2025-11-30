@@ -19,6 +19,10 @@ const vehicleService = {
       throw new Error('plate_number, model, and type are required');
     }
 
+    if (!vehicleData.color) {
+      throw new Error('color is required (choose from: Black, White, Silver, Gray, Red, Blue, Gold)');
+    }
+
     if (!vehicleData.per_km_price || !vehicleData.hourly_price) {
       throw new Error('per_km_price and hourly_price are required');
     }
@@ -27,6 +31,12 @@ const vehicleService = {
     const validTypes = ['sedan', 'suv', 'luxury', 'van', 'bus', 'minibus'];
     if (!validTypes.includes(vehicleData.type)) {
       throw new Error(`Invalid vehicle type. Must be one of: ${validTypes.join(', ')}`);
+    }
+
+    // Validate color
+    const validColors = ['Black', 'White', 'Silver', 'Gray', 'Red', 'Blue', 'Gold'];
+    if (!validColors.includes(vehicleData.color)) {
+      throw new Error(`Invalid color. Must be one of: ${validColors.join(', ')}`);
     }
 
     return Vehicle.create(vehicleData);
