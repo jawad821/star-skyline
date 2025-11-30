@@ -39,8 +39,8 @@ const bookingService = {
       throw new ValidationError(`booking_type must be one of: ${validBookingTypes.join(', ')}`);
     }
 
-    const validVehicleTypes = ['sedan', 'suv', 'luxury', 'van'];
-    if (!validVehicleTypes.includes(vehicle_type)) {
+    const validVehicleTypes = ['sedan', 'suv', 'luxury', 'van', 'classic', 'executive', 'urban_suv', 'elite_van', 'luxury_suv', 'first_class', 'mini_bus'];
+    if (!validVehicleTypes.includes(vehicle_type.toLowerCase())) {
       throw new ValidationError(`vehicle_type must be one of: ${validVehicleTypes.join(', ')}`);
     }
 

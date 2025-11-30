@@ -16,31 +16,33 @@ const LEGACY_RATES = {
 };
 
 /**
- * Get fare rules from database for a vehicle type
- * Falls back to legacy rates if not found
+ * Get fare rules from database for a vehicle type (with slab logic)
+ * Returns: base_fare, per_km_rate, included_km
  */
 async function getFareRuleForType(vehicleType) {
   try {
     const result = await query(
-      'SELECT base_fare, per_km_rate FROM fare_rules WHERE vehicle_type = $1 AND active = true',
+      'SELECT base_fare, per_km_rate, included_km FROM fare_rules WHERE vehicle_type = $1 AND active = true',
       [vehicleType.toLowerCase()]
     );
     
     if (result.rows && result.rows.length > 0) {
       return {
         base_fare: parseFloat(result.rows[0].base_fare),
-        per_km_rate: parseFloat(result.rows[0].per_km_rate)
+        per_km_rate: parseFloat(result.rows[0].per_km_rate),
+        included_km: parseInt(result.rows[0].included_km || 20, 10)
       };
     }
   } catch (error) {
     console.error('Error fetching fare rules:', error);
   }
   
-  // Fallback to legacy rates
+  // Fallback to legacy rates with default included_km
   const legacyType = vehicleType.toLowerCase();
   return {
     base_fare: 0,
-    per_km_rate: LEGACY_RATES.perKm[legacyType] || LEGACY_RATES.perKm.sedan
+    per_km_rate: LEGACY_RATES.perKm[legacyType] || LEGACY_RATES.perKm.sedan,
+    included_km: 20
   };
 }
 
@@ -77,7 +79,7 @@ async function calculateFare(booking_type, vehicle_type, distance_km = 0, hours 
     const hourlyRate = LEGACY_RATES.hourly[vehicle_type.toLowerCase()] || LEGACY_RATES.hourly.sedan;
     fare = hours * hourlyRate;
   } else {
-    // Distance-based: use dynamic fare rules from DB
+    // Distance-based: use dynamic fare rules from DB with slab logic
     if (!distance_km || distance_km <= 0) {
       throw new Error('distance_km is required and must be > 0 for distance-based bookings');
     }
@@ -85,9 +87,17 @@ async function calculateFare(booking_type, vehicle_type, distance_km = 0, hours 
     const fareRule = await getFareRuleForType(vehicle_type);
     const baseFare = fareRule.base_fare || 0;
     const perKmRate = fareRule.per_km_rate || 0;
+    const includedKm = fareRule.included_km || 20;
 
-    // Calculate: base_fare + (distance * per_km_rate)
-    let calculatedFare = baseFare + (distance_km * perKmRate);
+    // CLIENT-APPROVED SLAB LOGIC:
+    // If distance <= included_km: fare = base_fare
+    // Else: fare = base_fare + (distance × per_km_rate)
+    let calculatedFare;
+    if (distance_km <= includedKm) {
+      calculatedFare = baseFare;
+    } else {
+      calculatedFare = baseFare + (distance_km * perKmRate);
+    }
 
     // Apply surcharges
     if (booking_type === 'airport_transfer') {

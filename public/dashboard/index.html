@@ -548,20 +548,21 @@
 
         <!-- Fare Rules Page -->
         <div id="page-fares" class="page">
-          <h2 class="page-title">Fare Rules Management</h2>
+          <h2 class="page-title">Fare Rules Management (Slab-Based Logic)</h2>
           <div class="card">
-            <p style="margin-bottom: 20px; color: var(--text-secondary);">Edit base fares and per-km rates by vehicle category. Changes apply to new bookings only.</p>
+            <p style="margin-bottom: 20px; color: var(--text-secondary);">Logic: If distance ≤ included_km → base fare only. Else → base fare + (distance × per_km). Changes apply to NEW bookings only.</p>
             <table style="width: 100%; border-collapse: collapse;">
               <thead>
                 <tr style="border-bottom: 2px solid var(--border);">
                   <th style="padding: 12px; text-align: left; font-weight: 600;">Vehicle Type</th>
                   <th style="padding: 12px; text-align: right; font-weight: 600;">Base Fare (AED)</th>
+                  <th style="padding: 12px; text-align: right; font-weight: 600;">Included KM</th>
                   <th style="padding: 12px; text-align: right; font-weight: 600;">Per KM Rate (AED)</th>
                   <th style="padding: 12px; text-align: center; font-weight: 600;">Actions</th>
                 </tr>
               </thead>
               <tbody id="fareRulesTableBody">
-                <tr><td colspan="4" style="text-align: center; padding: 20px;">Loading fare rules...</td></tr>
+                <tr><td colspan="5" style="text-align: center; padding: 20px;">Loading fare rules...</td></tr>
               </tbody>
             </table>
           </div>

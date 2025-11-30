@@ -12,7 +12,24 @@ Preferred communication style: Simple, everyday language. All features delivered
 
 The application is built on a complete MVC (Model-View-Controller) architecture using Express.js (v5.1.0). It runs on **port 5000** (changed from 8000 for Replit compatibility) and uses JWT-based authentication with Role-Based Access Control (RBAC) for admin, operator, vendor, and driver roles.
 
-## Recent Changes (2025-11-29)
+## Recent Changes (2025-11-30)
+
+### 🎯 SLAB-BASED FARE LOGIC IMPLEMENTED (2025-11-30) ✅ LIVE
+**Client-Approved Formula:** If distance ≤ included_km → base fare only | Else → base fare + (distance × per_km_rate)
+- Added `included_km` column to fare_rules table
+- Implemented full slab-based calculation in fareCalculator.js
+- Updated all 7 vehicle categories with correct rules:
+  - Classic: 95 base + 20 KM included + 1/km
+  - Executive: 105 base + 20 KM + 1/km
+  - Urban SUV: 108 base + 20 KM + 1/km
+  - Elite Van: 165 base + 20 KM + 2/km
+  - Luxury SUV: 170 base + 20 KM + 1.8/km
+  - First Class: 450 base + 40 KM + 1.75/km
+  - Mini Bus: 825 base + 50 KM + 7.5/km
+- VERIFIED: Classic 21km = 116 AED ✅ | Classic 15km = 95 AED ✅ | Mini Bus 51km = 1207.5 AED ✅
+- Admin dashboard updated to display included_km column
+- Fare rules API endpoints working (GET /api/fare-rules, PUT /api/fare-rules/:type)
+- No breaking changes - all existing bookings modules untouched
 
 ### 🔧 BOOKING SOURCE & VEHICLE MODEL FIX (2025-11-30)
 - Added `vehicle_model` column to bookings table
@@ -83,7 +100,7 @@ Request from Bareerah
 - **Caching**: Cache-busting implemented for all API calls to prevent stale data.
 - **Error Handling**: Comprehensive error handling with logging and user-friendly messages.
 - **Validation**: Passenger/luggage validation is mandatory for booking creation. Capacity checked against vehicle specs.
-- **Fare Rules Management**: Database-driven fare rules with admin UI for editing. 7 vehicle categories with configurable base fare and per-km rates.
+- **Fare Rules Management**: Database-driven slab-based fare rules with admin UI for editing. 7 vehicle categories with configurable base fare, included_km threshold, and per-km rates. Formula: distance ≤ included_km → base fare only | distance > included_km → base fare + (distance × per_km_rate).
 - **Vehicle Categories**: Classic, Executive, First Class, Urban SUV, Luxury SUV, Elite Van, and Mini Bus with 30+ vehicles across company and vendor pools.
 - **Vendor Management**: Full vendor lifecycle - signup → pending → approval/rejection → auto-assignment control.
 - **Bareerah Integration**: Automatic retry logic (3 attempts), detailed request/response logging, payload validation before database insertion.
