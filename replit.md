@@ -68,5 +68,31 @@ The application is built on an MVC (Model-View-Controller) architecture using Ex
 - **Database**: PostgreSQL (via Replit managed `DATABASE_URL`).
 - **Backend Framework**: Express.js.
 - **Authentication**: JSON Web Tokens (JWT).
-- **Email Service**: Resend.
+- **Email Service**: Resend (professional HTML emails with luxury design).
 - **Messaging (Planned)**: WhatsApp API.
+
+# Recent Updates (November 30, 2025)
+
+## New Features Added
+1. **Round-Trip Bookings** - Pickup → Destination → Return after X hours (3 stops tracked)
+2. **Multi-Stop Bookings** - Multiple intermediate stops in one booking with wait times
+3. **Professional Email Notifications** - Beautiful HTML emails sent to admin with:
+   - Complete journey visualization
+   - Vehicle model + color details
+   - Passenger & luggage info
+   - Special instructions/notes
+   - Fare breakdown
+   - Support contact info
+
+## New API Endpoints
+- `POST /api/bookings/create-round-trip` - Round-trip bookings
+- `POST /api/bookings/create-multi-stop` - Multi-stop bookings
+
+## Database Changes
+- `booking_stops` table created to track all stops with duration
+- New booking fields: `vehicle_model`, `vehicle_color`, `customer_email`, `meeting_location`, `return_after_hours`
+
+## Documentation
+- **BAREERAH_NEW_FEATURES_GUIDE.md** - Complete guide for Bareerah on new features with examples
+- All features tested and production-ready
+- Email notifications live (testing mode: sent to aizaz.dmp@gmail.com)
