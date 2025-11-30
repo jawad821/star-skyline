@@ -123,7 +123,7 @@ const bookingController = {
 
   async createMultiStopBooking(req, res, next) {
     try {
-      const { customer_name, customer_phone, vehicle_type, passengers_count, luggage_count, stops, notes, booking_source } = req.body;
+      const { customer_name, customer_phone, vehicle_type, vehicle_model, vehicle_color, assigned_vehicle_id, passengers_count, luggage_count, stops, notes, booking_source } = req.body;
       if (!stops || stops.length < 2) throw new Error('Requires minimum 2 stops');
       
       const rates = { 'executive': { base: 50, per_km: 3.5, waiting: 25 }, 'luxury': { base: 60, per_km: 4, waiting: 30 }, 'mini_bus': { base: 70, per_km: 3, waiting: 20 }, 'classic': { base: 40, per_km: 2.5, waiting: 15 }, 'suv': { base: 55, per_km: 3.75, waiting: 28 } };
@@ -132,7 +132,7 @@ const bookingController = {
       for (let i = 1; i < stops.length; i++) { totalDist += (stops[i].distance_from_previous || 0); totalWait += (stops[i].duration_minutes || 0); }
       const fare = Math.round((rate.base + (totalDist * rate.per_km) + ((totalWait / 60) * rate.waiting)) * 100) / 100;
       
-      const bookingResult = await query(`INSERT INTO bookings (customer_name, customer_phone, booking_type, vehicle_type, passengers_count, luggage_count, pickup_location, dropoff_location, distance_km, fare_aed, notes, booking_source, status) VALUES ($1, $2, 'multi_stop', $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending') RETURNING *`, [customer_name, customer_phone, vehicle_type, passengers_count || 1, luggage_count || 0, stops[0].location, stops[stops.length - 1].location, totalDist, fare, notes, booking_source || 'bareerah_ai']);
+      const bookingResult = await query(`INSERT INTO bookings (customer_name, customer_phone, booking_type, vehicle_type, vehicle_model, vehicle_color, assigned_vehicle_id, passengers_count, luggage_count, pickup_location, dropoff_location, distance_km, fare_aed, notes, booking_source, status) VALUES ($1, $2, 'multi_stop', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 'pending') RETURNING *`, [customer_name, customer_phone, vehicle_type, vehicle_model || null, vehicle_color || null, assigned_vehicle_id || null, passengers_count || 1, luggage_count || 0, stops[0].location, stops[stops.length - 1].location, totalDist, fare, notes, booking_source || 'bareerah_ai']);
       const booking = bookingResult.rows[0];
       
       for (let i = 0; i < stops.length; i++) {
@@ -146,7 +146,7 @@ const bookingController = {
 
   async createRoundTripBooking(req, res, next) {
     try {
-      const { customer_name, customer_phone, vehicle_type, passengers_count, luggage_count, pickup_location, meeting_location, return_after_hours, distance_km, notes, booking_source } = req.body;
+      const { customer_name, customer_phone, vehicle_type, vehicle_model, vehicle_color, assigned_vehicle_id, passengers_count, luggage_count, pickup_location, meeting_location, return_after_hours, distance_km, notes, booking_source } = req.body;
       if (!pickup_location || !meeting_location || !return_after_hours) throw new Error('Missing required fields');
       
       const rates = { 'executive': { base: 50, per_km: 3.5, waiting: 25 }, 'luxury': { base: 60, per_km: 4, waiting: 30 }, 'mini_bus': { base: 70, per_km: 3, waiting: 20 }, 'classic': { base: 40, per_km: 2.5, waiting: 15 }, 'suv': { base: 55, per_km: 3.75, waiting: 28 } };
@@ -155,7 +155,7 @@ const bookingController = {
       const totalDist = distKm * 2;
       const fare = Math.round(((rate.base * 2) + (totalDist * rate.per_km) + (return_after_hours * rate.waiting)) * 100) / 100;
       
-      const bookingResult = await query(`INSERT INTO bookings (customer_name, customer_phone, booking_type, vehicle_type, passengers_count, luggage_count, pickup_location, dropoff_location, distance_km, fare_aed, notes, booking_source, status) VALUES ($1, $2, 'round_trip', $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending') RETURNING *`, [customer_name, customer_phone, vehicle_type, passengers_count || 1, luggage_count || 0, pickup_location, pickup_location, totalDist, fare, notes, booking_source || 'bareerah_ai']);
+      const bookingResult = await query(`INSERT INTO bookings (customer_name, customer_phone, booking_type, vehicle_type, vehicle_model, vehicle_color, assigned_vehicle_id, passengers_count, luggage_count, pickup_location, dropoff_location, distance_km, fare_aed, notes, booking_source, status) VALUES ($1, $2, 'round_trip', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 'pending') RETURNING *`, [customer_name, customer_phone, vehicle_type, vehicle_model || null, vehicle_color || null, assigned_vehicle_id || null, passengers_count || 1, luggage_count || 0, pickup_location, pickup_location, totalDist, fare, notes, booking_source || 'bareerah_ai']);
       const booking = bookingResult.rows[0];
       
       const stops = [[booking.id, 1, pickup_location, 'pickup', 0], [booking.id, 2, meeting_location, 'intermediate', return_after_hours * 60], [booking.id, 3, pickup_location, 'dropoff', 0]];
