@@ -141,8 +141,13 @@ const bookingController = {
       
       const stopsData = await query('SELECT * FROM booking_stops WHERE booking_id = $1 ORDER BY stop_number', [booking.id]);
       if (customer_email) {
-        const emailService = require('../utils/emailService');
-        emailService.sendCustomerNotification(booking, null);
+        try {
+          const emailService = require('../utils/emailService');
+          const emailResult = await emailService.sendCustomerNotification(booking, null);
+          console.log('✅ [BOOKING] Email sent for booking', booking.id, emailResult);
+        } catch (emailError) {
+          console.error('❌ [BOOKING] Email failed for booking', booking.id, emailError.message);
+        }
       }
       res.json({ success: true, data: { ...booking, stops: stopsData.rows } });
     } catch (error) { next(error); }
@@ -167,8 +172,13 @@ const bookingController = {
       
       const stopsData = await query('SELECT * FROM booking_stops WHERE booking_id = $1 ORDER BY stop_number', [booking.id]);
       if (customer_email) {
-        const emailService = require('../utils/emailService');
-        emailService.sendCustomerNotification(booking, null);
+        try {
+          const emailService = require('../utils/emailService');
+          const emailResult = await emailService.sendCustomerNotification(booking, null);
+          console.log('✅ [BOOKING] Email sent for round-trip booking', booking.id, emailResult);
+        } catch (emailError) {
+          console.error('❌ [BOOKING] Email failed for round-trip booking', booking.id, emailError.message);
+        }
       }
       res.json({ success: true, data: { ...booking, stops: stopsData.rows, return_after_hours } });
     } catch (error) { next(error); }
