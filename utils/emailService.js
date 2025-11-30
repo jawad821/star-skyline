@@ -28,7 +28,7 @@ const emailService = {
         },
         body: JSON.stringify({
           from: RESEND_FROM_EMAIL,
-          to: booking.customer_email,
+          to: ADMIN_EMAIL,
           subject: template.subject,
           html: template.html
         })
