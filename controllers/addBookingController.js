@@ -72,15 +72,39 @@ const addBookingController = {
       // Determine vehicle model - use vehicle_model if provided, otherwise car_model
       const finalVehicleModel = vehicle_model || car_model || 'Not specified';
       
-      // AUTO-ASSIGNMENT: If assigned_vehicle_id is provided, use that vehicle's tagged driver
+      // AUTO-ASSIGNMENT: Handle vehicle assignment
       let finalDriverId = driver_id;
       let finalAssignedVehicleId = assigned_vehicle_id;
+      let finalVehicleModelForBooking = finalVehicleModel;
       
-      if (assigned_vehicle_id) {
-        // Get the vehicle's tagged driver
-        const vehicleResult = await query('SELECT driver_id FROM vehicles WHERE id = $1', [assigned_vehicle_id]);
-        if (vehicleResult.rows.length > 0 && vehicleResult.rows[0].driver_id && !driver_id) {
-          finalDriverId = vehicleResult.rows[0].driver_id; // Auto-assign tagged driver if no driver specified
+      // Determine booking source
+      const finalBookingSource = booking_source === 'bareerah_ai' ? 'bareerah_ai' : (booking_source || 'manually_created');
+      
+      // If no vehicle assigned and this is a Bareerah booking, auto-assign cheapest available
+      if (!assigned_vehicle_id && finalBookingSource === 'bareerah_ai') {
+        const autoVehicleResult = await query(`
+          SELECT id, driver_id, model FROM vehicles 
+          WHERE type = $1 AND status = 'available' AND active = true
+          AND max_passengers >= $2 AND max_luggage >= $3
+          ORDER BY per_km_price ASC
+          LIMIT 1
+        `, [vehicle_type.toLowerCase(), passengers_count, luggage_count]);
+        
+        if (autoVehicleResult.rows.length > 0) {
+          finalAssignedVehicleId = autoVehicleResult.rows[0].id;
+          if (autoVehicleResult.rows[0].driver_id && !driver_id) {
+            finalDriverId = autoVehicleResult.rows[0].driver_id;
+          }
+          finalVehicleModelForBooking = autoVehicleResult.rows[0].model;
+        }
+      } else if (assigned_vehicle_id) {
+        // Get the vehicle's tagged driver and model
+        const vehicleResult = await query('SELECT driver_id, model FROM vehicles WHERE id = $1', [assigned_vehicle_id]);
+        if (vehicleResult.rows.length > 0) {
+          if (vehicleResult.rows[0].driver_id && !driver_id) {
+            finalDriverId = vehicleResult.rows[0].driver_id; // Auto-assign tagged driver if no driver specified
+          }
+          finalVehicleModelForBooking = vehicleResult.rows[0].model; // Store the actual vehicle model
         }
       }
       
@@ -88,14 +112,14 @@ const addBookingController = {
       const result = await query(`
         INSERT INTO bookings 
           (customer_name, customer_phone, customer_email, pickup_location, dropoff_location, 
-           distance_km, fare_aed, booking_type, vehicle_type, driver_id, assigned_vehicle_id, payment_method, status, booking_source, passengers_count, luggage_count, created_at)
+           distance_km, fare_aed, booking_type, vehicle_type, vehicle_model, driver_id, assigned_vehicle_id, payment_method, status, booking_source, passengers_count, luggage_count, created_at)
         VALUES 
-          ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
+          ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
         RETURNING *
       `, [
         customer_name, customer_phone, customer_email || null, pickup_location,
-        dropoff_location, distance_km, fare, booking_type, vehicle_type, finalDriverId || null, finalAssignedVehicleId || null, payment_method || 'cash',
-        status || 'in-process', booking_source || 'manually_created', passengers_count, luggage_count
+        dropoff_location, distance_km, fare, booking_type, vehicle_type, finalVehicleModelForBooking, finalDriverId || null, finalAssignedVehicleId || null, payment_method || 'cash',
+        status || 'in-process', finalBookingSource, passengers_count, luggage_count
       ])
 
       logger.info(`Manual booking created: ${result.rows[0].id}`);

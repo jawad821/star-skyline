@@ -14,6 +14,14 @@ The application is built on a complete MVC (Model-View-Controller) architecture 
 
 ## Recent Changes (2025-11-29)
 
+### 🔧 BOOKING SOURCE & VEHICLE MODEL FIX (2025-11-30)
+- Added `vehicle_model` column to bookings table
+- Bareerah bookings now set `booking_source: bareerah_ai`
+- Dashboard displays "Bareerah AI" for Bareerah-created bookings
+- Vehicle model is now captured and displayed in booking details
+- Driver auto-assignment from vehicle's tagged driver works correctly
+- Audit logging tracks all changes with username
+
 ### ✅ PRODUCTION DEPLOYMENT COMPLETED
 - **Port Migration**: Changed from port 8000 → 5000 for Replit webview compatibility
 - **Database**: Created `users` table with proper schema for authentication

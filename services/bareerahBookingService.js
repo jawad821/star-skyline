@@ -28,7 +28,10 @@ const bareerahBookingService = {
         vehicle_type: data.vehicle_type
       });
 
-      const result = await bookingService.createBooking(data);
+      // Ensure booking_source is set to bareerah_ai
+      const bookingData = { ...data, booking_source: 'bareerah_ai' };
+      
+      const result = await bookingService.createBooking(bookingData);
       
       console.log('✅ [BAREERAH-BOOKING] SUCCESS!');
       console.log('   🆔 Booking ID:', result.booking_id);

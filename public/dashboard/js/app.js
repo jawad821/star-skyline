@@ -1157,7 +1157,7 @@ async function loadBookings() {
       const driverDisplay = b.driver_name || (b.driver_id ? 'Driver assigned' : 'Unassigned');
       const statusDisplay = b.status || 'pending';
       const paymentDisplay = (b.payment_method || 'cash').toUpperCase();
-      const sourceLabel = (b.booking_source === 'bareerah' || b.booking_source === 'voice_agent') ? '📱 Bareerah' : '👤 Manual';
+      const sourceLabel = (b.booking_source === 'bareerah' || b.booking_source === 'bareerah_ai' || b.booking_source === 'voice_agent') ? '📱 Bareerah AI' : '👤 Manual';
       const createdTime = new Date(b.created_at);
       const updatedTime = new Date(b.updated_at);
       const createdStr = createdTime.toLocaleDateString() + ' ' + createdTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
@@ -1190,7 +1190,7 @@ function viewBooking(id) {
           const bookingTypeDisplay = b.booking_type ? b.booking_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A';
           const vehicleModelDisplay = b.vehicle_model && b.vehicle_model !== 'Not specified' ? b.vehicle_model : (b.car_model || 'N/A');
           const assignedVehicleDisplay = b.assigned_vehicle_model ? b.assigned_vehicle_model : (b.assigned_vehicle_id ? b.assigned_vehicle_id.substring(0, 8) : 'None');
-          const sourceDisplay = (b.booking_source === 'bareerah' || b.booking_source === 'voice_agent') ? '📱 Bareerah Voice Agent' : '👤 Manually Created';
+          const sourceDisplay = (b.booking_source === 'bareerah' || b.booking_source === 'bareerah_ai' || b.booking_source === 'voice_agent') ? '📱 Bareerah AI' : '👤 Manually Created';
           const createdTime = new Date(b.created_at);
           const updatedTime = new Date(b.updated_at);
           const createdStr = createdTime.toLocaleDateString() + ' ' + createdTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
