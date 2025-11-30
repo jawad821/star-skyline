@@ -35,7 +35,7 @@ const bookingController = {
       const booking = result.rows[0];
       if (booking) {
         const stopsResult = await query(`
-          SELECT * FROM booking_stops WHERE booking_id = $1 ORDER BY sequence_number ASC
+          SELECT * FROM booking_stops WHERE booking_id = $1 ORDER BY stop_number ASC
         `, [id]);
         booking.stops = stopsResult.rows || [];
       }
