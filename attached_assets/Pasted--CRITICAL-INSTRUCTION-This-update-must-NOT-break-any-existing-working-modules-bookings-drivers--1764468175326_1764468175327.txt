@@ -1,0 +1,246 @@
+⚠️ CRITICAL INSTRUCTION:
+This update must NOT break any existing working modules (bookings, drivers, vehicles, AI booking, manual booking, notifications, assignments, dashboards, vendor logic).
+✅ Only the Fare Rule calculation logic & admin-editable fare rules will be updated.
+✅ No unrelated refactoring, no API response changes, no frontend structural changes.
+
+🎯 OBJECTIVE
+
+Implement new slab-based fare logic for all vehicle categories using the client-approved “full-distance after threshold” formula.
+
+Fare rules must be:
+
+Dynamic (admin editable)
+
+Applied only to new bookings
+
+Stored in DB
+
+Used by:
+
+AI auto-booking
+
+Manual admin booking
+
+Fare preview before booking confirmation
+
+✅ FINAL CLIENT-APPROVED FARE LOGIC (IMPORTANT)
+
+⚠️ This is NOT standard taxi logic. This is client’s explicit rule:
+
+If distance <= included_km:
+    fare = base_fare
+Else:
+    fare = base_fare + (distance × per_km)
+
+
+✅ Once distance crosses the included KM, the FULL total distance is multiplied by per_km, not just the extra KM.
+
+✅ VEHICLE CATEGORIES & MODELS (LOCKED)
+1️⃣ Classic
+
+Model: BYD Han
+
+Base Fare: AED 95
+
+Included KM: 20
+
+Per KM: AED 1
+
+2️⃣ Executive
+
+Models:
+
+E Class
+
+Lexus ES 300H
+
+Tesla Model Y
+
+Tesla Model 3
+
+Base: AED 105
+
+Included: 20 KM
+
+Per KM: AED 1
+
+3️⃣ Urban SUV
+
+Models:
+
+BYD Song
+
+Highlander
+
+Base: AED 108
+
+Included: 20 KM
+
+Per KM: AED 1
+
+4️⃣ Elite Van
+
+Model: V Class
+
+Base: AED 165
+
+Included: 20 KM
+
+Per KM: AED 2
+
+5️⃣ Luxury SUV
+
+Models:
+
+GMC Yukon
+
+Cadillac Escalade
+
+Base: AED 170
+
+Included: 20 KM
+
+Per KM: AED 1.8
+
+6️⃣ First Class
+
+Models:
+
+S Class
+
+Audi A8
+
+BMW 7 Series
+
+Base: AED 450
+
+Included: 40 KM
+
+Per KM: AED 1.75
+
+7️⃣ Mini Bus
+
+Model: Sprinter
+
+Base: AED 825
+
+Included: 50 KM
+
+Per KM: AED 7.5
+
+✅ DATABASE REQUIREMENT
+
+Create or update a table like:
+
+fare_rules
+- id
+- vehicle_category
+- base_fare
+- included_km
+- per_km_rate
+- is_active
+- created_at
+
+
+✅ Existing bookings must NOT be recalculated
+✅ Only new bookings should use updated fare logic
+
+✅ API LOGIC (STRICT)
+
+Centralize fare calculation in ONE shared helper/service used by:
+
+AI Booking API (Port 5000)
+
+Manual Booking API (Port 8000)
+
+Exact Formula to Use (NO VARIATION ALLOWED):
+
+if distance <= included_km:
+    fare = base_fare
+else:
+    fare = base_fare + (distance * per_km_rate)
+
+
+✅ Decimal support required
+✅ Round final fare to 2 decimals only
+✅ Return calculated fare before booking save
+
+✅ ADMIN PANEL (SAFE UPDATE ONLY)
+
+Admin must be able to:
+
+View all fare rules
+
+Edit:
+
+Base fare
+
+Included KM
+
+Per KM rate
+
+Toggle active/inactive
+
+⚠️ Editing a rule must:
+
+Affect only future bookings
+
+Not modify old booking fares
+
+✅ DO NOT TOUCH / DO NOT BREAK
+
+❌ Booking assignment logic
+❌ Driver–Vehicle tagging
+❌ Vendor module
+❌ Notification system
+❌ Dashboards
+❌ Auto-assignment
+❌ Status flows (pending, assigned, in_progress, completed)
+
+This task is PURELY fare-rule calculation & admin configurability.
+
+✅ REQUIRED TEST CASES (MANDATORY)
+
+Developer must test:
+
+Category	KM	Expected Logic
+Classic	15	Fare = 95
+Classic	21	Fare = 95 + 21 × 1
+Executive	25	105 + 25 × 1
+Urban SUV	30	108 + 30 × 1
+Elite Van	22	165 + 22 × 2
+Luxury SUV	28	170 + 28 × 1.8
+First Class	41	450 + 41 × 1.75
+Mini Bus	51	825 + 51 × 7.5
+
+Results must log correctly in DB and appear correctly in booking UI.
+
+✅ DELIVERY REQUIREMENTS
+
+No breaking changes
+
+No API response shape changes
+
+No frontend redesign
+
+Only:
+
+Fare Rules DB
+
+Fare Calculation Logic
+
+Admin Edit Panel
+
+✅ Confirm once deployed:
+
+DB migration applied
+
+APIs tested
+
+3 sample live test bookings created
+
+✅ FINAL SAFETY LINE (MANDATORY ACKNOWLEDGEMENT)
+
+Developer must confirm:
+
+“Fare logic updated as per full-distance-after-threshold rule, existing system untouched, all prior features stable.”
