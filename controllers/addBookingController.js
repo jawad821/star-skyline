@@ -80,8 +80,8 @@ const addBookingController = {
       // Determine booking source
       const finalBookingSource = booking_source === 'bareerah_ai' ? 'bareerah_ai' : (booking_source || 'manually_created');
       
-      // If no vehicle assigned and this is a Bareerah booking, auto-assign cheapest available
-      if (!assigned_vehicle_id && finalBookingSource === 'bareerah_ai') {
+      // If no vehicle assigned, auto-assign cheapest available (for ALL bookings, not just Bareerah)
+      if (!assigned_vehicle_id) {
         const autoVehicleResult = await query(`
           SELECT id, driver_id, model FROM vehicles 
           WHERE type = $1 AND status = 'available' AND active = true

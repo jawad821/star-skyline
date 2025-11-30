@@ -31,7 +31,9 @@ The application is built on a complete MVC (Model-View-Controller) architecture 
   - Classic 21km = 96 AED ✅ (95 + (21-20)×1 = 96)
   - Executive 21km = 106 AED ✅ (105 + (21-20)×1 = 106)
   - Mini Bus 51km = 832.5 AED ✅ (825 + (51-50)×7.5 = 832.5)
-- Diverse test bookings created with 7 vehicles at different distances
+- Diverse test bookings created with 7 vehicles - SAME distance (35km), DIFFERENT vehicles
+- Auto-assignment FIXED for ALL bookings (manual + Bareerah) - vehicles now auto-assign with models
+- Vehicle models properly displayed in booking details (e.g., BYD Han, Lexus ES 300H, etc.)
 - Admin dashboard updated to display included_km column
 - Fare rules API endpoints working (GET /api/fare-rules, PUT /api/fare-rules/:type)
 - No breaking changes - all existing bookings modules untouched
