@@ -77,6 +77,7 @@ const addBookingController = {
       let finalDriverId = driver_id;
       let finalAssignedVehicleId = assigned_vehicle_id;
       let finalVehicleModelForBooking = finalVehicleModel;
+      let finalVehicleColor = null;
       
       // Determine booking source
       const finalBookingSource = booking_source === 'bareerah_ai' ? 'bareerah_ai' : (booking_source || 'manually_created');
@@ -84,7 +85,7 @@ const addBookingController = {
       // If no vehicle assigned, auto-assign cheapest available (for ALL bookings, not just Bareerah)
       if (!assigned_vehicle_id) {
         const autoVehicleResult = await query(`
-          SELECT id, driver_id, model FROM vehicles 
+          SELECT id, driver_id, model, color FROM vehicles 
           WHERE type = $1 AND status = 'available' AND active = true
           AND max_passengers >= $2 AND max_luggage >= $3
           ORDER BY per_km_price ASC
@@ -97,20 +98,22 @@ const addBookingController = {
             finalDriverId = autoVehicleResult.rows[0].driver_id;
           }
           finalVehicleModelForBooking = autoVehicleResult.rows[0].model;
+          finalVehicleColor = autoVehicleResult.rows[0].color;
         }
       } else if (assigned_vehicle_id) {
-        // Get the vehicle's tagged driver and model
-        const vehicleResult = await query('SELECT driver_id, model FROM vehicles WHERE id = $1', [assigned_vehicle_id]);
+        // Get the vehicle's tagged driver, model, and color
+        const vehicleResult = await query('SELECT driver_id, model, color FROM vehicles WHERE id = $1', [assigned_vehicle_id]);
         if (vehicleResult.rows.length > 0) {
           if (vehicleResult.rows[0].driver_id && !driver_id) {
             finalDriverId = vehicleResult.rows[0].driver_id; // Auto-assign tagged driver if no driver specified
           }
           finalVehicleModelForBooking = vehicleResult.rows[0].model; // Store the actual vehicle model
+          finalVehicleColor = vehicleResult.rows[0].color;
         } else {
           // Vehicle doesn't exist - for Bareerah, auto-assign instead of failing
           if (finalBookingSource === 'bareerah_ai') {
             const autoVehicleResult = await query(`
-              SELECT id, driver_id, model FROM vehicles 
+              SELECT id, driver_id, model, color FROM vehicles 
               WHERE type = $1 AND status = 'available' AND active = true
               AND max_passengers >= $2 AND max_luggage >= $3
               ORDER BY per_km_price ASC
@@ -123,6 +126,7 @@ const addBookingController = {
                 finalDriverId = autoVehicleResult.rows[0].driver_id;
               }
               finalVehicleModelForBooking = autoVehicleResult.rows[0].model;
+              finalVehicleColor = autoVehicleResult.rows[0].color;
             } else {
               // No vehicle available, allow null assignment
               finalAssignedVehicleId = null;
@@ -141,13 +145,13 @@ const addBookingController = {
       const result = await query(`
         INSERT INTO bookings 
           (customer_name, customer_phone, customer_email, pickup_location, dropoff_location, 
-           distance_km, fare_aed, booking_type, vehicle_type, vehicle_model, driver_id, assigned_vehicle_id, payment_method, status, booking_source, passengers_count, luggage_count, notes, created_at)
+           distance_km, fare_aed, booking_type, vehicle_type, vehicle_model, vehicle_color, driver_id, assigned_vehicle_id, payment_method, status, booking_source, passengers_count, luggage_count, notes, created_at)
         VALUES 
-          ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW())
+          ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW())
         RETURNING *
       `, [
         customer_name, customer_phone, customer_email || null, pickup_location,
-        dropoff_location, distance_km, fare, booking_type, vehicle_type, finalVehicleModelForBooking, finalDriverId || null, finalAssignedVehicleId || null, payment_method || 'cash',
+        dropoff_location, distance_km, fare, booking_type, vehicle_type, finalVehicleModelForBooking, finalVehicleColor || null, finalDriverId || null, finalAssignedVehicleId || null, payment_method || 'cash',
         status || 'in-process', finalBookingSource, passengers_count, luggage_count, notes || null
       ])
 

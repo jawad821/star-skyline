@@ -145,7 +145,7 @@ const bookingController = {
   async updateBooking(req, res, next) {
     try {
       const { id } = req.params;
-      const { status, driver_id, assigned_vehicle_id, payment_method, notes } = req.body;
+      const { status, driver_id, assigned_vehicle_id, payment_method, notes, vehicle_color } = req.body;
       const Booking = require('../models/Booking');
       const { query } = require('../config/db');
       
@@ -176,6 +176,11 @@ const bookingController = {
       if (notes !== undefined) {
         updateSql += ', notes = $' + (paramIndex);
         params.push(notes || null);
+        paramIndex++;
+      }
+      if (vehicle_color !== undefined) {
+        updateSql += ', vehicle_color = $' + (paramIndex);
+        params.push(vehicle_color || null);
         paramIndex++;
       }
       
