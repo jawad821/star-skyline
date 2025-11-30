@@ -2476,18 +2476,19 @@ function loadRentalRules() {
     }
     let html = '';
     d.data.forEach(rule => {
-      const total3h = rule.hourly_rate_aed * 3;
-      const total14h = rule.hourly_rate_aed * 14;
+      const rate = parseFloat(rule.hourly_rate_aed);
+      const total3h = rate * 3;
+      const total14h = rate * 14;
       const status = rule.is_active ? '<span style="color: #10b981; font-weight: 600;">✅ Active</span>' : '<span style="color: #ef4444; font-weight: 600;">❌ Inactive</span>';
       html += `
         <tr style="border-bottom: 1px solid var(--border); hover: background-color: var(--bg-secondary);">
           <td style="padding: 12px; text-align: left; font-weight: 500; text-transform: capitalize;">${rule.vehicle_type}</td>
-          <td style="padding: 12px; text-align: center; font-weight: 600; color: var(--text-primary);">AED ${rule.hourly_rate_aed.toFixed(2)}</td>
+          <td style="padding: 12px; text-align: center; font-weight: 600; color: var(--text-primary);">AED ${rate.toFixed(2)}</td>
           <td style="padding: 12px; text-align: center; color: var(--text-secondary);">AED ${total3h.toFixed(2)}</td>
           <td style="padding: 12px; text-align: center; color: var(--text-secondary);">AED ${total14h.toFixed(2)}</td>
           <td style="padding: 12px; text-align: center;">${status}</td>
           <td style="padding: 12px; text-align: center;">
-            <button onclick="openRentalRuleModal('${rule.vehicle_type}', ${rule.hourly_rate_aed})" class="btn" style="padding: 6px 12px; font-size: 12px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">Edit</button>
+            <button onclick="openRentalRuleModal('${rule.vehicle_type}', ${rate})" class="btn" style="padding: 6px 12px; font-size: 12px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">Edit</button>
           </td>
         </tr>
       `;
