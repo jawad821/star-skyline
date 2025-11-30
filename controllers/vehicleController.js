@@ -107,7 +107,8 @@ const vehicleController = {
 
   async getVehicleById(req, res, next) {
     try {
-      const vehicle = await vehicleService.getVehicleById(req.params.id);
+      const Vehicle = require('../models/Vehicle');
+      const vehicle = await Vehicle.findById(req.params.id);
       if (!vehicle) {
         return res.status(404).json({
           success: false,
@@ -116,7 +117,8 @@ const vehicleController = {
       }
       res.json({
         success: true,
-        vehicle
+        data: vehicle,
+        vehicle: vehicle
       });
     } catch (error) {
       next(error);
