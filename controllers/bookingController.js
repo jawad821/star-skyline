@@ -56,7 +56,17 @@ const bookingController = {
 
   async createBooking(req, res, next) {
     try {
-      res.json({ success: true, data: { message: 'Booking created' } });
+      const { booking_type } = req.body;
+      
+      if (booking_type === 'multi_stop') {
+        return this.createMultiStopBooking(req, res, next);
+      } else if (booking_type === 'round_trip') {
+        return this.createRoundTripBooking(req, res, next);
+      }
+      
+      // Point-to-point or default booking - use addBookingController
+      const addBookingController = require('./addBookingController');
+      return addBookingController.createManualBooking(req, res, next);
     } catch (error) {
       next(error);
     }
