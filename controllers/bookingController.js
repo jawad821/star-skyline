@@ -31,7 +31,16 @@ const bookingController = {
         LEFT JOIN vehicles v ON b.assigned_vehicle_id = v.id
         WHERE b.id = $1
       `, [id]);
-      res.json({ success: true, data: result.rows[0] || null });
+      
+      const booking = result.rows[0];
+      if (booking) {
+        const stopsResult = await query(`
+          SELECT * FROM booking_stops WHERE booking_id = $1 ORDER BY sequence_number ASC
+        `, [id]);
+        booking.stops = stopsResult.rows || [];
+      }
+      
+      res.json({ success: true, data: booking || null });
     } catch (error) {
       next(error);
     }
