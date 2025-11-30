@@ -1,0 +1,58 @@
+// LOGS PAGE
+async function loadLogs(filter = {}) {
+  try {
+    const token = localStorage.getItem('token');
+    const tbody = document.getElementById('logs-table-body');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">Loading logs...</td></tr>';
+    
+    let url = getCacheBustUrl(API_BASE + '/audit-logs?limit=100');
+    if (filter.entity_type) url += '&entity_type=' + filter.entity_type;
+    if (filter.action) url += '&action=' + filter.action;
+    if (filter.search) url += '&search=' + encodeURIComponent(filter.search);
+    
+    const response = await fetch(url, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    
+    const data = await response.json();
+    if (!tbody) return;
+    
+    if (!data.data || !data.data.length) {
+      tbody.innerHTML = '<tr><td colspan="7">No logs found</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = data.data.map(log => {
+      const timestamp = new Date(log.created_at);
+      const timeStr = timestamp.toLocaleDateString() + ' ' + timestamp.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+      const changes = log.changes ? JSON.stringify(JSON.parse(log.changes), null, 2) : 'N/A';
+      const changesPreview = changes.length > 50 ? changes.substring(0, 50) + '...' : changes;
+      
+      return '<tr><td style="font-size: 12px;">' + timeStr + '</td><td>' + (log.action || 'N/A') + '</td><td>' + (log.entity_type || 'N/A') + '</td><td style="font-size: 12px;">' + log.entity_id.substring(0, 8) + '</td><td><strong>' + (log.updated_by_name || 'System') + '</strong></td><td>' + (log.user_role || 'N/A') + '</td><td style="font-size: 11px; white-space: pre-wrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">' + changesPreview + '</td></tr>';
+    }).join('');
+  } catch (e) {
+    const tbody = document.getElementById('logs-table-body');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="color:red;">Error loading logs: ' + e.message + '</td></tr>';
+    console.error('Logs error:', e);
+  }
+}
+
+function filterLogs() {
+  const entityType = document.getElementById('log-entity-filter')?.value || '';
+  const action = document.getElementById('log-action-filter')?.value || '';
+  const search = document.getElementById('log-search')?.value || '';
+  
+  loadLogs({ entity_type: entityType, action: action, search: search });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const logSearch = document.getElementById('log-search');
+  const logEntityFilter = document.getElementById('log-entity-filter');
+  const logActionFilter = document.getElementById('log-action-filter');
+  
+  if (logSearch) logSearch.addEventListener('input', filterLogs);
+  if (logEntityFilter) logEntityFilter.addEventListener('change', filterLogs);
+  if (logActionFilter) logActionFilter.addEventListener('change', filterLogs);
+});

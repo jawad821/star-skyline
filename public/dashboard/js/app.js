@@ -666,6 +666,7 @@ function navigateToPage(page) {
     else if (page === 'kpi') loadKPI();
     else if (page === 'fares') loadFareRules();
     else if (page === 'settings') setupUserInfo();
+    else if (page === 'logs') loadLogs();
     else if (page === 'alerts') loadAlerts();
   }
 }
@@ -2096,4 +2097,45 @@ async function loadAlerts() {
   } catch (e) {
     console.error(e);
   }
+}
+
+// LOGS PAGE FUNCTIONS
+async function loadLogs(filter = {}) {
+  try {
+    const token = localStorage.getItem('token');
+    const tbody = document.getElementById('logs-table-body');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7">Loading logs...</td></tr>';
+    
+    let url = getCacheBustUrl(API_BASE + '/audit-logs?limit=100');
+    if (filter.entity_type) url += '&entity_type=' + filter.entity_type;
+    if (filter.action) url += '&action=' + filter.action;
+    
+    const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    
+    const data = await response.json();
+    if (!tbody) return;
+    
+    if (!data.data || !data.data.length) {
+      tbody.innerHTML = '<tr><td colspan="7">No logs found</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = data.data.map(log => {
+      const ts = new Date(log.created_at);
+      const timeStr = ts.toLocaleDateString() + ' ' + ts.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+      const changes = log.changes ? JSON.stringify(JSON.parse(log.changes)).substring(0, 40) + '...' : 'N/A';
+      return '<tr><td style="font-size:12px;">' + timeStr + '</td><td>' + log.action + '</td><td>' + log.entity_type + '</td><td style="font-size:11px;">' + log.entity_id.substring(0, 8) + '</td><td><strong>' + (log.updated_by_name || 'System') + '</strong></td><td>' + (log.user_role || 'admin') + '</td><td style="font-size:11px;">' + changes + '</td></tr>';
+    }).join('');
+  } catch (e) {
+    const tbody = document.getElementById('logs-table-body');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="color:red;">Error: ' + e.message + '</td></tr>';
+  }
+}
+
+function filterLogs() {
+  loadLogs({
+    entity_type: document.getElementById('log-entity-filter')?.value || '',
+    action: document.getElementById('log-action-filter')?.value || ''
+  });
 }

@@ -1,0 +1,40 @@
+        <!-- Logs Page -->
+        <div id="page-logs" class="page">
+          <h2 class="page-title">📋 Activity Logs</h2>
+          <div class="filter-bar">
+            <input type="text" id="log-search" placeholder="🔍 Search by entity ID, user, or type..." class="filter-select" style="flex: 1;">
+            <select id="log-entity-filter" class="filter-select">
+              <option value="">All Entities</option>
+              <option value="vehicle">Vehicles</option>
+              <option value="driver">Drivers</option>
+              <option value="fare_rule">Fare Rules</option>
+              <option value="booking">Bookings</option>
+            </select>
+            <select id="log-action-filter" class="filter-select">
+              <option value="">All Actions</option>
+              <option value="CREATE">Create</option>
+              <option value="UPDATE">Update</option>
+              <option value="DELETE">Delete</option>
+            </select>
+          </div>
+          <div class="card">
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Action</th>
+                    <th>Entity</th>
+                    <th>Entity ID</th>
+                    <th>Updated By</th>
+                    <th>Role</th>
+                    <th>Changes</th>
+                  </tr>
+                </thead>
+                <tbody id="logs-table-body">
+                  <tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>

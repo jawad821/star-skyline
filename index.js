@@ -17,6 +17,7 @@ const customerRoutes = require('./routes/customerRoutes');
 const driverRoutes = require('./routes/driverRoutes');
 const ratingRoutes = require('./routes/ratingRoutes');
 const fareRuleRoutes = require('./routes/fareRuleRoutes');
+const auditRoutes = require('./routes/auditRoutes');
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/push', pushRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/fare-rules', fareRuleRoutes);
+app.use('/api/audit-logs', auditRoutes);
 
 // Admin Login page (public)
 app.get('/dashboard/login.html', (req, res) => {

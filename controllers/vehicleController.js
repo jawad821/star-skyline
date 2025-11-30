@@ -154,7 +154,29 @@ const vehicleController = {
     try {
       const { id } = req.params;
       const Vehicle = require('../models/Vehicle');
+      const auditLogger = require('../utils/auditLogger');
+      
+      // Get old vehicle data for change tracking
+      const oldVehicle = await Vehicle.findById(id);
+      
+      // Get user info from token
+      const user = req.user || { id: 'unknown', name: 'Unknown', role: 'admin' };
+      
+      // Update vehicle
       const vehicle = await Vehicle.updateVehicle(id, req.body);
+      
+      // Log changes
+      const changes = {};
+      for (let key in req.body) {
+        if (oldVehicle[key] !== req.body[key]) {
+          changes[key] = { old: oldVehicle[key], new: req.body[key] };
+        }
+      }
+      
+      if (Object.keys(changes).length > 0) {
+        await auditLogger.logChange('vehicle', id, 'UPDATE', changes, user.id, user.name, user.role);
+      }
+      
       res.json({
         success: true,
         message: 'Vehicle updated successfully',
