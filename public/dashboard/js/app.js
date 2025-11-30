@@ -2464,7 +2464,7 @@ window.createManualBooking = async function() {
 
 // ============ HOURLY RENTAL RULES MANAGEMENT ============
 function loadRentalRules() {
-  const token = localStorage.getItem('adminToken');
+  const token = localStorage.getItem('token');
   fetch(API_BASE + '/bookings/rental-rules/all', {
     headers: { 'Authorization': 'Bearer ' + token }
   })
@@ -2522,7 +2522,7 @@ function openRentalRuleModal(vehicleType, currentRate) {
 }
 
 function saveRentalRuleChanges() {
-  const token = localStorage.getItem('adminToken');
+  const token = localStorage.getItem('token');
   const vehicleType = document.getElementById('editRentalVehicleType').value;
   const hourlyRate = parseFloat(document.getElementById('editRentalRate').value);
   
