@@ -121,7 +121,3 @@ async function calculateFare(booking_type, vehicle_type, distance_km = 0, hours 
 }
 
 module.exports = {
-  LEGACY_RATES,
-  calculateFare,
-  getFareRuleForType
-};

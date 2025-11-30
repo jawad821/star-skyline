@@ -34,7 +34,7 @@ const bookingService = {
       throw new ValidationError('vehicle_type is required');
     }
 
-    const validBookingTypes = ['point_to_point', 'airport_transfer', 'city_tour', 'hourly_rental'];
+    const validBookingTypes = ['point_to_point', 'airport_transfer', 'city_tour', 'hourly_rental', 'multi_stop', 'round_trip'];
     if (!validBookingTypes.includes(booking_type)) {
       throw new ValidationError(`booking_type must be one of: ${validBookingTypes.join(', ')}`);
     }
@@ -100,7 +100,7 @@ const bookingService = {
       throw new ValidationError('booking_type is required');
     }
 
-    const validBookingTypes = ['point_to_point', 'airport_transfer', 'city_tour', 'hourly_rental'];
+    const validBookingTypes = ['point_to_point', 'airport_transfer', 'city_tour', 'hourly_rental', 'multi_stop', 'round_trip'];
     if (!validBookingTypes.includes(booking_type)) {
       throw new ValidationError(`booking_type must be one of: ${validBookingTypes.join(', ')}`);
     }

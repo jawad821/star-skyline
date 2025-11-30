@@ -18,5 +18,7 @@ router.post('/assign-vehicle', authMiddleware, rbacMiddleware(['admin', 'operato
 router.post('/assign-driver', authMiddleware, rbacMiddleware(['admin']), bookingController.assignDriver);
 router.post('/assign-vehicle-type', authMiddleware, rbacMiddleware(['admin']), bookingController.assignVehicleType);
 router.post('/resend-notifications', authMiddleware, rbacMiddleware(['admin']), bookingController.resendNotifications);
+router.post('/create-multi-stop', authMiddleware, rbacMiddleware(['admin', 'operator']), bookingController.createMultiStopBooking);
+router.post('/create-round-trip', authMiddleware, rbacMiddleware(['admin', 'operator']), bookingController.createRoundTripBooking);
 
 module.exports = router;

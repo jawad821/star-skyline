@@ -3,7 +3,31 @@ const { query } = require('../config/db');
 const Booking = {
   async findById(id) {
     const result = await query('SELECT * FROM bookings WHERE id = $1', [id]);
-    return result.rows[0] || null;
+    const booking = result.rows[0] || null;
+    if (booking) {
+      // Fetch stops if exists
+      const stopsResult = await query(
+        'SELECT * FROM booking_stops WHERE booking_id = $1 ORDER BY stop_number ASC',
+        [id]
+      );
+      booking.stops = stopsResult.rows || [];
+    }
+    return booking;
+  },
+
+  async createWithStops(data, stops) {
+    const booking = await this.create(data);
+    if (stops && stops.length > 0) {
+      for (const stop of stops) {
+        await query(
+          `INSERT INTO booking_stops (booking_id, stop_number, location, stop_type, duration_minutes)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [booking.id, stop.number, stop.location, stop.stop_type, stop.duration_minutes || 0]
+        );
+      }
+      booking.stops = stops;
+    }
+    return booking;
   },
 
   async create(data) {
