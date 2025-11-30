@@ -1112,9 +1112,10 @@
         </div>
         <div id="roundTripFields" style="display: none; border: 1px solid #8b5cf6; padding: 12px; border-radius: 6px; background: #faf5ff; margin-bottom: 12px;">
           <label style="font-weight: 600; display: block; margin-bottom: 8px;">🌍 Return Location & Hours</label>
-          <div class="form-group">
+          <div class="form-group" style="position: relative;">
             <label>Meeting Location</label>
-            <input type="text" id="roundTripMeetingLocation" placeholder="Where customer goes" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+            <input type="text" id="roundTripMeetingLocation" placeholder="Where customer goes" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; position: relative; z-index: 5;">
+            <div id="roundTripMeetingSuggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-primary); border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; max-height: 150px; overflow-y: auto; z-index: 250; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none;"></div>
           </div>
           <div class="form-group">
             <label>Return After (Hours)</label>

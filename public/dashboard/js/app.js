@@ -1613,12 +1613,22 @@ function initAddMapAutocomplete() {
   // Setup location autocomplete
   setupLocationAutocomplete('bookingPickup', 'addPickupSuggestions');
   setupLocationAutocomplete('bookingDropoff', 'addDropoffSuggestions');
+  setupLocationAutocomplete('roundTripMeetingLocation', 'roundTripMeetingSuggestions');
 }
 
 function setLocationBooking(fieldId, location) {
   document.getElementById(fieldId).value = location;
-  const suggestionId = fieldId === 'bookingPickup' ? 'addPickupSuggestions' : 'addDropoffSuggestions';
-  document.getElementById(suggestionId).style.display = 'none';
+  let suggestionId;
+  if (fieldId === 'bookingPickup') {
+    suggestionId = 'addPickupSuggestions';
+  } else if (fieldId === 'bookingDropoff') {
+    suggestionId = 'addDropoffSuggestions';
+  } else if (fieldId === 'roundTripMeetingLocation') {
+    suggestionId = 'roundTripMeetingSuggestions';
+  }
+  if (suggestionId) {
+    document.getElementById(suggestionId).style.display = 'none';
+  }
 }
 
 function setCreateAssignmentMode(mode) {
