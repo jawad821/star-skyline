@@ -605,8 +605,8 @@ function clearCacheNow() {
   if ('caches' in window) {
     caches.keys().then(names => names.forEach(name => caches.delete(name)));
   }
-  alert('✅ Cache cleared! Refreshing page...');
-  location.reload();
+  showToast('Cache cleared! Refreshing page...', 'success');
+  setTimeout(() => location.reload(), 1500);
 }
 
 // Init

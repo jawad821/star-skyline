@@ -210,14 +210,39 @@
       window.location.href = '/driver-login.html';
     }
 
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('driverToastContainer');
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        background: ${type === 'success' ? '#34C759' : type === 'error' ? '#FF3B30' : '#007AFF'};
+        color: white;
+        padding: 16px 24px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 500;
+        animation: slideIn 0.3s ease;
+        backdrop-filter: blur(12px);
+      `;
+      const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+      toast.innerHTML = `<span>${icons[type] || icons.success}</span><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
     function clearCacheNow() {
       localStorage.clear();
       sessionStorage.clear();
       if ('caches' in window) {
         caches.keys().then(names => names.forEach(name => caches.delete(name)));
       }
-      alert('✅ Cache cleared! Refreshing page...');
-      location.reload();
+      showToast('Cache cleared! Refreshing page...', 'success');
+      setTimeout(() => location.reload(), 1500);
     }
 
     function setDateRange(range) {
@@ -478,5 +503,30 @@
     loadDriverProfile();
     loadDashboardStats();
   </script>
+  <div id="driverToastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
 </body>
 </html>
+
+  <style>
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+  </style>
