@@ -69,7 +69,7 @@ html, body {
   align-items: center;
 }
 
-.theme-toggle, .logout-btn {
+.theme-toggle, .logout-btn, .cache-clear-btn {
   background: none;
   border: none;
   font-size: 14px;
@@ -80,11 +80,11 @@ html, body {
   color: var(--text-primary);
 }
 
-.theme-toggle:hover, .logout-btn:hover {
+.theme-toggle:hover, .logout-btn:hover, .cache-clear-btn:hover {
   background: rgba(0, 0, 0, 0.06);
 }
 
-.logout-btn {
+.logout-btn, .cache-clear-btn {
   font-size: 13px;
   border: 1px solid var(--border-color);
 }

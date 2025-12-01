@@ -599,6 +599,16 @@ function logout() {
   window.location.href = '/dashboard/login.html';
 }
 
+function clearCacheNow() {
+  localStorage.clear();
+  sessionStorage.clear();
+  if ('caches' in window) {
+    caches.keys().then(names => names.forEach(name => caches.delete(name)));
+  }
+  alert('✅ Cache cleared! Refreshing page...');
+  location.reload();
+}
+
 // Init
 document.addEventListener('DOMContentLoaded', init);
 function init() {

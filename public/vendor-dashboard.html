@@ -27,6 +27,7 @@
       <h1>🚕 Vendor Dashboard</h1>
       <div class="titlebar-right">
         <button class="theme-toggle" id="themeToggle">🌙</button>
+        <button class="cache-clear-btn" onclick="clearCacheNow()" title="Clear cache to see latest data">🔄 Clear Cache</button>
         <button class="logout-btn" onclick="vendorLogout()">Logout</button>
       </div>
     </div>
@@ -177,6 +178,16 @@
       localStorage.removeItem('vendor_token');
       localStorage.removeItem('vendor');
       window.location.href = '/vendor-login.html';
+    }
+
+    function clearCacheNow() {
+      localStorage.clear();
+      sessionStorage.clear();
+      if ('caches' in window) {
+        caches.keys().then(names => names.forEach(name => caches.delete(name)));
+      }
+      alert('✅ Cache cleared! Refreshing page...');
+      location.reload();
     }
     
     function switchPeriod(period) {
