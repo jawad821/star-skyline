@@ -1021,7 +1021,7 @@ const formController = {
               <div class="discount-badge \${v.discount >= 50 ? 'gold' : ''}">\${v.discount}% OFF</div>
               <div class="price-label">Total Return Price</div>
               <div class="price-original">AED \${prices.original}</div>
-              <div class="price-final">AED $\${prices.final}<small>.00</small></div>
+              <div class="price-final">AED \${prices.final}<small>.00</small></div>
               <div class="price-note">Includes VAT & Fees</div>
               <button class="btn-select" onclick="selectVehicle('\${v.id}', \${prices.final})">Select</button>
             </div>
@@ -1031,15 +1031,12 @@ const formController = {
     }
 
     function selectVehicle(vehicleId, price) {
-      // Store selection and go to next screen
       const params = new URLSearchParams({
         ...bookingData,
         vehicle: vehicleId,
         price: price
       });
-      // For now alert - Screen 3 will handle this
-      alert('Screen 3 (Schedule & Guest Info) coming soon!\\n\\nVehicle: ' + vehicleId + '\\nPrice: AED ' + price);
-      // window.location.href = API_BASE + '/api/bookings/guest-info?' + params.toString();
+      window.location.href = API_BASE + '/api/bookings/guest-info?' + params.toString();
     }
 
     renderVehicles();
@@ -1053,6 +1050,818 @@ const formController = {
     } catch (error) {
       console.error('Vehicle details error:', error);
       res.status(500).json({ success: false, error: 'Failed to load vehicle details', message: error.message });
+    }
+  },
+
+  /**
+   * Screen 3: Schedule & Guest Info Page
+   */
+  async getGuestInfo(req, res, next) {
+    try {
+      const { type, pickup, dropoff, date, time, returnDate, returnTime, hours, vehicle, price } = req.query;
+      const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+      const host = req.get('host') || 'localhost:5000';
+      const apiBase = `${protocol}://${host}`;
+
+      // Find selected vehicle
+      const selectedVehicle = VEHICLES.find(v => v.id === vehicle) || VEHICLES[0];
+      const vehiclesJSON = JSON.stringify(VEHICLES);
+
+      const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guest Information - Luxury Limo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      color: #333;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* Header */
+    .page-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .page-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    
+    /* Progress Steps */
+    .progress-steps {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #999;
+      font-size: 12px;
+    }
+    .step.completed { color: #4caf50; }
+    .step.active { color: #333; }
+    .step-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+    .step.completed .step-icon { background: #4caf50; color: #fff; }
+    .step.active .step-icon { background: #1a1a1a; color: #fff; }
+    .step-line { width: 50px; height: 2px; background: #e0e0e0; }
+    .step-line.completed { background: #4caf50; }
+
+    /* Main Layout */
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 25px;
+    }
+
+    /* Form Section */
+    .form-section {
+      background: #fff;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #333;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    /* Form Grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group.full-width {
+      grid-column: span 2;
+    }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'Montserrat', sans-serif;
+      transition: all 0.3s ease;
+    }
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #333;
+    }
+    .form-group input::placeholder {
+      color: #aaa;
+    }
+    .phone-input {
+      display: flex;
+      gap: 10px;
+    }
+    .phone-input select {
+      width: 100px;
+      flex-shrink: 0;
+    }
+    .form-note {
+      font-size: 11px;
+      color: #999;
+      margin-top: 15px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .form-note i { color: #4caf50; }
+
+    /* Extras Section */
+    .extras-section {
+      margin-top: 25px;
+    }
+    .extra-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .extra-item:last-child { border-bottom: none; }
+    .extra-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .extra-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+    .extra-checkbox.checked {
+      background: #4caf50;
+      border-color: #4caf50;
+      color: #fff;
+    }
+    .extra-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .extra-note {
+      font-size: 11px;
+      color: #999;
+      margin-top: 3px;
+    }
+    .extra-price {
+      font-size: 14px;
+      font-weight: 600;
+      color: #4caf50;
+    }
+
+    /* Child Seat Options */
+    .seat-options {
+      padding: 15px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .seat-title {
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 10px;
+      color: #666;
+    }
+    .seat-counts {
+      display: flex;
+      gap: 15px;
+    }
+    .seat-count {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .count-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    .count-btn:hover { background: #f5f5f5; }
+    .count-value {
+      width: 30px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    /* Child Seat Info */
+    .info-box {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .info-box i {
+      color: #4caf50;
+      margin-top: 2px;
+    }
+    .info-box p {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .sidebar-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .sidebar-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    
+    /* Trip Details */
+    .trip-section {
+      margin-bottom: 20px;
+    }
+    .trip-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #999;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .trip-point {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .trip-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4caf50;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+    .trip-dot.end { background: #f44336; }
+    .trip-text {
+      font-size: 12px;
+      color: #333;
+      line-height: 1.4;
+    }
+    .trip-datetime {
+      display: flex;
+      gap: 15px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #eee;
+    }
+    .trip-datetime div {
+      font-size: 11px;
+    }
+    .trip-datetime label {
+      color: #999;
+      display: block;
+      margin-bottom: 3px;
+    }
+    .trip-datetime span {
+      color: #333;
+      font-weight: 500;
+    }
+
+    /* Vehicle Card */
+    .vehicle-summary {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 15px;
+    }
+    .vehicle-summary-name {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .vehicle-summary-img {
+      width: 100%;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .vehicle-summary-specs {
+      display: flex;
+      gap: 15px;
+      font-size: 11px;
+      color: #666;
+    }
+    .vehicle-summary-specs span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Extras Summary */
+    .extras-summary {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+    }
+    .extras-summary-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .extras-summary-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    /* Total Price */
+    .total-section {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 2px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .total-label {
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .total-price {
+      font-size: 20px;
+      font-weight: 700;
+      color: #333;
+    }
+    .total-price small {
+      font-size: 12px;
+      font-weight: 400;
+      color: #999;
+    }
+
+    /* Buttons */
+    .buttons-row {
+      display: flex;
+      gap: 15px;
+      margin-top: 25px;
+    }
+    .btn-back {
+      flex: 1;
+      padding: 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .btn-back:hover { background: #f5f5f5; }
+    .btn-next {
+      flex: 2;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      background: #1a8b6e;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .btn-next:hover { background: #157a5e; }
+
+    /* Responsive */
+    @media (max-width: 800px) {
+      .main-layout { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full-width { grid-column: span 1; }
+      .sidebar { order: -1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="page-header">
+      <h1 class="page-title">Book a ${type === 'round_trip' ? 'Chauffeur Transfer' : 'One Way Transfer'}</h1>
+      
+      <!-- Progress Steps -->
+      <div class="progress-steps">
+        <div class="step completed">
+          <div class="step-icon"><i class="fas fa-check"></i></div>
+          <span>Vehicle Details</span>
+        </div>
+        <div class="step-line completed"></div>
+        <div class="step active">
+          <div class="step-icon">2</div>
+          <span>Schedule & Guest Info</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+          <div class="step-icon">3</div>
+          <span>Billing Details</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+      <!-- Form Section -->
+      <div class="form-section">
+        <h2 class="section-title">Passenger Details</h2>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" id="fullName" placeholder="Full Name" required>
+          </div>
+          <div class="form-group">
+            <label>Email Address *</label>
+            <input type="email" id="email" placeholder="Email Address" required>
+          </div>
+          <div class="form-group">
+            <label>Contact Number *</label>
+            <div class="phone-input">
+              <select id="countryCode">
+                <option value="+971">+971</option>
+                <option value="+1">+1</option>
+                <option value="+44">+44</option>
+                <option value="+91">+91</option>
+                <option value="+92">+92</option>
+                <option value="+966">+966</option>
+              </select>
+              <input type="tel" id="contactNumber" placeholder="e.g. 50 123 4567">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>WhatsApp Number</label>
+            <div class="phone-input">
+              <select id="whatsappCode">
+                <option value="+971">+971</option>
+                <option value="+1">+1</option>
+                <option value="+44">+44</option>
+                <option value="+91">+91</option>
+                <option value="+92">+92</option>
+                <option value="+966">+966</option>
+              </select>
+              <input type="tel" id="whatsappNumber" placeholder="e.g. 50 123 4567">
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-note">
+          <i class="fas fa-info-circle"></i>
+          We need this email and contact number for urgent communication on the transfer day
+        </div>
+
+        <!-- Extras Section -->
+        <div class="extras-section">
+          <h2 class="section-title">Extra's</h2>
+          
+          <div class="extra-item">
+            <div class="extra-left">
+              <div class="extra-checkbox" id="stopCheckbox" onclick="toggleExtra('stop')">
+                <i class="fas fa-check" style="display:none;font-size:12px;"></i>
+              </div>
+              <div>
+                <div class="extra-name">Stop on the way</div>
+              </div>
+            </div>
+            <div class="extra-price">AED 38.12</div>
+          </div>
+
+          <div class="extra-item">
+            <div class="extra-left">
+              <div class="extra-checkbox" id="childSeatCheckbox" onclick="toggleExtra('childSeat')">
+                <i class="fas fa-check" style="display:none;font-size:12px;"></i>
+              </div>
+              <div>
+                <div class="extra-name">Child Seat</div>
+                <div class="extra-note">This is required if children are travelling with you</div>
+              </div>
+            </div>
+            <div class="extra-price">AED 27.22</div>
+          </div>
+
+          <!-- Seat Options -->
+          <div class="seat-options" id="seatOptions" style="display:none;">
+            <div class="seat-title">Seat 0-36 kg</div>
+            <div class="seat-counts">
+              <div class="seat-count">
+                <button class="count-btn" onclick="updateCount('seat36', -1)">-</button>
+                <span class="count-value" id="seat36-count">0</span>
+                <button class="count-btn" onclick="updateCount('seat36', 1)">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="seat-options" id="boosterOptions" style="display:none;">
+            <div class="seat-title">Booster 15-36 kg</div>
+            <div class="seat-counts">
+              <div class="seat-count">
+                <button class="count-btn" onclick="updateCount('booster', -1)">-</button>
+                <span class="count-value" id="booster-count">0</span>
+                <button class="count-btn" onclick="updateCount('booster', 1)">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="seat-options" id="infantOptions" style="display:none;">
+            <div class="seat-title">Infant seat 0-9 kg</div>
+            <div class="seat-counts">
+              <div class="seat-count">
+                <button class="count-btn" onclick="updateCount('infant', -1)">-</button>
+                <span class="count-value" id="infant-count">0</span>
+                <button class="count-btn" onclick="updateCount('infant', 1)">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-box" id="childSeatInfo" style="display:none;">
+            <i class="fas fa-info-circle"></i>
+            <p>You may bring your own child seat. In this seat, you don't need to add a child seat rent to your booking.</p>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="buttons-row">
+          <button class="btn-back" onclick="goBack()">BACK</button>
+          <button class="btn-next" onclick="goNext()">NEXT</button>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <!-- One Way Trip -->
+        <div class="sidebar-card">
+          <div class="sidebar-title">One Way Trip</div>
+          <div class="trip-section">
+            <div class="trip-point">
+              <div class="trip-dot"></div>
+              <div class="trip-text">${pickup || 'Pickup Location'}</div>
+            </div>
+            <div class="trip-point">
+              <div class="trip-dot end"></div>
+              <div class="trip-text">${dropoff || 'Dropoff Location'}</div>
+            </div>
+            <div class="trip-datetime">
+              <div>
+                <label>Pickup Date</label>
+                <span>${date || 'Not set'}</span>
+              </div>
+              <div>
+                <label>Pickup Time</label>
+                <span>${time || 'Not set'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        ${type === 'round_trip' ? `
+        <!-- Return Trip -->
+        <div class="sidebar-card">
+          <div class="sidebar-title">Return Ride Trip</div>
+          <div class="trip-section">
+            <div class="trip-point">
+              <div class="trip-dot"></div>
+              <div class="trip-text">${dropoff || 'Return From'}</div>
+            </div>
+            <div class="trip-point">
+              <div class="trip-dot end"></div>
+              <div class="trip-text">${pickup || 'Return To'}</div>
+            </div>
+            <div class="trip-datetime">
+              <div>
+                <label>Pickup Date</label>
+                <span>${returnDate || 'Not set'}</span>
+              </div>
+              <div>
+                <label>Pickup Time</label>
+                <span>${returnTime || 'Not set'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Vehicle Summary -->
+        <div class="sidebar-card">
+          <div class="vehicle-summary">
+            <div class="vehicle-summary-name">${selectedVehicle.name}</div>
+            <img src="${selectedVehicle.image}" alt="${selectedVehicle.name}" class="vehicle-summary-img">
+            <div class="vehicle-summary-specs">
+              <span><i class="fas fa-suitcase"></i> ${selectedVehicle.suitcases} Suitcases</span>
+              <span><i class="fas fa-users"></i> Up to ${selectedVehicle.passengers} Passengers</span>
+            </div>
+          </div>
+
+          <div class="extras-summary" id="extrasSummary">
+            <div class="extras-summary-title">Extra's</div>
+            <div id="extrasListSummary">
+              <!-- Will be populated by JS -->
+            </div>
+          </div>
+
+          <div class="total-section">
+            <div class="total-label">Total Price</div>
+            <div class="total-price"><small>AED</small> <span id="totalPrice">${price || '0'}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '${apiBase}';
+    const VEHICLES = ${vehiclesJSON};
+    
+    // Booking data from previous screens
+    const bookingData = {
+      type: '${type}',
+      pickup: '${pickup || ''}',
+      dropoff: '${dropoff || ''}',
+      date: '${date}',
+      time: '${time}',
+      returnDate: '${returnDate || ''}',
+      returnTime: '${returnTime || ''}',
+      hours: ${hours || 0},
+      vehicle: '${vehicle}',
+      basePrice: ${price || 0}
+    };
+
+    // Extra prices
+    const EXTRAS = {
+      stop: { price: 38.12, selected: false },
+      childSeat: { price: 27.22, selected: false }
+    };
+
+    // Seat counts
+    const seatCounts = { seat36: 0, booster: 0, infant: 0 };
+
+    function toggleExtra(extraId) {
+      EXTRAS[extraId].selected = !EXTRAS[extraId].selected;
+      const checkbox = document.getElementById(extraId + 'Checkbox');
+      const checkIcon = checkbox.querySelector('i');
+      
+      if (EXTRAS[extraId].selected) {
+        checkbox.classList.add('checked');
+        checkIcon.style.display = 'block';
+        if (extraId === 'childSeat') {
+          document.getElementById('seatOptions').style.display = 'block';
+          document.getElementById('boosterOptions').style.display = 'block';
+          document.getElementById('infantOptions').style.display = 'block';
+          document.getElementById('childSeatInfo').style.display = 'flex';
+        }
+      } else {
+        checkbox.classList.remove('checked');
+        checkIcon.style.display = 'none';
+        if (extraId === 'childSeat') {
+          document.getElementById('seatOptions').style.display = 'none';
+          document.getElementById('boosterOptions').style.display = 'none';
+          document.getElementById('infantOptions').style.display = 'none';
+          document.getElementById('childSeatInfo').style.display = 'none';
+        }
+      }
+      
+      updateTotal();
+    }
+
+    function updateCount(seatType, delta) {
+      seatCounts[seatType] = Math.max(0, seatCounts[seatType] + delta);
+      document.getElementById(seatType + '-count').textContent = seatCounts[seatType];
+    }
+
+    function updateTotal() {
+      let total = bookingData.basePrice;
+      let extrasHtml = '';
+      
+      if (EXTRAS.stop.selected) {
+        total += EXTRAS.stop.price;
+        extrasHtml += '<div class="extras-summary-item"><span>Stop on the way</span><span>AED 38.12</span></div>';
+      }
+      if (EXTRAS.childSeat.selected) {
+        total += EXTRAS.childSeat.price;
+        extrasHtml += '<div class="extras-summary-item"><span>Child Seat</span><span>AED 27.22</span></div>';
+      }
+      
+      document.getElementById('extrasListSummary').innerHTML = extrasHtml || '<div class="extras-summary-item"><span>No extras selected</span></div>';
+      document.getElementById('totalPrice').textContent = total.toFixed(2);
+    }
+
+    function goBack() {
+      window.history.back();
+    }
+
+    function goNext() {
+      const fullName = document.getElementById('fullName').value;
+      const email = document.getElementById('email').value;
+      const countryCode = document.getElementById('countryCode').value;
+      const contactNumber = document.getElementById('contactNumber').value;
+      const whatsappCode = document.getElementById('whatsappCode').value;
+      const whatsappNumber = document.getElementById('whatsappNumber').value;
+
+      if (!fullName || !email || !contactNumber) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      // Calculate total
+      let total = bookingData.basePrice;
+      if (EXTRAS.stop.selected) total += EXTRAS.stop.price;
+      if (EXTRAS.childSeat.selected) total += EXTRAS.childSeat.price;
+
+      const params = new URLSearchParams({
+        ...bookingData,
+        fullName,
+        email,
+        phone: countryCode + contactNumber,
+        whatsapp: whatsappCode + whatsappNumber,
+        stopOnWay: EXTRAS.stop.selected,
+        childSeat: EXTRAS.childSeat.selected,
+        totalPrice: total.toFixed(2)
+      });
+
+      // For now alert - Screen 4 (Billing) will handle this
+      alert('Screen 4 (Billing Details) coming soon!\\n\\nName: ' + fullName + '\\nEmail: ' + email + '\\nTotal: AED ' + total.toFixed(2));
+      // window.location.href = API_BASE + '/api/bookings/billing?' + params.toString();
+    }
+
+    // Initialize
+    updateTotal();
+  </script>
+</body>
+</html>`;
+
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.send(html);
+    } catch (error) {
+      console.error('Guest info error:', error);
+      res.status(500).json({ success: false, error: 'Failed to load guest info', message: error.message });
     }
   }
 };

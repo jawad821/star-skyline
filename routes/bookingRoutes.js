@@ -12,6 +12,7 @@ const { rbacMiddleware, operatorRestrictions } = require('../middleware/rbacMidd
 // Public WordPress endpoints (no auth required)
 router.get('/wordpress-form', formController.getBookingForm);
 router.get('/vehicle-details', formController.getVehicleDetails);
+router.get('/guest-info', formController.getGuestInfo);
 router.post('/wordpress-booking', wordpressBookingController.createWordPressBooking);
 router.post('/wordpress-calculate-fare', wordpressBookingController.calculateWordPressFare);
 
