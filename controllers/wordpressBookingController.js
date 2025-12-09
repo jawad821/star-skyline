@@ -12,8 +12,13 @@ const wordpressBookingController = {
         customer_name,
         customer_email,
         customer_phone,
+        customer_whatsapp,
         pickup_location,
         dropoff_location,
+        pickup_date,
+        pickup_time,
+        return_date,
+        return_time,
         vehicle_type,
         booking_type = 'point_to_point',
         passengers_count = 1,
@@ -21,6 +26,10 @@ const wordpressBookingController = {
         notes,
         payment_method = 'cash',
         distance_km,
+        fare_aed,
+        stop_on_way,
+        stop_location,
+        child_seats,
         wordpress_booking_id
       } = req.body;
 
@@ -56,15 +65,45 @@ const wordpressBookingController = {
       // Calculate distance if not provided
       let finalDistance = distance_km || 15; // Default 15km
 
-      // Calculate fare
-      const fare = await calculateFare(booking_type, vehicle_type, finalDistance, 0);
+      // Use provided fare_aed from the form, or calculate it
+      let finalFare = parseFloat(fare_aed) || 0;
+      if (finalFare <= 0) {
+        try {
+          const fareCalc = await calculateFare(booking_type, vehicle_type, finalDistance, 0);
+          finalFare = fareCalc.fare_after_discount || 99;
+        } catch (fareErr) {
+          console.log('Fare calculation failed:', fareErr.message);
+          finalFare = 99; // Default fallback
+        }
+      }
+
+      // Build notes with all extras and schedule info
+      let finalNotes = notes || '';
+      if (pickup_date) {
+        finalNotes += ` | Pickup: ${pickup_date}`;
+      }
+      if (pickup_time) {
+        finalNotes += ` @ ${pickup_time}`;
+      }
+      if (return_date) {
+        finalNotes += ` | Return: ${return_date} @ ${return_time || 'TBD'}`;
+      }
+      if (stop_on_way && stop_location) {
+        finalNotes += ` | Stop: ${stop_location}`;
+      }
+      if (child_seats > 0) {
+        finalNotes += ` | Child Seats: ${child_seats}`;
+      }
+      if (customer_whatsapp && customer_whatsapp !== customer_phone) {
+        finalNotes += ` | WhatsApp: ${customer_whatsapp}`;
+      }
 
       // Create booking
       const bookingResult = await query(`
         INSERT INTO bookings (
           external_id, customer_name, customer_email, customer_phone,
-          pickup_location, dropoff_location, vehicle_type, booking_type,
-          passengers_count, luggage_count, distance_km, fare_aed,
+          pickup_location, dropoff_location, vehicle_type, booking_type, 
+          passengers_count, luggage_count, distance_km, fare_aed, 
           payment_method, notes, booking_source, status
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending')
         RETURNING id, created_at
@@ -80,9 +119,9 @@ const wordpressBookingController = {
         passengers_count,
         luggage_count,
         finalDistance,
-        fare.fare_after_discount,
+        finalFare,
         payment_method,
-        notes || null,
+        finalNotes.trim() || null,
         'wordpress'
       ]);
 
@@ -140,7 +179,7 @@ const wordpressBookingController = {
           passengers_count,
           luggage_count,
           distance_km: finalDistance,
-          fare_aed: fare.fare_after_discount,
+          fare_aed: finalFare,
           payment_method,
           status: assignedVehicle ? 'assigned' : 'pending',
           assigned_vehicle: assignedVehicle,

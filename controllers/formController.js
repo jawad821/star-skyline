@@ -1805,7 +1805,36 @@ const formController = {
   </div>
 
   <script>
+    const API_BASE = '${apiBase}';
     let selectedPayment = 'cash';
+    let isSubmitting = false;
+    
+    const bookingData = {
+      type: '${type}',
+      pickup: '${pickup}',
+      dropoff: '${dropoff}',
+      date: '${date}',
+      time: '${time}',
+      returnDate: '${returnDate || ''}',
+      returnTime: '${returnTime || ''}',
+      vehicle: '${vehicle}',
+      vehicleName: '${selectedVehicle.name}',
+      vehicleImage: '${selectedVehicle.image}',
+      passengers: ${selectedVehicle.passengers},
+      suitcases: ${selectedVehicle.suitcases},
+      fullName: '${fullName}',
+      email: '${email}',
+      phone: '${phone}',
+      whatsapp: '${whatsapp || phone}',
+      stopOnWay: ${stopOnWay === 'true'},
+      stopLocation: '${stopLocation || ''}',
+      childSeats: ${parseInt(childSeats) || 0},
+      seatCount: ${parseInt(seatCount) || 0},
+      boosterCount: ${parseInt(boosterCount) || 0},
+      infantCount: ${parseInt(infantCount) || 0},
+      basePrice: ${basePrice},
+      totalPrice: ${total}
+    };
     
     function selectPayment(method) {
       selectedPayment = method;
@@ -1815,12 +1844,69 @@ const formController = {
     
     function goBack() { window.history.back(); }
     
-    function submitBooking() {
+    async function submitBooking() {
       if (!document.getElementById('termsCheck').checked) {
         alert('Please accept the terms and conditions');
         return;
       }
-      alert('Booking submitted successfully!\\n\\nPayment Method: ' + (selectedPayment === 'cash' ? 'Cash/Bank Transfer' : 'Card') + '\\nTotal: AED ${total.toFixed(2)}');
+      
+      if (isSubmitting) return;
+      isSubmitting = true;
+      
+      const submitBtn = document.querySelector('.btn-next');
+      submitBtn.textContent = 'SUBMITTING...';
+      submitBtn.disabled = true;
+      
+      try {
+        const response = await fetch(API_BASE + '/api/bookings/wordpress-booking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer_name: bookingData.fullName,
+            customer_email: bookingData.email,
+            customer_phone: bookingData.phone,
+            customer_whatsapp: bookingData.whatsapp,
+            pickup_location: bookingData.pickup,
+            dropoff_location: bookingData.dropoff,
+            pickup_date: bookingData.date,
+            pickup_time: bookingData.time,
+            return_date: bookingData.returnDate,
+            return_time: bookingData.returnTime,
+            vehicle_type: bookingData.vehicle,
+            booking_type: bookingData.type,
+            passengers_count: bookingData.passengers,
+            luggage_count: bookingData.suitcases,
+            payment_method: selectedPayment,
+            fare_aed: bookingData.totalPrice,
+            stop_on_way: bookingData.stopOnWay,
+            stop_location: bookingData.stopLocation,
+            child_seats: bookingData.childSeats,
+            notes: 'Child Seats: ' + bookingData.childSeats + ' (Seat: ' + bookingData.seatCount + ', Booster: ' + bookingData.boosterCount + ', Infant: ' + bookingData.infantCount + ')'
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          const successParams = new URLSearchParams({
+            bookingId: result.booking_id,
+            ...bookingData,
+            paymentMethod: selectedPayment
+          });
+          window.location.href = API_BASE + '/api/bookings/success?' + successParams.toString();
+        } else {
+          alert('Error: ' + (result.error || 'Failed to submit booking'));
+          submitBtn.textContent = 'NEXT';
+          submitBtn.disabled = false;
+          isSubmitting = false;
+        }
+      } catch (error) {
+        console.error('Booking error:', error);
+        alert('Network error. Please try again.');
+        submitBtn.textContent = 'NEXT';
+        submitBtn.disabled = false;
+        isSubmitting = false;
+      }
     }
   </script>
 </body>
@@ -1832,6 +1918,186 @@ const formController = {
     } catch (error) {
       console.error('Billing details error:', error);
       res.status(500).json({ success: false, error: 'Failed to load billing details', message: error.message });
+    }
+  },
+
+  /**
+   * Screen 5: Booking Success Page
+   */
+  async getSuccessPage(req, res, next) {
+    try {
+      const { bookingId, type, pickup, dropoff, date, time, returnDate, returnTime, 
+              vehicle, vehicleName, fullName, email, phone, whatsapp, totalPrice, paymentMethod } = req.query;
+      const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+      const host = req.get('host') || 'localhost:5000';
+      const apiBase = `${protocol}://${host}`;
+
+      const selectedVehicle = VEHICLES.find(v => v.id === vehicle) || VEHICLES[0];
+
+      const returnTripHtml = type === 'round_trip' ? `
+        <div class="sidebar-card">
+          <div class="sidebar-title">Return Ride Trip</div>
+          <div class="trip-point"><div class="trip-dot green"></div><div class="trip-text">${dropoff}</div></div>
+          <div class="trip-point"><div class="trip-dot red"></div><div class="trip-text">${pickup}</div></div>
+          <div class="trip-datetime">
+            <div><label><i class="far fa-calendar"></i> Pickup Date</label><span>${returnDate || date}</span></div>
+            <div><label><i class="far fa-clock"></i> Pickup Time</label><span>${returnTime || time}</span></div>
+          </div>
+        </div>` : '';
+
+      const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Confirmed - Luxury Limo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Montserrat', sans-serif; background: #f5f5f5; min-height: 100vh; color: #333; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+    .main-layout { display: grid; grid-template-columns: 1fr 350px; gap: 25px; }
+    .success-card { background: #fff; border-radius: 12px; padding: 40px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .success-icon { width: 80px; height: 80px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+    .success-icon i { font-size: 40px; color: #4caf50; }
+    .success-title { font-size: 22px; font-weight: 600; color: #333; margin-bottom: 10px; }
+    .success-subtitle { font-size: 14px; color: #666; margin-bottom: 20px; }
+    .confirmation-note { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: #4caf50; margin-bottom: 30px; }
+    .confirmation-note i { font-size: 16px; }
+    .info-boxes { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+    .info-box { background: #f0fdf4; border: 1px solid #c8e6c9; border-radius: 8px; padding: 15px; text-align: left; }
+    .info-box i { color: #4caf50; margin-right: 8px; }
+    .info-box-title { font-size: 12px; font-weight: 600; color: #333; margin-bottom: 5px; }
+    .track-note { font-size: 12px; color: #666; margin-bottom: 15px; }
+    .btn-user-panel { display: inline-flex; align-items: center; gap: 8px; padding: 12px 30px; background: #1a8b6e; color: #fff; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: 'Montserrat', sans-serif; }
+    .btn-user-panel:hover { background: #157a5e; }
+    .btn-user-panel i { font-size: 12px; }
+    .help-section { background: #1a8b6e; border-radius: 12px; padding: 25px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .help-left h3 { color: #fff; font-size: 18px; font-weight: 600; margin-bottom: 5px; }
+    .help-left p { color: rgba(255,255,255,0.8); font-size: 13px; }
+    .btn-contact { display: inline-flex; align-items: center; gap: 8px; padding: 12px 25px; background: #fff; color: #1a8b6e; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: 'Montserrat', sans-serif; }
+    .btn-contact:hover { background: #f5f5f5; }
+    .btn-contact i { font-size: 12px; }
+    .sidebar { display: flex; flex-direction: column; gap: 15px; }
+    .sidebar-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .sidebar-title { font-size: 14px; font-weight: 600; margin-bottom: 15px; color: #333; }
+    .trip-point { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+    .trip-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; }
+    .trip-dot.green { background: #4caf50; }
+    .trip-dot.red { background: #f44336; }
+    .trip-text { font-size: 12px; color: #333; line-height: 1.4; }
+    .trip-datetime { display: flex; gap: 20px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee; font-size: 11px; }
+    .trip-datetime label { color: #999; display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
+    .trip-datetime span { color: #333; font-weight: 500; }
+    .passenger-info { font-size: 12px; }
+    .passenger-info .row { display: flex; flex-direction: column; margin-bottom: 12px; }
+    .passenger-info label { color: #999; font-size: 11px; margin-bottom: 3px; }
+    .passenger-info span { color: #333; font-weight: 500; }
+    .vehicle-card { border: 2px solid #ffc107; border-radius: 8px; overflow: hidden; }
+    .vehicle-header { background: #ffc107; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
+    .vehicle-header .name { font-size: 14px; font-weight: 600; }
+    .vehicle-header .badge { font-size: 10px; color: #666; display: flex; align-items: center; gap: 4px; }
+    .vehicle-body { padding: 15px; background: #fff; }
+    .vehicle-specs { display: flex; gap: 15px; font-size: 11px; color: #666; margin-bottom: 10px; }
+    .vehicle-specs span { display: flex; align-items: center; gap: 4px; }
+    .vehicle-img { width: 100%; height: 60px; object-fit: contain; }
+    .total-line { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-top: 2px solid #eee; margin-top: 10px; }
+    .total-label { font-size: 13px; font-weight: 500; color: #666; display: flex; align-items: center; gap: 5px; }
+    .total-label .paid { color: #4caf50; }
+    .total-amount { text-align: right; }
+    .total-amount .currency { font-size: 10px; color: #999; }
+    .total-amount .price { font-size: 20px; font-weight: 700; color: #333; }
+    @media (max-width: 800px) {
+      .main-layout { grid-template-columns: 1fr; }
+      .info-boxes { grid-template-columns: 1fr; }
+      .help-section { flex-direction: column; text-align: center; gap: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="main-layout">
+      <div>
+        <div class="success-card">
+          <div class="success-icon"><i class="fas fa-check"></i></div>
+          <h1 class="success-title">Booking Submitted Successfully!</h1>
+          <p class="success-subtitle">Our team is currently reviewing your booking request.</p>
+          <div class="confirmation-note"><i class="fas fa-check-circle"></i> You will receive a confirmation email with your booking details shortly.</div>
+          <div class="info-boxes">
+            <div class="info-box">
+              <div class="info-box-title"><i class="fas fa-info-circle"></i> You will receive the driver's details before your trip</div>
+            </div>
+            <div class="info-box">
+              <div class="info-box-title"><i class="fas fa-list-alt"></i> Use the button below to manage and track your bookings.</div>
+            </div>
+          </div>
+          <p class="track-note">Go to the user panel to track your booking</p>
+          <a href="${apiBase}/dashboard" class="btn-user-panel">View User Panel <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="help-section">
+          <div class="help-left">
+            <h3>Need some help?</h3>
+            <p>Our customer service team is available 24/7 to answer your queries!</p>
+          </div>
+          <a href="https://wa.me/971501234567" class="btn-contact">Contact Now <i class="fas fa-arrow-right"></i></a>
+        </div>
+      </div>
+      <div class="sidebar">
+        <div class="sidebar-card">
+          <div class="sidebar-title">One Way Trip</div>
+          <div class="trip-point"><div class="trip-dot green"></div><div class="trip-text">${pickup}</div></div>
+          <div class="trip-point"><div class="trip-dot red"></div><div class="trip-text">${dropoff}</div></div>
+          <div class="trip-datetime">
+            <div><label><i class="far fa-calendar"></i> Pickup Date</label><span>${date}</span></div>
+            <div><label><i class="far fa-clock"></i> Pickup Time</label><span>${time}</span></div>
+          </div>
+        </div>
+        ${returnTripHtml}
+        <div class="sidebar-card">
+          <div class="sidebar-title">Passenger Details</div>
+          <div class="passenger-info">
+            <div class="row"><label>Full Name</label><span>${fullName}</span></div>
+            <div class="row"><label>Email</label><span>${email}</span></div>
+            <div class="row"><label>Contact Number</label><span>${phone}</span></div>
+            <div class="row"><label>WhatsApp Number</label><span>${whatsapp || phone}</span></div>
+          </div>
+        </div>
+        <div class="sidebar-card">
+          <div class="vehicle-card">
+            <div class="vehicle-header">
+              <span class="name">${selectedVehicle.name}</span>
+              <span class="badge"><i class="far fa-clock"></i> Free Waiting Time</span>
+            </div>
+            <div class="vehicle-body">
+              <div class="vehicle-specs">
+                <span><i class="fas fa-users"></i> Up to ${selectedVehicle.passengers} Passengers</span>
+                <span><i class="fas fa-suitcase"></i> Up to ${selectedVehicle.suitcases} Luggages</span>
+              </div>
+              <img src="${selectedVehicle.image}" alt="${selectedVehicle.name}" class="vehicle-img">
+            </div>
+          </div>
+          <div class="total-line">
+            <div class="total-label"><i class="fas fa-check-circle paid"></i> Paid Amount</div>
+            <div class="total-amount">
+              <span class="currency">AED</span>
+              <span class="price">${parseFloat(totalPrice || 0).toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.send(html);
+    } catch (error) {
+      console.error('Success page error:', error);
+      res.status(500).json({ success: false, error: 'Failed to load success page', message: error.message });
     }
   }
 };
