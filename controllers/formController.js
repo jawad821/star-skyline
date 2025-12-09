@@ -2,7 +2,7 @@ const { query } = require('../config/db');
 
 // Popular UAE locations
 const UAE_LOCATIONS = [
-  // Dubai
+  // Dubai - Popular Areas
   'Dubai International Airport',
   'Dubai Airport Terminal 1',
   'Dubai Airport Terminal 2',
@@ -31,6 +31,35 @@ const UAE_LOCATIONS = [
   'Dubai South',
   'Jebel Ali',
   'World Trade Centre',
+  'Zabeel Park',
+  'Al Safa',
+  'Manara',
+  'Satwa',
+  'Al Karama',
+  'Baniyas',
+  'Al Manara',
+  'Oud Metha',
+  'Karama',
+  'Naif',
+  'Al Khaleej',
+  'Al Reef',
+  'Mirdif',
+  'Muhaisnah',
+  'Warsan',
+  'Nad Al Sheba',
+  'Hatta',
+  'Meadows',
+  'Springs',
+  'Arabian Ranches',
+  'Emirates Living',
+  'Jumeirah Islands',
+  'Jumeirah Heights',
+  'The Hills',
+  'Madinat Jumeirah',
+  'Mall of the Emirates',
+  'Ibn Battuta Mall',
+  'Deira City Centre',
+  'The Galleria',
   
   // Abu Dhabi
   'Abu Dhabi International Airport',
@@ -48,6 +77,12 @@ const UAE_LOCATIONS = [
   'Al Mina',
   'Khalifa City',
   'Al Reem Island',
+  'Al Manara',
+  'Al Marjan Island',
+  'Corniche Abu Dhabi',
+  'Sheikh Shakhbout City',
+  'Al Ain',
+  'Masdar City',
   
   // Sharjah
   'Sharjah International Airport',
@@ -59,25 +94,35 @@ const UAE_LOCATIONS = [
   'Al Qasba',
   'Sharjah Hills',
   'Al Furjan',
+  'Muwailih',
+  'Buhaira',
+  'Al Nahda',
+  'Al Reef',
   
   // Ajman
   'Ajman Corniche',
   'Ajman Museum',
   'Ajman City Centre',
   'Al Zahara',
+  'Ajman Marina',
   
   // Umm Al Quwain
   'Umm Al Quwain',
   'Umm Al Quwain Corniche',
+  'UAQ Marina',
   
   // Ras Al Khaimah
   'Ras Al Khaimah',
   'RAK Airport',
   'Ras Al Khaimah Corniche',
+  'RAK Mall',
+  'Al Noor Island',
   
   // Fujairah
   'Fujairah',
-  'Fujairah Corniche'
+  'Fujairah Corniche',
+  'Al Aqah Beach',
+  'Fujairah Airport'
 ];
 
 const formController = {
@@ -100,13 +145,8 @@ const formController = {
       `);
       const vehicles = vehiclesResult.rows;
 
-      // Build location options (as datalist for autocomplete)
-      const locationOptions = UAE_LOCATIONS
-        .map(loc => `<option value="${loc}"/>`)
-        .join('');
-
-      // Create locations datalist ID
-      const locationsDatalistId = 'locations-list';
+      // Build location JSON for JavaScript autocomplete
+      const locationsJSON = JSON.stringify(UAE_LOCATIONS);
 
       // Build vehicle options
       const vehicleOptions = vehicles
@@ -216,17 +256,52 @@ const formController = {
     }
 
     /* Autocomplete dropdown styling */
-    datalist {
-      position: absolute;
-      display: none;
-    }
-
-    input[list] {
+    .form-group {
       position: relative;
     }
 
-    input[list]::-webkit-calendar-picker-indicator {
+    .autocomplete-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 250px;
+      overflow-y: auto;
       display: none;
+      z-index: 1000;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .autocomplete-suggestions.active {
+      display: block;
+    }
+
+    .autocomplete-suggestions div {
+      padding: 12px 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .autocomplete-suggestions div:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete-suggestions div:hover {
+      background: #f5f5f5;
+      color: #667eea;
+      padding-left: 20px;
+    }
+
+    .autocomplete-suggestions div.highlighted {
+      background: #667eea;
+      color: white;
     }
 
     select {
@@ -440,19 +515,17 @@ const formController = {
         </div>
       </div>
 
-      <!-- Locations with Autocomplete -->
-      <datalist id="${locationsDatalistId}">
-        ${locationOptions}
-      </datalist>
-
+      <!-- Locations with Smart Autocomplete -->
       <div class="form-row">
         <div class="form-group">
           <label for="pickup">Pickup Location *</label>
-          <input type="text" id="pickup" name="pickup" placeholder="Type location..." list="${locationsDatalistId}" required>
+          <input type="text" id="pickup" name="pickup" placeholder="Type location..." required autocomplete="off">
+          <div id="pickup-suggestions" class="autocomplete-suggestions"></div>
         </div>
         <div class="form-group">
           <label for="dropoff">Dropoff Location *</label>
-          <input type="text" id="dropoff" name="dropoff" placeholder="Type location..." list="${locationsDatalistId}" required>
+          <input type="text" id="dropoff" name="dropoff" placeholder="Type location..." required autocomplete="off">
+          <div id="dropoff-suggestions" class="autocomplete-suggestions"></div>
         </div>
       </div>
 
@@ -530,6 +603,7 @@ const formController = {
 
   <script>
     const API_BASE = '${apiBase}';
+    const ALL_LOCATIONS = ${locationsJSON};
     
     // Counter functions
     function increasePassengers() {
@@ -664,6 +738,66 @@ const formController = {
         loading.style.display = 'none';
       }
     });
+
+    // Autocomplete function
+    function setupAutocomplete(inputId, suggestionsId) {
+      const input = document.getElementById(inputId);
+      const suggestionsBox = document.getElementById(suggestionsId);
+
+      input.addEventListener('input', function() {
+        const value = this.value.toLowerCase().trim();
+
+        if (value.length < 1) {
+          suggestionsBox.innerHTML = '';
+          suggestionsBox.classList.remove('active');
+          return;
+        }
+
+        // Filter locations that match the input
+        const matches = ALL_LOCATIONS.filter(location =>
+          location.toLowerCase().includes(value)
+        );
+
+        if (matches.length === 0) {
+          suggestionsBox.innerHTML = '';
+          suggestionsBox.classList.remove('active');
+          return;
+        }
+
+        // Show top 8 suggestions
+        const suggestions = matches.slice(0, 8);
+        suggestionsBox.innerHTML = suggestions
+          .map(location => \`<div onclick="selectLocation('\${inputId}', '\${location}')">\${location}</div>\`)
+          .join('');
+        suggestionsBox.classList.add('active');
+      });
+
+      // Hide suggestions when input loses focus
+      input.addEventListener('blur', function() {
+        setTimeout(() => {
+          suggestionsBox.classList.remove('active');
+        }, 200);
+      });
+
+      // Show suggestions on focus if input has value
+      input.addEventListener('focus', function() {
+        if (this.value.length > 0) {
+          suggestionsBox.classList.add('active');
+        }
+      });
+    }
+
+    // Select location from suggestions
+    function selectLocation(inputId, location) {
+      const input = document.getElementById(inputId);
+      input.value = location;
+      document.getElementById(inputId + '-suggestions').classList.remove('active');
+      input.focus();
+    }
+
+    // Setup autocomplete for both fields
+    setupAutocomplete('pickup', 'pickup-suggestions');
+    setupAutocomplete('dropoff', 'dropoff-suggestions');
 
     // Initial fare calculation
     calculateFare();
