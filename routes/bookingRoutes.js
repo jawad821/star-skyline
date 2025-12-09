@@ -4,8 +4,13 @@ const bookingController = require('../controllers/bookingController');
 const addBookingController = require('../controllers/addBookingController');
 const vehicleController = require('../controllers/vehicleController');
 const rentalRulesController = require('../controllers/rentalRulesController');
+const wordpressBookingController = require('../controllers/wordpressBookingController');
 const authMiddleware = require('../middleware/authMiddleware');
 const { rbacMiddleware, operatorRestrictions } = require('../middleware/rbacMiddleware');
+
+// Public WordPress endpoints (no auth required)
+router.post('/wordpress-booking', wordpressBookingController.createWordPressBooking);
+router.post('/wordpress-calculate-fare', wordpressBookingController.calculateWordPressFare);
 
 router.get('/', authMiddleware, bookingController.getAllBookings);
 router.post('/calculate-fare', bookingController.calculateFare);
