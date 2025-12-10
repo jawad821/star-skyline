@@ -616,6 +616,7 @@ function init() {
   setupTheme();
   setupUserInfo();
   setupNavigation();
+  initSidebar();
   loadDashboard();
 }
 
@@ -1313,7 +1314,7 @@ async function loadBookings() {
   try {
     const token = localStorage.getItem('token');
     const tbody = document.getElementById('bookings-table-body');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="14" style="text-align:center; padding:20px;">Loading bookings...</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; padding:20px;">Loading bookings...</td></tr>';
     
     const url = getCacheBustUrl(API_BASE + '/bookings');
     const response = await fetch(url, {
@@ -1326,7 +1327,7 @@ async function loadBookings() {
     if (!tbody) return;
     
     if (!data.data || !data.data.length) {
-      tbody.innerHTML = '<tr><td colspan="14">No bookings found</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="15">No bookings found</td></tr>';
       return;
     }
     
@@ -1334,17 +1335,32 @@ async function loadBookings() {
       const driverDisplay = b.driver_name || (b.driver_id ? 'Driver assigned' : 'Unassigned');
       const statusDisplay = b.status || 'pending';
       const paymentDisplay = (b.payment_method || 'cash').toUpperCase();
-      const sourceLabel = (b.booking_source === 'bareerah' || b.booking_source === 'bareerah_ai' || b.booking_source === 'voice_agent') ? '📱 Bareerah AI' : '👤 Manual';
-      const bookingTypeIcon = b.booking_type === 'multi_stop' ? '🛣️ Multi-Stop' : (b.booking_type === 'round_trip' ? '🔄 Round-Trip' : (b.booking_type || 'Point-to-Point'));
+      
+      // Booking Source: Manual (dashboard), AI Agent (Bareerah), Website (form)
+      let sourceLabel = '👤 Manual';
+      let sourceColor = '#6b7280';
+      const src = (b.booking_source || '').toLowerCase();
+      if (src === 'bareerah' || src === 'bareerah_ai' || src === 'voice_agent' || src === 'ai_agent') {
+        sourceLabel = '🤖 AI Agent';
+        sourceColor = '#8b5cf6';
+      } else if (src === 'website' || src === 'web_form' || src === 'wordpress') {
+        sourceLabel = '🌐 Website';
+        sourceColor = '#3b82f6';
+      } else {
+        sourceLabel = '👤 Manual';
+        sourceColor = '#6b7280';
+      }
+      
+      const bookingTypeIcon = b.booking_type === 'multi_stop' ? '🛣️ Multi-Stop' : (b.booking_type === 'round_trip' ? '🔄 Round-Trip' : (b.booking_type === 'hourly' ? '⏰ Hourly' : 'Point-to-Point'));
       const createdTime = new Date(b.created_at);
       const updatedTime = new Date(b.updated_at);
       const createdStr = createdTime.toLocaleDateString() + ' ' + createdTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
       const updatedStr = updatedTime.toLocaleDateString() + ' ' + updatedTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-      return '<tr><td>' + b.id.substring(0, 8) + '</td><td>' + b.customer_name + '</td><td>' + b.customer_phone + '</td><td>' + b.pickup_location + '</td><td>' + b.dropoff_location + '</td><td>' + bookingTypeIcon + '</td><td>' + b.distance_km + '</td><td>' + sourceLabel + '</td><td>AED ' + (b.fare_aed || b.total_fare || 0) + '</td><td>' + driverDisplay + '</td><td>' + paymentDisplay + '</td><td>' + statusDisplay + '</td><td style="font-size: 12px;">' + createdStr + '</td><td style="font-size: 12px;">' + updatedStr + '</td><td><button onclick="viewBooking(\'' + b.id + '\')" class="btn-small">View</button> <button onclick="editBooking(\'' + b.id + '\')" class="btn-small">Edit</button></td></tr>';
+      return '<tr><td>' + b.id.substring(0, 8) + '</td><td><span style="padding: 3px 8px; border-radius: 12px; background: ' + sourceColor + '22; color: ' + sourceColor + '; font-size: 11px; font-weight: 600; white-space: nowrap;">' + sourceLabel + '</span></td><td>' + b.customer_name + '</td><td>' + b.customer_phone + '</td><td>' + b.pickup_location + '</td><td>' + b.dropoff_location + '</td><td>' + b.distance_km + '</td><td>' + bookingTypeIcon + '</td><td>AED ' + (b.fare_aed || b.total_fare || 0) + '</td><td>' + driverDisplay + '</td><td>' + paymentDisplay + '</td><td>' + statusDisplay + '</td><td style="font-size: 12px;">' + createdStr + '</td><td style="font-size: 12px;">' + updatedStr + '</td><td><button onclick="viewBooking(\'' + b.id + '\')" class="btn-small">View</button> <button onclick="editBooking(\'' + b.id + '\')" class="btn-small">Edit</button></td></tr>';
     }).join('');
   } catch (e) {
     const tbody = document.getElementById('bookings-table-body');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="14" style="color:red;">Error loading bookings: ' + e.message + '</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="15" style="color:red;">Error loading bookings: ' + e.message + '</td></tr>';
     console.error('Bookings error:', e.message, e);
   }
 }
@@ -1412,6 +1428,45 @@ function toggleSubmenu(element) {
   const submenu = element.nextElementSibling;
   if (submenu && submenu.classList.contains('nav-submenu')) {
     submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
+  }
+}
+
+// Sidebar Toggle Function
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('sidebarToggle');
+  
+  if (sidebar && toggleBtn) {
+    sidebar.classList.toggle('collapsed');
+    toggleBtn.classList.toggle('collapsed');
+    
+    // Change icon based on state
+    if (sidebar.classList.contains('collapsed')) {
+      toggleBtn.innerHTML = '☰';
+      toggleBtn.title = 'Show Sidebar';
+      localStorage.setItem('sidebarCollapsed', 'true');
+    } else {
+      toggleBtn.innerHTML = '✕';
+      toggleBtn.title = 'Hide Sidebar';
+      localStorage.setItem('sidebarCollapsed', 'false');
+    }
+  }
+}
+
+// Initialize sidebar state on page load
+function initSidebar() {
+  const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('sidebarToggle');
+  
+  if (isCollapsed && sidebar && toggleBtn) {
+    sidebar.classList.add('collapsed');
+    toggleBtn.classList.add('collapsed');
+    toggleBtn.innerHTML = '☰';
+    toggleBtn.title = 'Show Sidebar';
+  } else if (toggleBtn) {
+    toggleBtn.innerHTML = '✕';
+    toggleBtn.title = 'Hide Sidebar';
   }
 }
 

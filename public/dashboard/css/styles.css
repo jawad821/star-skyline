@@ -93,6 +93,37 @@ html, body {
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+  position: absolute;
+  left: 260px;
+  top: 10px;
+  z-index: 101;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--card-bg);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  color: var(--text-primary);
+}
+
+.sidebar-toggle:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.sidebar-toggle.collapsed {
+  left: 10px;
 }
 
 /* Sidebar */
@@ -107,7 +138,16 @@ html, body {
 }
 
 .sidebar.collapsed {
-  width: 60px;
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+  border-right: none;
+}
+
+.sidebar.collapsed .nav-item,
+.sidebar.collapsed .nav-submenu-toggle,
+.sidebar.collapsed .nav-submenu {
+  display: none;
 }
 
 .nav-item, .nav-submenu-toggle {
