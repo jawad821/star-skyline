@@ -4,6 +4,40 @@ const API_BASE = window.location.origin + '/api';
 let fareRules = {}; // Cache for fare rules (gets refreshed)
 let lastFareRulesFetch = 0;
 
+// Dubai Timezone Formatter
+function formatDubaiDateTime(date) {
+  if (!date) return '-';
+  try {
+    const d = new Date(date);
+    return d.toLocaleString('en-AE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'Asia/Dubai'
+    });
+  } catch (e) {
+    return '-';
+  }
+}
+
+function formatDubaiDate(date) {
+  if (!date) return '-';
+  try {
+    const d = new Date(date);
+    return d.toLocaleString('en-AE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Asia/Dubai'
+    });
+  } catch (e) {
+    return '-';
+  }
+}
+
 // Toast Notification System
 function showToast(message, type = 'success') {
   const container = document.getElementById('toastContainer');
@@ -643,7 +677,7 @@ function setupUserInfo() {
   const userEl = document.getElementById('currentUser');
   if (userEl) userEl.textContent = user.username || 'Admin';
   const lastEl = document.getElementById('lastUpdated');
-  if (lastEl) lastEl.textContent = new Date().toLocaleDateString();
+  if (lastEl) lastEl.textContent = formatDubaiDate(new Date());
 }
 
 // Navigation
@@ -865,7 +899,10 @@ async function loadDashboardCharts(data = {}) {
       window.bookingsChartInstance = new Chart(bookingsCtx, {
         type: 'line',
         data: {
-          labels: apiData.trend.map(t => new Date(t.date).toLocaleDateString('en-AE', { month: 'short', day: 'numeric' })),
+          labels: apiData.trend.map(t => {
+            const d = new Date(t.date);
+            return d.toLocaleDateString('en-AE', { month: 'short', day: 'numeric', timeZone: 'Asia/Dubai' });
+          }),
           datasets: [{
             label: 'Bookings',
             data: apiData.trend.map(t => t.bookings || 0),
@@ -1354,8 +1391,8 @@ async function loadBookings() {
       const bookingTypeIcon = b.booking_type === 'multi_stop' ? '🛣️ Multi-Stop' : (b.booking_type === 'round_trip' ? '🔄 Round-Trip' : (b.booking_type === 'hourly' ? '⏰ Hourly' : 'Point-to-Point'));
       const createdTime = new Date(b.created_at);
       const updatedTime = new Date(b.updated_at);
-      const createdStr = createdTime.toLocaleDateString() + ' ' + createdTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-      const updatedStr = updatedTime.toLocaleDateString() + ' ' + updatedTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+      const createdStr = formatDubaiDateTime(createdTime);
+      const updatedStr = formatDubaiDateTime(updatedTime);
       return '<tr><td>' + b.id.substring(0, 8) + '</td><td><span style="padding: 3px 8px; border-radius: 12px; background: ' + sourceColor + '22; color: ' + sourceColor + '; font-size: 11px; font-weight: 600; white-space: nowrap;">' + sourceLabel + '</span></td><td>' + b.customer_name + '</td><td>' + b.customer_phone + '</td><td>' + b.pickup_location + '</td><td>' + b.dropoff_location + '</td><td>' + b.distance_km + '</td><td>' + bookingTypeIcon + '</td><td>AED ' + (b.fare_aed || b.total_fare || 0) + '</td><td>' + driverDisplay + '</td><td>' + paymentDisplay + '</td><td>' + statusDisplay + '</td><td style="font-size: 12px;">' + createdStr + '</td><td style="font-size: 12px;">' + updatedStr + '</td><td><button onclick="viewBooking(\'' + b.id + '\')" class="btn-small">View</button> <button onclick="editBooking(\'' + b.id + '\')" class="btn-small">Edit</button></td></tr>';
     }).join('');
   } catch (e) {
@@ -1388,8 +1425,8 @@ function viewBooking(id) {
           const sourceDisplay = (b.booking_source === 'bareerah' || b.booking_source === 'bareerah_ai' || b.booking_source === 'voice_agent') ? '📱 Bareerah AI' : '👤 Manually Created';
           const createdTime = new Date(b.created_at);
           const updatedTime = new Date(b.updated_at);
-          const createdStr = createdTime.toLocaleDateString() + ' ' + createdTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-          const updatedStr = updatedTime.toLocaleDateString() + ' ' + updatedTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+          const createdStr = formatDubaiDateTime(createdTime);
+          const updatedStr = formatDubaiDateTime(updatedTime);
           const vehicleColorDisplay = b.vehicle_color ? b.vehicle_color : 'N/A';
           const notesDisplay = b.notes ? b.notes : '(No notes)';
           
@@ -1405,7 +1442,7 @@ function viewBooking(id) {
             journeyHtml = '<div style="padding: 12px; background: #f3f4f6; border-radius: 6px;"><strong>🔄 Round-Trip Journey:</strong><div style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;"><div style="padding: 8px; background: white; border-left: 4px solid #2563eb; border-radius: 4px;"><strong>🚗 Outbound Leg</strong><div style="margin-top: 6px; font-size: 13px;">📍 ' + b.stops[0].location + ' (Pickup)</div><div style="color: #666; font-size: 12px;">↓</div><div style="font-size: 13px;">🏁 ' + b.stops[1].location + ' (Drop-off)</div></div><div style="padding: 8px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;"><strong>⏱️ Waiting Time</strong><div style="margin-top: 6px; font-size: 13px;">📍 ' + b.stops[1].location + '</div><div style="color: #d97706; font-weight: bold;">' + Math.floor(waitingDuration / 60) + ' hours ' + (waitingDuration % 60) + ' min</div></div><div style="padding: 8px; background: white; border-left: 4px solid #059669; border-radius: 4px;"><strong>🚗 Return Leg</strong><div style="margin-top: 6px; font-size: 13px;">📍 ' + b.stops[1].location + ' (Pick-up)</div><div style="color: #666; font-size: 12px;">↓</div><div style="font-size: 13px;">🏁 ' + b.stops[2].location + ' (Return)</div></div></div></div>';
           }
           
-          const pickupTimeStr = b.pickup_time ? new Date(b.pickup_time).toLocaleString() : 'Not scheduled';
+          const pickupTimeStr = b.pickup_time ? formatDubaiDateTime(b.pickup_time) : 'Not scheduled';
           content.innerHTML = '<div style="display: grid; gap: 12px; font-size: 14px;"><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Booking ID:</strong><br>' + b.id.substring(0, 8) + '</div><div><strong>Status:</strong><br><span style="padding: 4px 8px; border-radius: 4px; background: ' + (b.status === 'completed' ? '#10b981' : b.status === 'in-process' ? '#3b82f6' : b.status === 'pending' ? '#f59e0b' : '#ef4444') + '; color: white; font-weight: bold;">' + (b.status || 'pending').toUpperCase() + '</span></div></div><div><strong>Source:</strong><br>' + sourceDisplay + '</div><div><strong>Customer:</strong><br>' + b.customer_name + ' (' + b.customer_phone + ')</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Pickup Location:</strong><br>' + b.pickup_location + '</div><div><strong>Dropoff Location:</strong><br>' + b.dropoff_location + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>🕐 Pickup Time:</strong><br>' + pickupTimeStr + '</div><div></div></div>' + journeyHtml + '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Distance:</strong><br>' + b.distance_km + ' km</div><div><strong>Fare:</strong><br>AED ' + (b.fare_aed || b.total_fare || 0) + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Booking Type:</strong><br>' + bookingTypeDisplay + '</div><div><strong>Payment:</strong><br>' + (b.payment_method || 'N/A').toUpperCase() + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Vehicle Type:</strong><br>' + (b.vehicle_type || 'N/A').toUpperCase() + '</div><div><strong>Vehicle Model:</strong><br>' + vehicleModelDisplay + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>🎨 Vehicle Color:</strong><br>' + vehicleColorDisplay + '</div><div><strong>Assigned Vehicle:</strong><br>' + assignedVehicleDisplay + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Driver:</strong><br>' + driverInfo + '</div><div><strong>Passengers:</strong><br>' + (b.passengers_count || 1) + '</div></div><div><strong>Luggage:</strong><br>' + (b.luggage_count || 0) + '</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Created:</strong><br>' + createdStr + '</div><div><strong>Updated:</strong><br>' + updatedStr + '</div></div><div><strong>📝 Notes:</strong><br>' + notesDisplay + '</div></div>';
           const modal = document.getElementById('bookingDetailModal');
           const overlay = document.getElementById('modalOverlay');
@@ -1948,7 +1985,7 @@ function viewDriver(id) {
         // Format license expiry date
         if (driver.license_expiry_date) {
           const expiryDate = new Date(driver.license_expiry_date);
-          document.getElementById('driverViewLicenseExpiry').value = expiryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+          document.getElementById('driverViewLicenseExpiry').value = formatDubaiDate(expiryDate);
         } else {
           document.getElementById('driverViewLicenseExpiry').value = 'N/A';
         }
@@ -2477,7 +2514,7 @@ async function loadLogs(filter = {}) {
     
     tbody.innerHTML = data.data.map(log => {
       const ts = new Date(log.created_at);
-      const timeStr = ts.toLocaleDateString() + ' ' + ts.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+      const timeStr = formatDubaiDateTime(ts);
       let changes = 'N/A';
       if (log.changes) {
         try {

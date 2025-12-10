@@ -13,15 +13,17 @@ const emailTemplates = {
       ? 'Cash - To be collected in vehicle'
       : 'Card - Prepaid';
 
-    // Format date
+    // Format date (Dubai timezone)
     const dateStr = bookingDate.toLocaleDateString('en-AE', { 
       year: 'numeric', 
       month: 'short', 
-      day: 'numeric' 
+      day: 'numeric',
+      timeZone: 'Asia/Dubai'
     });
     const timeStr = bookingDate.toLocaleTimeString('en-AE', { 
       hour: '2-digit', 
-      minute: '2-digit' 
+      minute: '2-digit',
+      timeZone: 'Asia/Dubai'
     });
 
     // Build journey info based on booking type
@@ -407,7 +409,7 @@ Thank you for choosing Bareerrah! 🙏
             <p style="color: #34C759;"><strong>Company Profit (20%):</strong> AED ${companyProfit.toFixed(2)}</p>
           </div>
 
-          <p style="color: #86868b; font-size: 12px;">Status: ${booking.status} | Time: ${new Date().toLocaleString()}</p>
+          <p style="color: #86868b; font-size: 12px;">Status: ${booking.status} | Time: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}</p>
         </div>
       `
     };

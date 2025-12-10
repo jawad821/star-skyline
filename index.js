@@ -1,10 +1,15 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
+const moment = require('moment-timezone');
 const { query } = require('./config/db');
 const { PORT } = require('./config/env');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
+
+// Set Dubai timezone globally
+process.env.TZ = 'Asia/Dubai';
+moment.tz.setDefault('Asia/Dubai');
 
 const bookingRoutes = require('./routes/bookingRoutes');
 const vehicleRoutes = require('./routes/vehicleRoutes');
