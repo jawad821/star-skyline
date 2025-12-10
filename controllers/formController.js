@@ -399,9 +399,28 @@ const formController = {
       .buttons-row { flex-direction: column; gap: 20px; }
       .datetime-field { flex-direction: column; gap: 20px; }
     }
+    /* Beautiful Toast Notifications */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
+    .toast { background: rgba(30, 40, 50, 0.95); border-radius: 12px; padding: 16px 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 12px; min-width: 320px; max-width: 420px; animation: slideIn 0.3s ease; border-left: 4px solid #f44336; }
+    .toast.success { border-left-color: #4caf50; }
+    .toast.warning { border-left-color: #ff9800; }
+    .toast.error { border-left-color: #f44336; }
+    .toast-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+    .toast.error .toast-icon { background: rgba(244,67,54,0.2); color: #f44336; }
+    .toast.success .toast-icon { background: rgba(76,175,80,0.2); color: #4caf50; }
+    .toast.warning .toast-icon { background: rgba(255,152,0,0.2); color: #ff9800; }
+    .toast-content { flex: 1; }
+    .toast-title { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+    .toast-message { font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.4; }
+    .toast-close { background: none; border: none; color: rgba(255,255,255,0.6); cursor: pointer; padding: 5px; font-size: 18px; }
+    .toast-close:hover { color: #fff; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+  <div id="toastContainer" class="toast-container"></div>
   <div class="glass-container">
     <div class="tabs">
       <div class="tab active" id="tab-transfer" onclick="switchTab('transfer')">Private Transfer</div>
@@ -466,6 +485,18 @@ const formController = {
   <div class="footer-text">Hire a limousine in Dubai from just <span>AED 99</span></div>
 
   <script>
+    // Beautiful Toast Notification Function
+    function showToast(message, type = 'error', title = '') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      const icons = { error: 'fa-exclamation-circle', success: 'fa-check-circle', warning: 'fa-exclamation-triangle' };
+      const titles = { error: 'Oops!', success: 'Success!', warning: 'Warning' };
+      toast.innerHTML = '<div class="toast-icon"><i class="fas ' + icons[type] + '"></i></div><div class="toast-content"><div class="toast-title">' + (title || titles[type]) + '</div><div class="toast-message">' + message + '</div></div><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>';
+      container.appendChild(toast);
+      setTimeout(() => { toast.style.animation = 'slideOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 300); }, 4000);
+    }
+
     const API_BASE = '${apiBase}';
     const ALL_LOCATIONS = ${locationsJSON};
     let currentTab = 'transfer';
@@ -544,7 +575,7 @@ const formController = {
       if (currentTab === 'transfer') {
         const pickup = document.getElementById('pickup').value;
         const dropoff = document.getElementById('dropoff').value;
-        if (!pickup || !dropoff) { alert('Please enter pickup and dropoff locations'); return; }
+        if (!pickup || !dropoff) { showToast('Please enter pickup and dropoff locations', 'error', 'Missing Location'); return; }
 
         const params = new URLSearchParams({
           type: isReturnAdded ? 'round_trip' : 'point_to_point',
@@ -558,8 +589,8 @@ const formController = {
         window.location.href = API_BASE + '/api/bookings/vehicle-details?' + params.toString();
       } else {
         const pickup = document.getElementById('hourly-pickup').value;
-        if (!pickup) { alert('Please enter pickup location'); return; }
-        if (!selectedHours) { alert('Please select rental hours'); return; }
+        if (!pickup) { showToast('Please enter pickup location', 'error', 'Missing Location'); return; }
+        if (!selectedHours) { showToast('Please select rental hours', 'warning', 'Select Hours'); return; }
 
         const params = new URLSearchParams({
           type: 'hourly',
@@ -1426,9 +1457,56 @@ const formController = {
       .form-group.full-width { grid-column: span 1; }
       .sidebar { order: -1; }
     }
+    
+    /* Beautiful Toast Notifications */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
+    .toast { 
+      background: #fff; 
+      border-radius: 12px; 
+      padding: 16px 20px; 
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15); 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+      min-width: 320px; 
+      max-width: 420px;
+      animation: slideIn 0.3s ease;
+      border-left: 4px solid #f44336;
+    }
+    .toast.success { border-left-color: #4caf50; }
+    .toast.warning { border-left-color: #ff9800; }
+    .toast.error { border-left-color: #f44336; }
+    .toast-icon { 
+      width: 36px; 
+      height: 36px; 
+      border-radius: 50%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      flex-shrink: 0;
+      font-size: 16px;
+    }
+    .toast.error .toast-icon { background: #ffebee; color: #f44336; }
+    .toast.success .toast-icon { background: #e8f5e9; color: #4caf50; }
+    .toast.warning .toast-icon { background: #fff3e0; color: #ff9800; }
+    .toast-content { flex: 1; }
+    .toast-title { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 2px; }
+    .toast-message { font-size: 13px; color: #666; line-height: 1.4; }
+    .toast-close { 
+      background: none; 
+      border: none; 
+      color: #999; 
+      cursor: pointer; 
+      padding: 5px;
+      font-size: 18px;
+    }
+    .toast-close:hover { color: #333; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
   </style>
 </head>
 <body>
+  <div id="toastContainer" class="toast-container"></div>
   <div class="container">
     <div class="page-header">
       <h1 class="page-title">Book a ${type === "round_trip" ? "City Tour" : "Private Transfer"}</h1>
@@ -1611,6 +1689,28 @@ const formController = {
   </div>
 
   <script>
+    // Beautiful Toast Notification Function
+    function showToast(message, type = 'error', title = '') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      
+      const icons = { error: 'fa-exclamation-circle', success: 'fa-check-circle', warning: 'fa-exclamation-triangle' };
+      const titles = { error: 'Oops!', success: 'Success!', warning: 'Warning' };
+      
+      toast.innerHTML = \`
+        <div class="toast-icon"><i class="fas \${icons[type]}"></i></div>
+        <div class="toast-content">
+          <div class="toast-title">\${title || titles[type]}</div>
+          <div class="toast-message">\${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+      \`;
+      
+      container.appendChild(toast);
+      setTimeout(() => { toast.style.animation = 'slideOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 300); }, 4000);
+    }
+
     const API_BASE = '${apiBase}';
     const VEHICLES = ${vehiclesJSON};
     
@@ -1753,7 +1853,7 @@ const formController = {
       const whatsappNumber = document.getElementById('whatsappNumber').value;
 
       if (!fullName || !email || !contactNumber) {
-        alert('Please fill in all required fields');
+        showToast('Please fill in all required fields', 'error', 'Required Fields');
         return;
       }
 
@@ -1931,9 +2031,28 @@ const formController = {
       .main-layout { grid-template-columns: 1fr; }
       .sidebar { order: -1; }
     }
+    
+    /* Beautiful Toast Notifications */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
+    .toast { background: #fff; border-radius: 12px; padding: 16px 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; min-width: 320px; max-width: 420px; animation: slideIn 0.3s ease; border-left: 4px solid #f44336; }
+    .toast.success { border-left-color: #4caf50; }
+    .toast.warning { border-left-color: #ff9800; }
+    .toast.error { border-left-color: #f44336; }
+    .toast-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+    .toast.error .toast-icon { background: #ffebee; color: #f44336; }
+    .toast.success .toast-icon { background: #e8f5e9; color: #4caf50; }
+    .toast.warning .toast-icon { background: #fff3e0; color: #ff9800; }
+    .toast-content { flex: 1; }
+    .toast-title { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 2px; }
+    .toast-message { font-size: 13px; color: #666; line-height: 1.4; }
+    .toast-close { background: none; border: none; color: #999; cursor: pointer; padding: 5px; font-size: 18px; }
+    .toast-close:hover { color: #333; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
   </style>
 </head>
 <body>
+  <div id="toastContainer" class="toast-container"></div>
   <div class="container">
     <div class="page-header">
       <h1 class="page-title">Book a ${type === "round_trip" ? "City Tour" : "Private Transfer"}</h1>
@@ -2049,6 +2168,18 @@ const formController = {
   </div>
 
   <script>
+    // Beautiful Toast Notification Function
+    function showToast(message, type = 'error', title = '') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      const icons = { error: 'fa-exclamation-circle', success: 'fa-check-circle', warning: 'fa-exclamation-triangle' };
+      const titles = { error: 'Oops!', success: 'Success!', warning: 'Warning' };
+      toast.innerHTML = '<div class="toast-icon"><i class="fas ' + icons[type] + '"></i></div><div class="toast-content"><div class="toast-title">' + (title || titles[type]) + '</div><div class="toast-message">' + message + '</div></div><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>';
+      container.appendChild(toast);
+      setTimeout(() => { toast.style.animation = 'slideOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 300); }, 4000);
+    }
+
     const API_BASE = '${apiBase}';
     let selectedPayment = 'cash';
     let isSubmitting = false;
@@ -2090,7 +2221,7 @@ const formController = {
     
     async function submitBooking() {
       if (!document.getElementById('termsCheck').checked) {
-        alert('Please accept the terms and conditions');
+        showToast('Please accept the terms and conditions before proceeding', 'warning', 'Terms Required');
         return;
       }
       
@@ -2139,14 +2270,14 @@ const formController = {
           });
           window.location.href = API_BASE + '/api/bookings/success?' + successParams.toString();
         } else {
-          alert('Error: ' + (result.error || 'Failed to submit booking'));
+          showToast(result.error || 'Failed to submit booking. Please try again.', 'error', 'Booking Failed');
           submitBtn.textContent = 'NEXT';
           submitBtn.disabled = false;
           isSubmitting = false;
         }
       } catch (error) {
         console.error('Booking error:', error);
-        alert('Network error. Please try again.');
+        showToast('Network error. Please check your connection and try again.', 'error', 'Connection Error');
         submitBtn.textContent = 'NEXT';
         submitBtn.disabled = false;
         isSubmitting = false;
