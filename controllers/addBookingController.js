@@ -23,6 +23,7 @@ const addBookingController = {
         booking_source,
         passengers_count,
         luggage_count,
+        pickup_time,
         notes
       } = req.body;
 
@@ -165,14 +166,14 @@ const addBookingController = {
       const result = await query(`
         INSERT INTO bookings 
           (customer_name, customer_phone, customer_email, pickup_location, dropoff_location, 
-           distance_km, fare_aed, booking_type, vehicle_type, vehicle_model, vehicle_color, driver_id, assigned_vehicle_id, payment_method, status, booking_source, passengers_count, luggage_count, notes, created_at)
+           distance_km, fare_aed, booking_type, vehicle_type, vehicle_model, vehicle_color, driver_id, assigned_vehicle_id, payment_method, status, booking_source, passengers_count, luggage_count, pickup_time, notes, created_at)
         VALUES 
-          ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW())
+          ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
         RETURNING *
       `, [
         customer_name, customer_phone, customer_email || null, pickup_location,
         dropoff_location, finalDistance, fare, booking_type, vehicle_type, finalVehicleModelForBooking, finalVehicleColor || null, finalDriverId || null, finalAssignedVehicleId || null, payment_method || 'cash',
-        status || 'in-process', finalBookingSource, passengers_count, luggage_count, notes || null
+        status || 'in-process', finalBookingSource, passengers_count, luggage_count, pickup_time || null, notes || null
       ])
 
       const booking = result.rows[0];
@@ -242,16 +243,17 @@ const addBookingController = {
           (customer_name, customer_phone, customer_email, pickup_location, dropoff_location, 
            booking_type, vehicle_type, vehicle_model, vehicle_color, 
            passengers_count, luggage_count, fare_aed, rental_hours, hourly_rate_aed,
-           payment_method, booking_source, status, notes, created_at)
+           payment_method, booking_source, status, pickup_time, notes, created_at)
         VALUES 
-          ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'pending', $17, NOW())
+          ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'pending', $17, $18, NOW())
         RETURNING *
       `, [
         customer_name, customer_phone, customer_email || null, pickup_location, pickup_location,
         'hourly_rental', vehicle_type, vehicle_model || null, vehicle_color || null,
         passengers_count || 1, luggage_count || 0, fareData.total_fare, rental_hours, fareData.hourly_rate,
-        payment_method || 'card', booking_source || 'admin', notes || null
+        payment_method || 'card', booking_source || 'admin', req.body.pickup_time || null, notes || null
       ]);
+
 
       const booking = result.rows[0];
 

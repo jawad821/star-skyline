@@ -51,8 +51,8 @@ const pushController = {
       const bookingResult = await query(`
         INSERT INTO bookings (
           external_id, customer_name, customer_phone, pickup_location, dropoff_location,
-          distance_km, fare_aed, vehicle_type, booking_type, booking_source, status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending')
+          distance_km, fare_aed, vehicle_type, booking_type, booking_source, pickup_time, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending')
         RETURNING id
       `, [
         external_id || null,
@@ -64,7 +64,8 @@ const pushController = {
         fare.fare_after_discount,
         vType,
         bType,
-        'bareerah_ai'
+        'bareerah_ai',
+        req.body.pickup_time || null
       ]);
       
       const bookingId = bookingResult.rows[0].id;
