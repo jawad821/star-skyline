@@ -1988,6 +1988,14 @@ function editBooking(id) {
       document.getElementById('editPickup').value = b.pickup_location || '';
       document.getElementById('editDropoff').value = b.dropoff_location || '';
       document.getElementById('editDistance').value = b.distance_km || 0;
+      // Format pickup_time for datetime-local input
+      if (b.pickup_time) {
+        const date = new Date(b.pickup_time);
+        const localStr = date.toISOString().slice(0, 16);
+        document.getElementById('editPickupTime').value = localStr;
+      } else {
+        document.getElementById('editPickupTime').value = '';
+      }
       document.getElementById('editVehicleType').value = b.vehicle_type || 'sedan';
       document.getElementById('editVehicleModel').value = b.vehicle_model || '';
       document.getElementById('editPayment').value = b.payment_method || 'cash';
@@ -2097,6 +2105,7 @@ function saveBookingChanges(e) {
     vehicle_model: document.getElementById('editVehicleModel').value,
     payment_method: document.getElementById('editPayment').value,
     fare_aed: parseFloat(document.getElementById('editFare').value) || 0,
+    pickup_time: document.getElementById('editPickupTime').value || null,
     notes: document.getElementById('editNotes').value || ''
   };
   
