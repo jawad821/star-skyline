@@ -1025,7 +1025,7 @@ const formController = {
         ...(bookingData.returnTime && { returnTime: bookingData.returnTime }),
         ...(bookingData.hours && { hours: bookingData.hours })
       });
-      window.location.href = API_BASE + '/wordpress-form?' + params.toString();
+      window.location.href = API_BASE + '/api/bookings/wordpress-form?' + params.toString();
     }
 
     function calculatePrice(vehicle) {
