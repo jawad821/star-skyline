@@ -51,8 +51,8 @@ const pushController = {
       const bookingResult = await query(`
         INSERT INTO bookings (
           external_id, customer_name, customer_phone, pickup_location, dropoff_location,
-          distance_km, fare_aed, vehicle_type, status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending')
+          distance_km, fare_aed, vehicle_type, booking_type, booking_source, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending')
         RETURNING id
       `, [
         external_id || null,
@@ -62,13 +62,15 @@ const pushController = {
         dropoff_location || null,
         km,
         fare.fare_after_discount,
-        vType
+        vType,
+        bType,
+        'bareerah_ai'
       ]);
       
       const bookingId = bookingResult.rows[0].id;
       
       const availableVehicle = await query(`
-        SELECT v.id as vehicle_id, v.vendor_id
+        SELECT v.id as vehicle_id, v.vendor_id, v.model as vehicle_model, v.color as vehicle_color, v.driver_id
         FROM vehicles v
         WHERE v.status = 'available' AND v.type = $1
         LIMIT 1
@@ -82,9 +84,9 @@ const pushController = {
         await query('UPDATE vehicles SET status = $1 WHERE id = $2', ['on_trip', vehicle.vehicle_id]);
         await query(`
           UPDATE bookings 
-          SET assigned_vehicle_id = $1, vendor_id = $2, status = 'assigned'
-          WHERE id = $3
-        `, [vehicle.vehicle_id, vehicle.vendor_id, bookingId]);
+          SET assigned_vehicle_id = $1, vendor_id = $2, status = 'assigned', vehicle_model = $3, vehicle_color = $4, driver_id = $5
+          WHERE id = $6
+        `, [vehicle.vehicle_id, vehicle.vendor_id, vehicle.vehicle_model, vehicle.vehicle_color, vehicle.driver_id, bookingId]);
         
         const vendorResult = await query(
           'SELECT commission_rate FROM vendors WHERE id = $1',
