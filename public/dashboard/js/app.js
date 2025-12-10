@@ -1622,6 +1622,8 @@ async function openAddBookingModal() {
     document.getElementById('bookingHourlyFare').value = '';
     document.getElementById('bookingVehicleType').value = 'sedan';
     document.getElementById('bookingVehicleModel').value = '';
+    document.getElementById('bookingVehicleColor').value = '';
+    document.getElementById('bookingPickupTime').value = '';
     document.getElementById('bookingPayment').value = 'cash';
     document.getElementById('roundTripHours').value = '3';
     document.getElementById('roundTripMeetingLocation').value = '';
@@ -1838,6 +1840,7 @@ function createManualBooking() {
     booking_type: bookingType,
     vehicle_type: vehicleType,
     vehicle_model: vehicleModelSelect.value,
+    vehicle_color: document.getElementById('bookingVehicleColor').value || null,
     payment_method: document.getElementById('bookingPayment').value || 'cash',
     pickup_time: document.getElementById('bookingPickupTime').value || null,
     booking_source: 'manually_created'
