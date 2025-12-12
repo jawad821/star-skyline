@@ -2874,6 +2874,12 @@ async function loadFeatureCards() {
     // Load revenue by type with default 'month'
     await loadRevenueByType('month');
     
+    // Load unassigned rides and accept ratio
+    await Promise.all([
+      loadUnassignedRides(),
+      loadAcceptAssignedRatio()
+    ]);
+    
     initDragDrop();
   } catch (e) {
     console.error('Error loading feature cards:', e);
@@ -2906,6 +2912,39 @@ async function loadRevenueByType(range = 'month') {
   } catch (e) {
     console.error('Error loading revenue by type:', e);
     document.getElementById('revenue-by-type-list').innerHTML = '<div style="color: #999; padding: 10px; text-align: center;">Error loading data</div>';
+  }
+}
+
+// Load unassigned rides count
+async function loadUnassignedRides() {
+  try {
+    const response = await fetch(`${API_BASE}/stats/unassigned-rides`, { 
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } 
+    });
+    const data = await response.json();
+    if (data.success) {
+      document.getElementById('unassigned-count').textContent = data.data.unassigned_rides;
+    }
+  } catch (e) {
+    console.error('Error loading unassigned rides:', e);
+  }
+}
+
+// Load accept to assigned ratio
+async function loadAcceptAssignedRatio() {
+  try {
+    const response = await fetch(`${API_BASE}/stats/accept-assigned-ratio`, { 
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } 
+    });
+    const data = await response.json();
+    if (data.success) {
+      const d = data.data;
+      document.getElementById('accept-ratio').textContent = `${d.accept_ratio_percentage}%`;
+      document.getElementById('assigned-count').textContent = d.assigned_rides;
+      document.getElementById('total-count').textContent = d.total_rides;
+    }
+  } catch (e) {
+    console.error('Error loading accept assigned ratio:', e);
   }
 }
 

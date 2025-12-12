@@ -277,8 +277,8 @@ const Stats = {
     const result = await query(`
       SELECT 
         CASE 
-          WHEN pickup_location ILIKE '%airport%' OR dropoff_location ILIKE '%airport%' THEN 'Airport Transfer'
           WHEN booking_type = 'hourly' THEN 'Hourly Rental'
+          WHEN pickup_location ILIKE '%airport%' OR dropoff_location ILIKE '%airport%' THEN 'Airport Transfer'
           ELSE 'Point to Point'
         END as booking_type,
         COUNT(*) as trips,
@@ -286,8 +286,8 @@ const Stats = {
       FROM bookings
       WHERE created_at >= $1 AND created_at < $2
       GROUP BY CASE 
-          WHEN pickup_location ILIKE '%airport%' OR dropoff_location ILIKE '%airport%' THEN 'Airport Transfer'
           WHEN booking_type = 'hourly' THEN 'Hourly Rental'
+          WHEN pickup_location ILIKE '%airport%' OR dropoff_location ILIKE '%airport%' THEN 'Airport Transfer'
           ELSE 'Point to Point'
         END
       ORDER BY revenue DESC
@@ -298,6 +298,38 @@ const Stats = {
       trips: parseInt(r.trips),
       revenue: parseFloat(r.revenue)
     }));
+  },
+
+  async getUnassignedRidesCount() {
+    const result = await query(`
+      SELECT COUNT(*) as unassigned_rides
+      FROM bookings
+      WHERE driver_id IS NULL 
+      AND status IN ('pending', 'in-process')
+    `, []);
+    
+    return parseInt(result.rows[0].unassigned_rides) || 0;
+  },
+
+  async getAcceptedAssignedRatio() {
+    const result = await query(`
+      SELECT 
+        COUNT(CASE WHEN driver_id IS NOT NULL THEN 1 END) as assigned_rides,
+        COUNT(*) as total_rides
+      FROM bookings
+      WHERE status IN ('pending', 'in-process', 'completed')
+    `, []);
+    
+    const data = result.rows[0];
+    const assigned = parseInt(data.assigned_rides) || 0;
+    const total = parseInt(data.total_rides) || 0;
+    const ratio = total > 0 ? ((assigned / total) * 100).toFixed(1) : 0;
+    
+    return {
+      assigned_rides: assigned,
+      total_rides: total,
+      accept_ratio_percentage: parseFloat(ratio)
+    };
   }
 };
 

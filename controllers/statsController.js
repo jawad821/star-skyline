@@ -188,6 +188,24 @@ const statsController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  async getUnassignedRides(req, res, next) {
+    try {
+      const unassignedCount = await Stats.getUnassignedRidesCount();
+      res.json({ success: true, data: { unassigned_rides: unassignedCount } });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async getAcceptAssignedRatio(req, res, next) {
+    try {
+      const data = await Stats.getAcceptedAssignedRatio();
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
   }
 };
 

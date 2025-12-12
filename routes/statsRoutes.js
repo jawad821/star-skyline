@@ -13,5 +13,7 @@ router.get('/upcoming-bookings', asyncHandler(statsController.getUpcomingBooking
 router.get('/earnings-comparison', asyncHandler(statsController.getEarningsComparison));
 router.get('/customer-funnels', asyncHandler(statsController.getCustomerFunnels));
 router.get('/revenue-by-type', asyncHandler(statsController.getRevenueByBookingType));
+router.get('/unassigned-rides', asyncHandler(statsController.getUnassignedRides));
+router.get('/accept-assigned-ratio', asyncHandler(statsController.getAcceptAssignedRatio));
 
 module.exports = router;
