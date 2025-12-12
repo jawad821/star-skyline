@@ -2878,6 +2878,7 @@ async function loadFeatureCards() {
     await Promise.all([
       loadUnassignedRides(),
       loadAcceptAssignedRatio(),
+      loadAirportFlights(),
       loadPendingBookings()
     ]);
     
@@ -2979,6 +2980,79 @@ async function loadAcceptAssignedRatio() {
     }
   } catch (e) {
     console.error('Error loading accept assigned ratio:', e);
+  }
+}
+
+// Load Airport Transfer Flights with Flight Times
+async function loadAirportFlights() {
+  try {
+    const token = localStorage.getItem('token');
+    const url = getCacheBustUrl(API_BASE + '/bookings?booking_type=airport_transfer&status=pending,in-process');
+    const response = await fetch(url, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    
+    const data = await response.json();
+    const bookings = data.data || [];
+    const container = document.getElementById('airport-flights-list');
+    
+    if (!bookings || bookings.length === 0) {
+      container.innerHTML = '<div style="color: #999; text-align: center; padding: 20px; font-size: 12px;">✅ No pending airport transfer bookings</div>';
+      return;
+    }
+    
+    // Filter to only show Airport Transfer bookings with flight info
+    const flightBookings = bookings.filter(b => b.booking_type === 'airport_transfer' && (b.status === 'pending' || b.status === 'in-process'));
+    
+    if (flightBookings.length === 0) {
+      container.innerHTML = '<div style="color: #999; text-align: center; padding: 20px; font-size: 12px;">✅ No pending airport transfer bookings</div>';
+      return;
+    }
+    
+    const html = flightBookings.map(b => {
+      const bookingId = b.id.substring(0, 8).toUpperCase();
+      let flightInfo = '';
+      
+      if (b.flight_arrival_time) {
+        const arrivalDate = new Date(b.flight_arrival_time);
+        const arrivalStr = arrivalDate.toLocaleDateString('en-AE', { day: '2-digit', month: 'short', timeZone: 'Asia/Dubai' });
+        const arrivalTime = arrivalDate.toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai' });
+        flightInfo += `<div style="display: flex; align-items: center; margin-bottom: 6px;"><span style="color: #3b82f6; font-weight: 600; margin-right: 8px; min-width: 65px;">🛬 Arrival:</span><span style="color: #1d1d1f; font-weight: 500;">${arrivalStr}, ${arrivalTime}</span></div>`;
+      }
+      
+      if (b.flight_departure_time) {
+        const departureDate = new Date(b.flight_departure_time);
+        const departureStr = departureDate.toLocaleDateString('en-AE', { day: '2-digit', month: 'short', timeZone: 'Asia/Dubai' });
+        const departureTime = departureDate.toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai' });
+        flightInfo += `<div style="display: flex; align-items: center;"><span style="color: #f59e0b; font-weight: 600; margin-right: 8px; min-width: 65px;">🛫 Departure:</span><span style="color: #1d1d1f; font-weight: 500;">${departureStr}, ${departureTime}</span></div>`;
+      }
+      
+      const statusBadgeColor = b.status === 'pending' ? '#fca5a5' : '#bfdbfe';
+      const statusBadgeTextColor = b.status === 'pending' ? '#991b1b' : '#1e40af';
+      
+      return `
+        <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #3b82f6; cursor: pointer;" onclick="goToBookingDetail('${b.id}')">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+            <div>
+              <div style="font-size: 12px; color: #666; margin-bottom: 2px;">Booking #${bookingId}</div>
+              <div style="font-weight: 600; color: #1d1d1f; font-size: 13px;">${b.customer_name}</div>
+            </div>
+            <span style="padding: 3px 10px; background: ${statusBadgeColor}; color: ${statusBadgeTextColor}; font-size: 11px; font-weight: 600; border-radius: 3px; text-transform: uppercase;">${b.status}</span>
+          </div>
+          ${flightInfo ? `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 12px;">${flightInfo}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+    
+    container.innerHTML = html;
+  } catch (e) {
+    console.error('Error loading airport flights:', e);
+    const container = document.getElementById('airport-flights-list');
+    if (container) {
+      container.innerHTML = '<div style="color: #ef4444; text-align: center; padding: 20px; font-size: 12px;">Error loading flight data</div>';
+    }
   }
 }
 
