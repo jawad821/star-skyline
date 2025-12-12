@@ -1886,6 +1886,14 @@ function createManualBooking() {
     booking_source: 'manually_created'
   };
   
+  // Add flight times if Airport Transfer and fields have values
+  if (bookingType === 'airport_transfer') {
+    const flightArrival = document.getElementById('bookingFlightArrival')?.value;
+    const flightDeparture = document.getElementById('bookingFlightDeparture')?.value;
+    if (flightArrival) body.flight_arrival_time = flightArrival;
+    if (flightDeparture) body.flight_departure_time = flightDeparture;
+  }
+  
   // Auto-assign a vehicle and driver if in auto mode
   if (window.createAssignmentMode === 'auto') {
     const availableVehicles = window.vehiclesList?.filter(v => v.type === vehicleType && v.status === 'available') || [];
@@ -2562,12 +2570,14 @@ function toggleBookingTypeFields() {
   const hourlyRentalFieldsWrapper = document.getElementById('hourlyRentalFieldsWrapper');
   const multiStopFields = document.getElementById('multiStopFields');
   const roundTripFields = document.getElementById('roundTripFields');
+  const flightTimesWrapper = document.getElementById('flightTimesWrapper');
   
   // Hide all by default
   locationFieldsWrapper.style.display = 'none';
   hourlyRentalFieldsWrapper.style.display = 'none';
   multiStopFields.style.display = 'none';
   roundTripFields.style.display = 'none';
+  flightTimesWrapper.style.display = 'none';
   
   if (!bookingType) {
     return;
@@ -2592,8 +2602,14 @@ function toggleBookingTypeFields() {
     setupLocationAutocomplete('bookingPickup', 'addPickupSuggestions');
     setupLocationAutocomplete('bookingDropoff', 'addDropoffSuggestions');
     setupLocationAutocomplete('roundTripMeetingLocation', 'roundTripMeetingSuggestions');
+  } else if (bookingType === 'airport_transfer') {
+    // Airport Transfer - show location + flight times
+    locationFieldsWrapper.style.display = 'block';
+    flightTimesWrapper.style.display = 'block';
+    setupLocationAutocomplete('bookingPickup', 'addPickupSuggestions');
+    setupLocationAutocomplete('bookingDropoff', 'addDropoffSuggestions');
   } else {
-    // Point-to-Point, Airport Transfer, City Tour
+    // Point-to-Point, City Tour
     locationFieldsWrapper.style.display = 'block';
     setupLocationAutocomplete('bookingPickup', 'addPickupSuggestions');
     setupLocationAutocomplete('bookingDropoff', 'addDropoffSuggestions');

@@ -2282,6 +2282,29 @@
               <option value="round_trip">🔄 Round Trip (Return Journey)</option>
             </select>
           </div>
+          <div id="flightTimesWrapper" style="display: none; background: #f0f9ff; padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid #3b82f6;">
+            <div style="font-size: 12px; font-weight: 600; color: #1e40af; margin-bottom: 10px;">✈️ Flight Information (Optional)</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label>Flight Arrival Time</label>
+                <input
+                  type="datetime-local"
+                  id="bookingFlightArrival"
+                  style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;"
+                />
+                <small style="color: var(--text-secondary); display: block; margin-top: 4px;">If customer arriving at airport</small>
+              </div>
+              <div class="form-group">
+                <label>Flight Departure Time</label>
+                <input
+                  type="datetime-local"
+                  id="bookingFlightDeparture"
+                  style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;"
+                />
+                <small style="color: var(--text-secondary); display: block; margin-top: 4px;">If customer leaving from airport</small>
+              </div>
+            </div>
+          </div>
           <div id="locationFieldsWrapper" style="display: none">
             <div class="form-group" style="position: relative">
               <label>Pickup Location</label>

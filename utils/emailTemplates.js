@@ -26,6 +26,27 @@ const emailTemplates = {
       timeZone: 'Asia/Dubai'
     });
 
+    // Format flight times if they exist
+    let flightInfoHtml = '';
+    if (booking.booking_type === 'airport_transfer') {
+      if (booking.flight_arrival_time || booking.flight_departure_time) {
+        flightInfoHtml = '<div style="margin-top: 15px; padding: 12px; background: #f0f9ff; border-left: 4px solid #3b82f6; border-radius: 4px;"><div style="font-size: 12px; font-weight: 600; color: #1e40af; margin-bottom: 8px;">✈️ FLIGHT INFORMATION</div>';
+        if (booking.flight_arrival_time) {
+          const arrivalDate = new Date(booking.flight_arrival_time);
+          const arrivalStr = arrivalDate.toLocaleDateString('en-AE', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Dubai' });
+          const arrivalTime = arrivalDate.toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai' });
+          flightInfoHtml += `<div style="font-size: 13px; color: #1d1d1f; margin-bottom: 6px;"><strong>Arrival:</strong> ${arrivalStr}, ${arrivalTime} (Dubai Time)</div>`;
+        }
+        if (booking.flight_departure_time) {
+          const departureDate = new Date(booking.flight_departure_time);
+          const departureStr = departureDate.toLocaleDateString('en-AE', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Dubai' });
+          const departureTime = departureDate.toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai' });
+          flightInfoHtml += `<div style="font-size: 13px; color: #1d1d1f;"><strong>Departure:</strong> ${departureStr}, ${departureTime} (Dubai Time)</div>`;
+        }
+        flightInfoHtml += '</div>';
+      }
+    }
+
     // Build journey info based on booking type
     let journeyHtml = '';
     if (booking.booking_type === 'round_trip') {
@@ -209,6 +230,7 @@ const emailTemplates = {
                 <div class="section-title">🛣️ Your Journey</div>
                 <div style="background: white;">
                   ${journeyHtml}
+                  ${flightInfoHtml}
                   <div style="margin-top: 12px; padding: 10px 0; border-top: 1px solid #f0f0f0; font-size: 13px;">
                     <strong>Distance:</strong> <span style="color: #1e3a8a; font-weight: 600;">${booking.distance_km} km</span>
                   </div>

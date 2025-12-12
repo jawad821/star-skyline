@@ -24,7 +24,9 @@ const addBookingController = {
         passengers_count,
         luggage_count,
         pickup_time,
-        notes
+        notes,
+        flight_arrival_time,
+        flight_departure_time
       } = req.body;
 
       // Validate required fields
@@ -166,14 +168,14 @@ const addBookingController = {
       const result = await query(`
         INSERT INTO bookings 
           (customer_name, customer_phone, customer_email, pickup_location, dropoff_location, 
-           distance_km, fare_aed, booking_type, vehicle_type, vehicle_model, vehicle_color, driver_id, assigned_vehicle_id, payment_method, status, booking_source, passengers_count, luggage_count, pickup_time, notes, created_at)
+           distance_km, fare_aed, booking_type, vehicle_type, vehicle_model, vehicle_color, driver_id, assigned_vehicle_id, payment_method, status, booking_source, passengers_count, luggage_count, pickup_time, notes, flight_arrival_time, flight_departure_time, created_at)
         VALUES 
-          ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
+          ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, NOW())
         RETURNING *
       `, [
         customer_name, customer_phone, customer_email || null, pickup_location,
         dropoff_location, finalDistance, fare, booking_type, vehicle_type, finalVehicleModelForBooking, finalVehicleColor || null, finalDriverId || null, finalAssignedVehicleId || null, payment_method || 'cash',
-        status || 'in-process', finalBookingSource, passengers_count, luggage_count, pickup_time || null, notes || null
+        status || 'in-process', finalBookingSource, passengers_count, luggage_count, pickup_time || null, notes || null, flight_arrival_time || null, flight_departure_time || null
       ])
 
       const booking = result.rows[0];
