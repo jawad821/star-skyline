@@ -355,6 +355,45 @@ html, body {
   font-size: 13px;
 }
 
+/* Draggable Container */
+.draggable-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.drag-handle {
+  position: relative;
+  cursor: grab;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.drag-handle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.drag-handle.sortable-ghost {
+  opacity: 0.5;
+  background: rgba(255,255,255,0.1);
+}
+
+.card-drag-indicator {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  cursor: grab;
+  color: #999;
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+.drag-handle:hover .card-drag-indicator {
+  opacity: 1;
+}
+
 /* Charts Container */
 .charts-container {
   display: grid;

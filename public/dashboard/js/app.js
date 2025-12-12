@@ -883,6 +883,9 @@ async function loadDashboard() {
     
     // Load Dashboard Charts
     await loadDashboardCharts(data);
+    
+    // Load New Feature Cards
+    await loadFeatureCards();
   } catch (e) {
     console.error('Dashboard error:', e.message, e);
   }
@@ -2827,5 +2830,80 @@ const rentalRulesNav = document.querySelector('[data-page="rental-rules"]');
 if (rentalRulesNav) {
   rentalRulesNav.addEventListener('click', function() {
     setTimeout(loadRentalRules, 100);
+  });
+}
+
+// Load new feature cards
+async function loadFeatureCards() {
+  try {
+    const [upcoming, earnings, funnels, revenueType] = await Promise.all([
+      fetch(`${API_BASE}/stats/upcoming-bookings`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()),
+      fetch(`${API_BASE}/stats/earnings-comparison`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()),
+      fetch(`${API_BASE}/stats/customer-funnels`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()),
+      fetch(`${API_BASE}/stats/revenue-by-type`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json())
+    ]);
+
+    if (upcoming.success) {
+      document.getElementById('upcoming-today').textContent = upcoming.data.today;
+      document.getElementById('upcoming-tomorrow').textContent = upcoming.data.tomorrow;
+    }
+
+    if (earnings.success) {
+      document.getElementById('earnings-today').textContent = earnings.data.today.toFixed(2);
+      document.getElementById('earnings-last-week').textContent = earnings.data.lastWeekSameDay.toFixed(2);
+      document.getElementById('earnings-this-week').textContent = earnings.data.thisWeek.toFixed(2);
+      document.getElementById('earnings-prev-week').textContent = earnings.data.lastWeek.toFixed(2);
+    }
+
+    if (funnels.success && funnels.data.length) {
+      const funnelHtml = funnels.data.map(f => {
+        const source = f.booking_source === 'bareerah_ai' ? '📱 Bareerah AI' : f.booking_source === 'manually_created' ? '👤 Manual' : f.booking_source || 'Unknown';
+        return `<div style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; font-size: 13px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span>${source}</span>
+            <span style="font-weight: 600;">${f.count} bookings</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: #666;">
+            <span>Completed: ${f.completed}</span>
+            <span>Rate: ${f.conversion_rate}%</span>
+          </div>
+        </div>`;
+      }).join('');
+      document.getElementById('customer-funnels-list').innerHTML = funnelHtml;
+    }
+
+    if (revenueType.success && revenueType.data.length) {
+      const typeHtml = revenueType.data.map(t => {
+        const icons = {'Airport Transfer': '✈️', 'Hourly Rental': '⏰', 'Point to Point': '🚗'};
+        return `<div style="padding: 10px; background: rgba(59,130,246,0.1); border-radius: 6px; margin-bottom: 8px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span style="font-weight: 600;">${icons[t.booking_type] || '📍'} ${t.booking_type}</span>
+            <span style="color: #10b981; font-weight: 700;">AED ${t.revenue.toFixed(2)}</span>
+          </div>
+          <div style="font-size: 12px; color: #666;">${t.trips} trips</div>
+        </div>`;
+      }).join('');
+      document.getElementById('revenue-by-type-list').innerHTML = typeHtml;
+    }
+
+    initDragDrop();
+  } catch (e) {
+    console.error('Error loading feature cards:', e);
+  }
+}
+
+// Initialize drag-drop
+function initDragDrop() {
+  const container = document.getElementById('featureCardsContainer');
+  if (!container) return;
+  
+  Sortable.create(container, {
+    animation: 200,
+    ghostClass: 'sortable-ghost',
+    handle: '.drag-handle',
+    onEnd: function(evt) {
+      const cardOrder = Array.from(container.querySelectorAll('[data-card-id]')).map(el => el.dataset.cardId);
+      localStorage.setItem('dashboardCardOrder', JSON.stringify(cardOrder));
+    }
   });
 }

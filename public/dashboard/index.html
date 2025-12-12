@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="css/styles.css?v=20251210" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBKM_1dVEQV4H5JFW52_j8fy0UOhH7KPdQ&libraries=places,geometry"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
   </head>
   <body>
     <div class="container">
@@ -188,6 +189,71 @@
                     <span id="stat-card">AED 0</span>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <!-- New Feature Cards (Draggable) -->
+            <div class="draggable-container" id="featureCardsContainer">
+              <div class="stat-card glass drag-handle" data-card-id="upcoming-bookings">
+                <div class="card-drag-indicator">⋮⋮</div>
+                <div class="stat-header">
+                  <div class="stat-label">📅 Upcoming Bookings</div>
+                </div>
+                <div style="padding: 15px 0;">
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="text-align: center;">
+                      <div style="font-size: 32px; font-weight: 700; color: #3b82f6;" id="upcoming-today">0</div>
+                      <div style="font-size: 12px; color: #666; margin-top: 5px;">Today</div>
+                    </div>
+                    <div style="text-align: center;">
+                      <div style="font-size: 32px; font-weight: 700; color: #f59e0b;" id="upcoming-tomorrow">0</div>
+                      <div style="font-size: 12px; color: #666; margin-top: 5px;">Tomorrow</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="stat-card glass drag-handle" data-card-id="earnings-comparison">
+                <div class="card-drag-indicator">⋮⋮</div>
+                <div class="stat-header">
+                  <div class="stat-label">💰 Earnings Comparison</div>
+                </div>
+                <div style="padding: 15px 0;">
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 13px;">
+                    <div>
+                      <div style="color: #666;">Today</div>
+                      <div style="font-size: 18px; font-weight: 700; color: #10b981; margin-top: 5px;">AED <span id="earnings-today">0</span></div>
+                    </div>
+                    <div>
+                      <div style="color: #666;">Last Week (Same Day)</div>
+                      <div style="font-size: 18px; font-weight: 700; color: #8b5cf6; margin-top: 5px;">AED <span id="earnings-last-week">0</span></div>
+                    </div>
+                    <div>
+                      <div style="color: #666;">This Week</div>
+                      <div style="font-size: 18px; font-weight: 700; color: #3b82f6; margin-top: 5px;">AED <span id="earnings-this-week">0</span></div>
+                    </div>
+                    <div>
+                      <div style="color: #666;">Last Week</div>
+                      <div style="font-size: 18px; font-weight: 700; color: #ef4444; margin-top: 5px;">AED <span id="earnings-prev-week">0</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="stat-card glass drag-handle" data-card-id="customer-funnels">
+                <div class="card-drag-indicator">⋮⋮</div>
+                <div class="stat-header">
+                  <div class="stat-label">🔗 Customer Funnels (30 Days)</div>
+                </div>
+                <div id="customer-funnels-list" style="padding: 15px 0;"></div>
+              </div>
+
+              <div class="stat-card glass drag-handle" data-card-id="revenue-by-type">
+                <div class="card-drag-indicator">⋮⋮</div>
+                <div class="stat-header">
+                  <div class="stat-label">🏆 Revenue by Booking Type (30 Days)</div>
+                </div>
+                <div id="revenue-by-type-list" style="padding: 15px 0;"></div>
               </div>
             </div>
 

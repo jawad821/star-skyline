@@ -151,6 +151,42 @@ const statsController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  async getUpcomingBookings(req, res, next) {
+    try {
+      const data = await Stats.getUpcomingBookings();
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async getEarningsComparison(req, res, next) {
+    try {
+      const data = await Stats.getEarningsComparison();
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async getCustomerFunnels(req, res, next) {
+    try {
+      const data = await Stats.getCustomerFunnels();
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async getRevenueByBookingType(req, res, next) {
+    try {
+      const data = await Stats.getRevenueByBookingType();
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
   }
 };
 

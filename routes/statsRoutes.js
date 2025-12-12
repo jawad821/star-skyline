@@ -9,5 +9,9 @@ router.get('/bookings', asyncHandler(statsController.getBookings));
 router.get('/earnings-breakdown', asyncHandler(statsController.getEarningsBreakdown));
 router.get('/vendor-earnings', asyncHandler(statsController.getVendorEarnings));
 router.get('/top-vendors', asyncHandler(statsController.getTopVendors));
+router.get('/upcoming-bookings', asyncHandler(statsController.getUpcomingBookings));
+router.get('/earnings-comparison', asyncHandler(statsController.getEarningsComparison));
+router.get('/customer-funnels', asyncHandler(statsController.getCustomerFunnels));
+router.get('/revenue-by-type', asyncHandler(statsController.getRevenueByBookingType));
 
 module.exports = router;

@@ -179,6 +179,108 @@ const Stats = {
     `, [startDate, endDate]);
 
     return result.rows;
+  },
+
+  async getUpcomingBookings() {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const tomorrowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const tomorrowEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2);
+
+    const todayResult = await query(`
+      SELECT COUNT(*) as count FROM bookings 
+      WHERE pickup_time >= $1 AND pickup_time < $2 AND status IN ('pending', 'in-process')
+    `, [todayStart, todayEnd]);
+
+    const tomorrowResult = await query(`
+      SELECT COUNT(*) as count FROM bookings 
+      WHERE pickup_time >= $1 AND pickup_time < $2 AND status IN ('pending', 'in-process')
+    `, [tomorrowStart, tomorrowEnd]);
+
+    return {
+      today: parseInt(todayResult.rows[0]?.count || 0),
+      tomorrow: parseInt(tomorrowResult.rows[0]?.count || 0)
+    };
+  },
+
+  async getEarningsComparison() {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const lastWeekSameDay = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    const thisWeekStart = new Date(today);
+    thisWeekStart.setDate(today.getDate() - today.getDay());
+    const thisWeekEnd = new Date(thisWeekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+    
+    const lastWeekStart = new Date(thisWeekStart.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const lastWeekEnd = new Date(thisWeekStart);
+
+    const todayResult = await query(`
+      SELECT COALESCE(SUM(CASE WHEN status = 'completed' THEN fare_aed ELSE 0 END), 0) as earnings
+      FROM bookings WHERE created_at >= $1 AND created_at < $2
+    `, [today.toISOString().split('T')[0], new Date(today.getTime() + 24*60*60*1000).toISOString().split('T')[0]]);
+
+    const lastWeekSameDayResult = await query(`
+      SELECT COALESCE(SUM(CASE WHEN status = 'completed' THEN fare_aed ELSE 0 END), 0) as earnings
+      FROM bookings WHERE created_at >= $1 AND created_at < $2
+    `, [lastWeekSameDay.toISOString().split('T')[0], new Date(lastWeekSameDay.getTime() + 24*60*60*1000).toISOString().split('T')[0]]);
+
+    const thisWeekResult = await query(`
+      SELECT COALESCE(SUM(CASE WHEN status = 'completed' THEN fare_aed ELSE 0 END), 0) as earnings
+      FROM bookings WHERE created_at >= $1 AND created_at < $2
+    `, [thisWeekStart.toISOString().split('T')[0], thisWeekEnd.toISOString().split('T')[0]]);
+
+    const lastWeekResult = await query(`
+      SELECT COALESCE(SUM(CASE WHEN status = 'completed' THEN fare_aed ELSE 0 END), 0) as earnings
+      FROM bookings WHERE created_at >= $1 AND created_at < $2
+    `, [lastWeekStart.toISOString().split('T')[0], lastWeekEnd.toISOString().split('T')[0]]);
+
+    return {
+      today: parseFloat(todayResult.rows[0]?.earnings || 0),
+      lastWeekSameDay: parseFloat(lastWeekSameDayResult.rows[0]?.earnings || 0),
+      thisWeek: parseFloat(thisWeekResult.rows[0]?.earnings || 0),
+      lastWeek: parseFloat(lastWeekResult.rows[0]?.earnings || 0)
+    };
+  },
+
+  async getCustomerFunnels() {
+    const result = await query(`
+      SELECT 
+        booking_source,
+        COUNT(*) as count,
+        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+        ROUND(SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) as conversion_rate
+      FROM bookings
+      WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
+      GROUP BY booking_source
+      ORDER BY count DESC
+    `, []);
+
+    return result.rows;
+  },
+
+  async getRevenueByBookingType() {
+    const result = await query(`
+      SELECT 
+        CASE 
+          WHEN pickup_location ILIKE '%airport%' OR dropoff_location ILIKE '%airport%' THEN 'Airport Transfer'
+          WHEN booking_type = 'hourly' THEN 'Hourly Rental'
+          ELSE 'Point to Point'
+        END as booking_type,
+        COUNT(*) as trips,
+        COALESCE(SUM(CASE WHEN status = 'completed' THEN fare_aed ELSE 0 END), 0) as revenue
+      FROM bookings
+      WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
+      GROUP BY CASE 
+          WHEN pickup_location ILIKE '%airport%' OR dropoff_location ILIKE '%airport%' THEN 'Airport Transfer'
+          WHEN booking_type = 'hourly' THEN 'Hourly Rental'
+          ELSE 'Point to Point'
+        END
+      ORDER BY revenue DESC
+    `, []);
+
+    return result.rows;
   }
 };
 
