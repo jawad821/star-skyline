@@ -399,12 +399,144 @@ const formController = {
     }
     .hour-option:hover { background: rgba(255, 255, 255, 0.2); color: #fff; }
     .hour-option.selected { background: rgba(255, 255, 255, 0.25); border-color: #fff; color: #fff; }
-    @media (max-width: 600px) {
-      .glass-container { padding: 30px 25px; }
-      .tabs { gap: 30px; }
-      .tab { font-size: 14px; }
-      .buttons-row { flex-direction: column; gap: 20px; }
-      .datetime-field { flex-direction: column; gap: 20px; }
+    
+    /* ===== RESPONSIVE DESIGN ===== */
+    /* MOBILE SMALL (320px - 480px) */
+    @media (max-width: 480px) {
+      body { padding: 10px; }
+      .glass-container { 
+        padding: 20px 15px; 
+        max-width: 100%;
+        border-radius: 15px;
+      }
+      .tabs { 
+        gap: 10px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .tab { 
+        font-size: 12px;
+        letter-spacing: 1px;
+        padding-bottom: 6px;
+      }
+      .form-group { margin-bottom: 18px; }
+      .form-group label { font-size: 10px; margin-bottom: 8px; }
+      .form-group input { 
+        font-size: 14px;
+        padding: 8px 0;
+      }
+      .datetime-field { flex-direction: column; gap: 15px; }
+      .datetime-field input { width: 100%; }
+      .buttons-row { 
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 25px;
+      }
+      .btn-primary, .btn-link { font-size: 12px; }
+      .btn-primary { padding-bottom: 3px; }
+      .footer-text { 
+        font-size: 12px;
+        margin-top: 20px;
+      }
+      .footer-text span { font-size: 16px; }
+      .hours-selector { gap: 8px; }
+      .hour-option { 
+        padding: 8px 12px;
+        font-size: 12px;
+        flex: 1;
+        min-width: 70px;
+      }
+      .autocomplete-suggestions { 
+        max-height: 150px;
+        font-size: 13px;
+      }
+      .autocomplete-suggestions div { padding: 10px 12px; }
+    }
+    
+    /* MOBILE MEDIUM (480px - 768px) */
+    @media (min-width: 481px) and (max-width: 768px) {
+      body { padding: 15px; }
+      .glass-container { 
+        padding: 28px 22px;
+        max-width: 100%;
+        border-radius: 18px;
+      }
+      .tabs { 
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+      .tab { 
+        font-size: 13px;
+        letter-spacing: 1.2px;
+      }
+      .form-group { margin-bottom: 20px; }
+      .form-group label { font-size: 10.5px; margin-bottom: 9px; }
+      .form-group input { 
+        font-size: 14px;
+        padding: 9px 0;
+      }
+      .datetime-field { gap: 12px; }
+      .buttons-row { 
+        flex-direction: column;
+        gap: 15px;
+        margin-top: 28px;
+      }
+      .btn-primary, .btn-link { font-size: 12.5px; }
+      .footer-text { font-size: 12.5px; }
+      .footer-text span { font-size: 17px; }
+      .hours-selector { gap: 9px; }
+      .hour-option { 
+        padding: 9px 16px;
+        font-size: 13px;
+      }
+      .autocomplete-suggestions { 
+        max-height: 180px;
+        font-size: 13.5px;
+      }
+    }
+    
+    /* TABLETS (768px - 1024px) */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      body { padding: 20px; }
+      .glass-container { 
+        padding: 35px 35px;
+        max-width: 650px;
+      }
+      .tabs { gap: 40px; }
+      .tab { font-size: 15px; }
+      .form-group { margin-bottom: 22px; }
+      .datetime-field { gap: 15px; }
+      .buttons-row { margin-top: 32px; }
+      .footer-text { font-size: 13px; }
+    }
+    
+    /* DESKTOP (1024px+) */
+    @media (min-width: 1025px) {
+      body { padding: 30px; }
+      .glass-container { 
+        padding: 40px 50px;
+        max-width: 700px;
+      }
+      .tabs { gap: 50px; }
+      .datetime-field { gap: 15px; }
+      .buttons-row { margin-top: 35px; }
+      .footer-text { font-size: 14px; }
+    }
+    
+    /* UNIVERSAL IMPROVEMENTS */
+    @media (max-width: 768px) {
+      /* Better touch targets */
+      .hour-option { min-height: 40px; display: flex; align-items: center; justify-content: center; }
+      .btn-primary, .btn-link { min-height: 44px; display: flex; align-items: center; }
+      /* Fix date/time inputs on mobile */
+      input[type="date"], input[type="time"] { font-size: 16px; }
+      /* Better autocomplete on mobile */
+      .autocomplete-suggestions { 
+        max-height: 200px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
     }
     /* Beautiful Toast Notifications */
     .toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
