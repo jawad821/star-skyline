@@ -99,14 +99,21 @@ const wordpressBookingController = {
         finalNotes += ` | WhatsApp: ${customer_whatsapp}`;
       }
 
+      // Build pickup_time timestamp from date and time
+      let pickupTimestamp = null;
+      if (pickup_date) {
+        const timeStr = pickup_time || '12:00';
+        pickupTimestamp = new Date(`${pickup_date}T${timeStr}:00`);
+      }
+
       // Create booking
       const bookingResult = await query(`
         INSERT INTO bookings (
           external_id, customer_name, customer_email, customer_phone,
           pickup_location, dropoff_location, vehicle_type, booking_type, 
           passengers_count, luggage_count, distance_km, fare_aed, 
-          payment_method, notes, booking_source, status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending')
+          payment_method, notes, booking_source, status, pickup_time
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', $16)
         RETURNING id, created_at
       `, [
         wordpress_booking_id || null,
@@ -123,7 +130,8 @@ const wordpressBookingController = {
         finalFare,
         payment_method,
         finalNotes.trim() || null,
-        'wordpress'
+        'wordpress',
+        pickupTimestamp
       ]);
 
       const bookingId = bookingResult.rows[0].id;

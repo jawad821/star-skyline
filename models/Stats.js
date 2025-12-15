@@ -117,6 +117,26 @@ const Stats = {
       paramIndex++;
     }
 
+    if (filters.search) {
+      whereClause += ` AND (LOWER(b.customer_name) LIKE $${paramIndex} OR b.customer_phone LIKE $${paramIndex} OR LOWER(b.pickup_location) LIKE $${paramIndex} OR LOWER(b.dropoff_location) LIKE $${paramIndex})`;
+      params.push('%' + filters.search.toLowerCase() + '%');
+      paramIndex++;
+    }
+
+    const page = parseInt(filters.page) || 1;
+    const limit = parseInt(filters.limit) || 20;
+    const offset = (page - 1) * limit;
+
+    const countResult = await query(`
+      SELECT COUNT(*) as total FROM bookings b
+      LEFT JOIN drivers d ON b.driver_id = d.id
+      ${whereClause}
+    `, params);
+    const total = parseInt(countResult.rows[0]?.total || 0);
+
+    params.push(limit);
+    params.push(offset);
+
     const result = await query(`
       SELECT
         b.id,
@@ -132,15 +152,25 @@ const Stats = {
         b.driver_id,
         d.name as driver_name,
         b.created_at,
-        b.updated_at
+        b.updated_at,
+        b.booking_type,
+        b.booking_source
       FROM bookings b
       LEFT JOIN drivers d ON b.driver_id = d.id
       ${whereClause}
       ORDER BY b.created_at DESC
-      LIMIT 100
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `, params);
 
-    return result.rows;
+    return {
+      bookings: result.rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
   },
 
   async getEarningsBreakdown(startDate, endDate) {

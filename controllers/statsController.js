@@ -42,7 +42,7 @@ const statsController = {
 
   async getBookings(req, res, next) {
     try {
-      const { range, start, end, status, vehicle_type } = req.query;
+      const { range, start, end, status, vehicle_type, page, limit, search } = req.query;
       let startDate, endDate;
 
       if (start && end) {
@@ -59,13 +59,14 @@ const statsController = {
         return res.status(400).json({ error: 'Provide range or start/end dates' });
       }
 
-      const filters = { status, vehicle_type };
-      const bookings = await Stats.getAllBookings(startDate, endDate, filters);
+      const filters = { status, vehicle_type, page, limit, search };
+      const result = await Stats.getAllBookings(startDate, endDate, filters);
 
       res.json({
         success: true,
         data: {
-          bookings,
+          bookings: result.bookings,
+          pagination: result.pagination,
           period: { startDate, endDate }
         }
       });

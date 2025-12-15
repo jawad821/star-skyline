@@ -4,6 +4,14 @@ const API_BASE = window.location.origin + '/api';
 let fareRules = {}; // Cache for fare rules (gets refreshed)
 let lastFareRulesFetch = 0;
 
+// Bookings Pagination State
+let bookingsPage = 1;
+let bookingsLimit = 20;
+let bookingsRange = 'today';
+let bookingsStatus = '';
+let bookingsVehicleType = '';
+let bookingsSearch = '';
+
 // Dubai Timezone Formatter
 function formatDubaiDateTime(date) {
   if (!date) return '-';
@@ -903,6 +911,7 @@ function init() {
   setupUserInfo();
   setupNavigation();
   initSidebar();
+  initBookingsFilters();
   loadDashboard();
 }
 
@@ -1608,7 +1617,13 @@ async function loadBookings() {
     const tbody = document.getElementById('bookings-table-body');
     if (tbody) tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; padding:20px;">Loading bookings...</td></tr>';
     
-    const url = getCacheBustUrl(API_BASE + '/bookings');
+    // Build URL with filters and pagination
+    let url = API_BASE + '/stats/bookings?range=' + bookingsRange + '&page=' + bookingsPage + '&limit=' + bookingsLimit;
+    if (bookingsStatus) url += '&status=' + bookingsStatus;
+    if (bookingsVehicleType) url += '&vehicle_type=' + bookingsVehicleType;
+    if (bookingsSearch) url += '&search=' + encodeURIComponent(bookingsSearch);
+    url = getCacheBustUrl(url);
+    
     const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -1618,12 +1633,16 @@ async function loadBookings() {
     const data = await response.json();
     if (!tbody) return;
     
-    if (!data.data || !data.data.length) {
+    const bookings = data.data?.bookings || [];
+    const pagination = data.data?.pagination || { page: 1, totalPages: 1, total: 0 };
+    
+    if (!bookings.length) {
       tbody.innerHTML = '<tr><td colspan="15">No bookings found</td></tr>';
+      renderBookingsPagination(pagination);
       return;
     }
     
-    tbody.innerHTML = data.data.map(b => {
+    tbody.innerHTML = bookings.map(b => {
       const driverDisplay = b.driver_name || (b.driver_id ? 'Driver assigned' : 'Unassigned');
       const statusDisplay = b.status || 'pending';
       const paymentDisplay = (b.payment_method || 'cash').toUpperCase();
@@ -1650,11 +1669,100 @@ async function loadBookings() {
       const updatedStr = formatDubaiDateTime(updatedTime);
       return '<tr data-booking-id="' + b.id + '"><td>' + b.id.substring(0, 8) + '</td><td><span style="padding: 3px 8px; border-radius: 12px; background: ' + sourceColor + '22; color: ' + sourceColor + '; font-size: 11px; font-weight: 600; white-space: nowrap;">' + sourceLabel + '</span></td><td>' + b.customer_name + '</td><td>' + b.customer_phone + '</td><td>' + b.pickup_location + '</td><td>' + b.dropoff_location + '</td><td>' + b.distance_km + '</td><td>' + bookingTypeIcon + '</td><td>AED ' + (b.fare_aed || b.total_fare || 0) + '</td><td>' + driverDisplay + '</td><td>' + paymentDisplay + '</td><td>' + statusDisplay + '</td><td style="font-size: 12px;">' + createdStr + '</td><td style="font-size: 12px;">' + updatedStr + '</td><td><button onclick="viewBooking(\'' + b.id + '\')" class="btn-small">View</button> <button onclick="editBooking(\'' + b.id + '\')" class="btn-small">Edit</button></td></tr>';
     }).join('');
+    
+    renderBookingsPagination(pagination);
   } catch (e) {
     const tbody = document.getElementById('bookings-table-body');
     if (tbody) tbody.innerHTML = '<tr><td colspan="15" style="color:red;">Error loading bookings: ' + e.message + '</td></tr>';
     console.error('Bookings error:', e.message, e);
   }
+}
+
+function renderBookingsPagination(pagination) {
+  const container = document.getElementById('bookingsPagination');
+  if (!container) return;
+  
+  const { page, totalPages, total } = pagination;
+  const start = (page - 1) * bookingsLimit + 1;
+  const end = Math.min(page * bookingsLimit, total);
+  
+  let html = '<div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #f9fafb; border-radius: 8px; margin-top: 15px;">';
+  html += '<div style="color: #6b7280; font-size: 14px;">Showing ' + start + '-' + end + ' of ' + total + ' bookings</div>';
+  html += '<div style="display: flex; gap: 8px; align-items: center;">';
+  
+  // Previous button
+  if (page > 1) {
+    html += '<button onclick="goToBookingsPage(' + (page - 1) + ')" class="btn btn-small" style="padding: 8px 16px;">← Previous</button>';
+  } else {
+    html += '<button disabled class="btn btn-small" style="padding: 8px 16px; opacity: 0.5; cursor: not-allowed;">← Previous</button>';
+  }
+  
+  // Page numbers
+  html += '<span style="padding: 0 12px; font-weight: 600;">Page ' + page + ' of ' + totalPages + '</span>';
+  
+  // Next button
+  if (page < totalPages) {
+    html += '<button onclick="goToBookingsPage(' + (page + 1) + ')" class="btn btn-small btn-primary" style="padding: 8px 16px;">Next →</button>';
+  } else {
+    html += '<button disabled class="btn btn-small" style="padding: 8px 16px; opacity: 0.5; cursor: not-allowed;">Next →</button>';
+  }
+  
+  html += '</div></div>';
+  container.innerHTML = html;
+}
+
+function goToBookingsPage(page) {
+  bookingsPage = page;
+  loadBookings();
+}
+
+function setBookingsRange(range) {
+  bookingsRange = range;
+  bookingsPage = 1;
+  loadBookings();
+}
+
+function initBookingsFilters() {
+  const statusFilter = document.getElementById('statusFilter');
+  const vehicleFilter = document.getElementById('vehicleFilter');
+  const searchInput = document.getElementById('bookingSearch');
+  const rangeButtons = document.querySelectorAll('#page-bookings .filter-btn[data-range]');
+  
+  if (statusFilter) {
+    statusFilter.addEventListener('change', () => {
+      bookingsStatus = statusFilter.value;
+      bookingsPage = 1;
+      loadBookings();
+    });
+  }
+  
+  if (vehicleFilter) {
+    vehicleFilter.addEventListener('change', () => {
+      bookingsVehicleType = vehicleFilter.value;
+      bookingsPage = 1;
+      loadBookings();
+    });
+  }
+  
+  if (searchInput) {
+    let searchTimeout;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        bookingsSearch = searchInput.value;
+        bookingsPage = 1;
+        loadBookings();
+      }, 300);
+    });
+  }
+  
+  rangeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      rangeButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      setBookingsRange(btn.dataset.range);
+    });
+  });
 }
 
 
