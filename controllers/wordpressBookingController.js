@@ -141,12 +141,14 @@ const wordpressBookingController = {
       let assignedVehicle = null;
       try {
         const vehicleResult = await query(`
-          SELECT v.id, v.model, v.color, v.driver_id, v.vendor_id
+          SELECT v.id, v.model, v.color, v.driver_id, v.vendor_id, d.name as driver_name
           FROM vehicles v
-          WHERE v.vehicle_type = $1 AND v.status = 'available'
-          ORDER BY v.created_at ASC
+          LEFT JOIN drivers d ON v.driver_id = d.id
+          WHERE v.type = $1 AND v.status = 'available' AND v.active = true
+            AND v.max_passengers >= $2 AND v.max_luggage >= $3
+          ORDER BY v.per_km_price ASC
           LIMIT 1
-        `, [vehicle_type]);
+        `, [vehicle_type.toLowerCase(), passengers_count, luggage_count]);
 
         if (vehicleResult.rows.length > 0) {
           const vehicle = vehicleResult.rows[0];
@@ -154,18 +156,24 @@ const wordpressBookingController = {
             id: vehicle.id,
             model: vehicle.model,
             color: vehicle.color,
-            driver_id: vehicle.driver_id
+            driver_id: vehicle.driver_id,
+            driver_name: vehicle.driver_name
           };
 
-          // Update booking with vehicle assignment
+          // Update booking with vehicle assignment including model, color, and driver
           await query(`
             UPDATE bookings
-            SET assigned_vehicle_id = $1, status = 'assigned'
-            WHERE id = $2
-          `, [vehicle.id, bookingId]);
+            SET assigned_vehicle_id = $1, vehicle_model = $2, vehicle_color = $3, 
+                driver_id = $4, status = 'assigned'
+            WHERE id = $5
+          `, [vehicle.id, vehicle.model, vehicle.color, vehicle.driver_id, bookingId]);
 
           // Mark vehicle as on trip
           await query('UPDATE vehicles SET status = $1 WHERE id = $2', ['on_trip', vehicle.id]);
+          
+          console.log(`✅ Auto-assigned vehicle ${vehicle.model} (${vehicle.color}) to booking ${bookingId}`);
+        } else {
+          console.log(`⚠️ No available ${vehicle_type} vehicle found for ${passengers_count} passengers, ${luggage_count} luggage`);
         }
       } catch (e) {
         console.log('⚠️  Auto-assignment failed:', e.message);
