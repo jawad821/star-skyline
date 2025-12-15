@@ -138,3 +138,29 @@ The application is built on an MVC (Model-View-Controller) architecture using Ex
 - URL: `/driver-login.html`
 - Email: `driver@example.com`
 - Password: `driver123`
+
+## Booking Panel Improvements (December 15, 2025)
+
+### Pagination
+- Bookings panel now has pagination (20 bookings per page)
+- Previous/Next buttons with page counter
+- Shows "Showing X-Y of Z bookings"
+- Page resets when filters change
+
+### Filters
+- Status filter now connected (Pending, In Process, Completed, Cancelled)
+- Vehicle type filter now connected (Sedan, SUV, Luxury, Van, Bus, Mini Bus)
+- Search box filters by customer name, phone, pickup/dropoff location
+- Date range buttons (Today, Yesterday, Week, Month) now functional
+
+### Bug Fixes
+- **pickup_time** now correctly saved from website form to database
+- **Vehicle colors** - All vehicles now have colors assigned (no more N/A)
+- **API optimization** - Uses `/api/stats/bookings` with pagination parameters
+
+### Technical Changes
+- `models/Stats.js` - getAllBookings supports pagination (page, limit, offset) and search
+- `controllers/statsController.js` - Accepts page, limit, search query params
+- `controllers/wordpressBookingController.js` - Saves pickup_time to database
+- `public/dashboard/js/app.js` - initBookingsFilters() connects dropdowns, renderBookingsPagination()
+- `public/dashboard/index.html` - Added bookingsPagination div
