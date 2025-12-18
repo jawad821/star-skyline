@@ -1,3 +1,34 @@
+
+function updateUAEClock() {
+  // Check if clock elements exist before trying to update them
+  const secondElem = document.getElementById("uaeSecond");
+  const minuteElem = document.getElementById("uaeMinute");
+  const hourElem = document.getElementById("uaeHour");
+  
+  if (!secondElem || !minuteElem || !hourElem) return; // Elements don't exist, skip
+  
+  const now = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Dubai" })
+  );
+
+  const seconds = now.getSeconds();
+  const minutes = now.getMinutes();
+  const hours = now.getHours() % 12;
+
+  const secondDeg = seconds * 6;
+  const minuteDeg = minutes * 6 + seconds * 0.1;
+  const hourDeg = hours * 30 + minutes * 0.5;
+
+  secondElem.style.transform = `rotate(${secondDeg}deg)`;
+  minuteElem.style.transform = `rotate(${minuteDeg}deg)`;
+  hourElem.style.transform = `rotate(${hourDeg}deg)`;
+}
+
+updateUAEClock();
+setInterval(updateUAEClock, 1000);
+
+
+
 // Global State
 let currentRange = 'today';
 const API_BASE = window.location.origin + '/api';
