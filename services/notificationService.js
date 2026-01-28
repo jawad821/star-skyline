@@ -1,196 +1,620 @@
+const logger = require('../utils/logger');
+let fetchImpl = global.fetch;
+if (!fetchImpl) {
+  try {
+    // prefer node-fetch if running on older Node
+    // eslint-disable-next-line global-require
+    fetchImpl = require('node-fetch');
+  } catch (e) {
+    fetchImpl = undefined;
+  }
+}
+
+let nodemailer;
+try {
+  nodemailer = require('nodemailer');
+} catch (e) {
+  nodemailer = null;
+}
+
+const { WHATSAPP_API_TOKEN, WHATSAPP_PHONE_ID, RESEND_API_KEY, RESEND_FROM_EMAIL } = require('../config/env');
+const emailService = require('../utils/emailService');
+const emailTemplates = require('../utils/emailTemplates');
 const Notification = require('../models/Notification');
+const { query } = require('../config/db');
+const fs = require('fs');
+const path = require('path');
 
-// WhatsApp Notification Functions
-const sendWhatsAppToCustomer = async (phone, bookingData) => {
-  const message = `
-🚖 Booking Confirmed!
-Booking ID: #${bookingData.id}
-Pickup: ${bookingData.pickup_location}
-Dropoff: ${bookingData.dropoff_location}
-Fare: AED ${bookingData.fare_aed}
-Driver: ${bookingData.driver_name}
-Driver Phone: ${bookingData.driver_phone}
-Vehicle: ${bookingData.vehicle_model || 'N/A'} (${bookingData.vehicle_color || 'N/A'})
-Plate: ${bookingData.plate_number || 'N/A'}
+function logDebug(message) {
+  try {
+    const logPath = path.join(__dirname, '..', 'whatsapp_debug.txt');
+    const timestamp = new Date().toISOString();
+    fs.appendFileSync(logPath, `[${timestamp}] ${message}\n`);
+  } catch (e) {
+    // ignore
+  }
+}
 
-Track your ride: [Link coming soon]
-  `.trim();
+// Helper to get WhatsApp settings from DB or Env
+async function getWhatsAppConfig() {
+  try {
+    const result = await query("SELECT setting_key, setting_value FROM settings WHERE category = 'whatsapp'");
+    const settings = {};
+    result.rows.forEach(row => {
+      // Trim values to avoid whitespace issues
+      settings[row.setting_key] = (row.setting_value || '').trim();
+    });
 
-  console.log(`📱 WhatsApp → ${phone}: ${message}`);
-  
-  await Notification.logNotification({
-    recipient_type: 'customer',
-    recipient_phone: phone,
-    channel: 'whatsapp',
-    template_id: 'booking_confirmation',
-    content: message,
-    status: 'sent',
-    metadata: { booking_id: bookingData.id }
-  });
-};
+    logDebug(`Found Settings - Provider: '${settings.whatsapp_provider}', PhoneID: '${settings.whatsapp_phone_number_id}', TokenPrefix: ${settings.whatsapp_access_token ? settings.whatsapp_access_token.substring(0, 5) : 'NONE'}`);
 
-const sendWhatsAppToDriver = async (phone, bookingData) => {
-  const message = `
-🎯 New Booking Assigned!
-Booking ID: #${bookingData.id}
-Customer: ${bookingData.customer_name}
-Customer Phone: ${bookingData.customer_phone}
-Pickup: ${bookingData.pickup_location}
-Dropoff: ${bookingData.dropoff_location}
-Distance: ${bookingData.distance_km} km
-Estimated Fare: AED ${bookingData.fare_aed}
-Car: ${bookingData.vehicle_type.toUpperCase()}
-  `.trim();
+    if (settings.whatsapp_provider === 'meta' && settings.whatsapp_access_token && settings.whatsapp_phone_number_id) {
+      logDebug(`Using DB Configuration. ID: ${settings.whatsapp_phone_number_id}`);
+      return {
+        token: settings.whatsapp_access_token,
+        phoneId: settings.whatsapp_phone_number_id,
+        configured: true
+      };
+    }
+  } catch (err) {
+    logDebug(`DB Fetch Error: ${err.message}`);
+    logger.error('Failed to fetch WhatsApp settings from DB:', err);
+  }
 
-  console.log(`📱 WhatsApp → ${phone}: ${message}`);
-  
-  await Notification.logNotification({
-    recipient_type: 'driver',
-    recipient_phone: phone,
-    channel: 'whatsapp',
-    template_id: 'booking_assigned',
-    content: message,
-    status: 'sent',
-    metadata: { booking_id: bookingData.id }
-  });
-};
+  // Fallback to env
+  logDebug(`Fallback to Env - PhoneID: ${WHATSAPP_PHONE_ID}`);
+  return {
+    token: WHATSAPP_API_TOKEN,
+    phoneId: WHATSAPP_PHONE_ID,
+    configured: !!(WHATSAPP_API_TOKEN && WHATSAPP_PHONE_ID)
+  };
+}
 
-const sendWhatsAppToAdmin = async (bookingData) => {
-  const message = `
-📊 New Booking Alert!
-Booking ID: #${bookingData.id}
-Customer: ${bookingData.customer_name}
-Driver: ${bookingData.driver_name}
-Vehicle: ${bookingData.vehicle_type.toUpperCase()}
-Fare: AED ${bookingData.fare_aed}
-Status: ${bookingData.status}
-  `.trim();
+// Helper to sanitize phone number (remove + and non-digits)
+function sanitizePhone(phone) {
+  if (!phone) return '';
+  return phone.toString().replace(/\D/g, '');
+}
 
-  console.log(`📱 WhatsApp → Admin: ${message}`);
-  
-  await Notification.logNotification({
-    recipient_type: 'admin',
-    channel: 'whatsapp',
-    template_id: 'booking_alert',
-    content: message,
-    status: 'sent',
-    metadata: { booking_id: bookingData.id }
-  });
-};
+async function sendWhatsAppMessage(to, text) {
+  try {
+    const config = await getWhatsAppConfig();
+    const cleanTo = sanitizePhone(to);
 
-// Email Notification Functions
-const sendEmailToCustomer = async (email, bookingData) => {
-  const subject = `Booking Confirmation #${bookingData.id}`;
-  const content = `
-Dear ${bookingData.customer_name},
+    if (!config.configured) {
+      logger.warn('WhatsApp API not configured - message not sent (test mode)');
+      return { success: true, message: 'WhatsApp would be sent (not configured)', preview: text };
+    }
 
-Your booking has been confirmed!
+    if (!fetchImpl) {
+      logger.warn('Fetch not available in runtime - cannot send WhatsApp');
+      return { success: false, error: 'Fetch not available' };
+    }
 
-Booking Details:
-- Booking ID: #${bookingData.id}
-- Pickup: ${bookingData.pickup_location}
-- Dropoff: ${bookingData.dropoff_location}
-- Distance: ${bookingData.distance_km} km
-- Vehicle Type: ${bookingData.vehicle_type.toUpperCase()}
-- Vehicle Model: ${bookingData.vehicle_model || 'N/A'}
-- Vehicle Color: ${bookingData.vehicle_color || 'N/A'}
-- License Plate: ${bookingData.plate_number || 'N/A'}
-- Total Fare: AED ${bookingData.fare_aed}
-- Driver: ${bookingData.driver_name}
-- Driver Phone: ${bookingData.driver_phone}
+    const url = `https://graph.facebook.com/v22.0/${config.phoneId}/messages`;
+    const body = {
+      messaging_product: 'whatsapp',
+      to: cleanTo,
+      type: 'text',
+      text: { preview_url: false, body: text }
+    };
 
-Your ride is on its way!
+    const resp = await fetchImpl(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${config.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
 
-Best regards,
-Bareerah Limo Service
-  `.trim();
+    const json = await resp.json();
+    if (!resp.ok) throw new Error(JSON.stringify(json));
+    logger.info(`WhatsApp sent to ${cleanTo}`);
+    return { success: true, result: json };
+  } catch (error) {
+    logger.error('WhatsApp send failed:', error && error.message ? error.message : error);
+    return { success: false, error: error.message || String(error) };
+  }
+}
 
-  console.log(`📧 Email → ${email}: ${subject}`);
-  
-  await Notification.logNotification({
-    recipient_type: 'customer',
-    recipient_email: email,
-    channel: 'email',
-    template_id: 'booking_confirmation_email',
-    content: content,
-    status: 'sent',
-    metadata: { booking_id: bookingData.id }
-  });
-};
+async function sendWhatsAppTemplate(to, templateName, languageCode = 'en_US', components = []) {
+  try {
+    const config = await getWhatsAppConfig();
+    const cleanTo = sanitizePhone(to);
 
-const sendEmailToDriver = async (email, bookingData) => {
-  const subject = `New Booking Assigned #${bookingData.id}`;
-  const content = `
-Dear ${bookingData.driver_name},
+    if (!config.configured) {
+      logger.warn('WhatsApp API not configured - template not sent (test mode)');
+      return { success: true, message: 'WhatsApp template would be sent (not configured)', preview: templateName };
+    }
 
-You have been assigned a new booking!
+    if (!fetchImpl) {
+      logger.warn('Fetch not available in runtime - cannot send WhatsApp');
+      return { success: false, error: 'Fetch not available' };
+    }
 
-Booking Details:
-- Booking ID: #${bookingData.id}
-- Customer: ${bookingData.customer_name}
-- Customer Phone: ${bookingData.customer_phone}
-- Pickup: ${bookingData.pickup_location}
-- Dropoff: ${bookingData.dropoff_location}
-- Distance: ${bookingData.distance_km} km
-- Estimated Fare: AED ${bookingData.fare_aed}
+    const url = `https://graph.facebook.com/v22.0/${config.phoneId}/messages`;
 
-Please confirm your acceptance in the driver app.
+    // Construct the template object
+    const templateObj = {
+      name: templateName,
+      language: {
+        code: languageCode
+      }
+    };
 
-Best regards,
-Bareerah Admin
-  `.trim();
+    if (components && components.length > 0) {
+      templateObj.components = components;
+    }
 
-  console.log(`📧 Email → ${email}: ${subject}`);
-  
-  await Notification.logNotification({
-    recipient_type: 'driver',
-    recipient_email: email,
-    channel: 'email',
-    template_id: 'booking_assigned_email',
-    content: content,
-    status: 'sent',
-    metadata: { booking_id: bookingData.id }
-  });
-};
+    const body = {
+      messaging_product: 'whatsapp',
+      to: cleanTo,
+      type: 'template',
+      template: templateObj
+    };
 
-const sendEmailToAdmin = async (email, bookingData) => {
-  const subject = `New Booking: #${bookingData.id} - ${bookingData.customer_name}`;
-  const content = `
-New booking created in the system.
+    const resp = await fetchImpl(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${config.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
 
-Booking Details:
-- Booking ID: #${bookingData.id}
-- Customer: ${bookingData.customer_name} (${bookingData.customer_phone})
-- Driver: ${bookingData.driver_name}
-- Vehicle: ${bookingData.vehicle_type.toUpperCase()}
-- Pickup: ${bookingData.pickup_location}
-- Dropoff: ${bookingData.dropoff_location}
-- Distance: ${bookingData.distance_km} km
-- Fare: AED ${bookingData.fare_aed}
-- Payment: ${bookingData.payment_method}
-- Status: ${bookingData.status}
+    const json = await resp.json();
+    if (!resp.ok) throw new Error(JSON.stringify(json));
+    logger.info(`WhatsApp template '${templateName}' sent to ${cleanTo}`);
+    return { success: true, result: json };
+  } catch (error) {
+    logger.error('WhatsApp template send failed:', error && error.message ? error.message : error);
+    return { success: false, error: error.message || String(error) };
+  }
+}
 
-Manage from dashboard: [Dashboard Link]
-  `.trim();
+async function sendWhatsAppToCustomer(phone, booking) {
+  try {
+    // Use approved template instead of plain text
+    const components = [{
+      type: "body",
+      parameters: [
+        { type: "text", text: booking.customer_name || "Customer" },
+        { type: "text", text: booking.pickup_location || "N/A" },
+        { type: "text", text: booking.dropoff_location || "N/A" },
+        { type: "text", text: booking.pickup_datetime || new Date().toLocaleString() },
+        { type: "text", text: booking.vehicle_model || booking.vehicle_type || "Standard" },
+        { type: "text", text: booking.fare_aed || booking.total_fare || "0" },
+        { type: "text", text: booking.id ? booking.id.substring(0, 8).toUpperCase() : "N/A" }
+      ]
+    }];
 
-  console.log(`📧 Email → ${email}: ${subject}`);
-  
-  await Notification.logNotification({
-    recipient_type: 'admin',
-    recipient_email: email,
-    channel: 'email',
-    template_id: 'booking_alert_email',
-    content: content,
-    status: 'sent',
-    metadata: { booking_id: bookingData.id }
-  });
-};
+    const resp = await sendWhatsAppTemplate(phone, 'booking_confirmed_customer', 'en', components);
+
+    // log notification
+    try {
+      await Notification.logNotification({
+        recipient_type: 'customer',
+        recipient_phone: phone,
+        channel: 'whatsapp',
+        template_id: 'booking_confirmed_customer',
+        content: JSON.stringify(components),
+        status: resp.success ? 'sent' : 'failed',
+        metadata: { booking_id: booking.id }
+      });
+    } catch (e) {
+      logger.error('Notification log error (customer whatsapp):', e);
+    }
+    return resp;
+  } catch (error) {
+    logger.error('sendWhatsAppToCustomer error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function sendDriverAssignedNotification(booking, driver, vehicle = null) {
+  try {
+    const phone = booking.customer_phone;
+    if (!phone) return { success: false, error: 'No customer phone' };
+
+    let vehicleInfo = booking.vehicle_model || "Standard";
+    if (vehicle) {
+      vehicleInfo = `${vehicle.model} - ${vehicle.color} (${vehicle.plate_number})`;
+    }
+
+    const components = [{
+      type: "body",
+      parameters: [
+        { type: "text", text: booking.customer_name || "Customer" },             // {{1}}
+        { type: "text", text: driver.name || "Driver" },                         // {{2}}
+        { type: "text", text: driver.phone || "N/A" },                           // {{3}}
+        { type: "text", text: vehicleInfo },                                     // {{4}}
+        { type: "text", text: booking.pickup_datetime || new Date(booking.created_at).toLocaleString() }, // {{5}}
+        { type: "text", text: booking.pickup_location || "N/A" }                 // {{6}}
+      ]
+    }];
+
+    const resp = await sendWhatsAppTemplate(phone, 'driver_assigned_customer', 'en', components);
+
+    try {
+      if (Notification && Notification.logNotification) {
+        await Notification.logNotification({
+          recipient_type: 'customer',
+          recipient_phone: phone,
+          channel: 'whatsapp',
+          template_id: 'driver_assigned_customer',
+          content: JSON.stringify(components),
+          status: resp.success ? 'sent' : 'failed',
+          metadata: { booking_id: booking.id, driver_id: driver.id }
+        });
+      }
+    } catch (e) {
+      logger.error('Notification log error (driver assigned):', e);
+    }
+    return resp;
+  } catch (error) {
+    logger.error('sendDriverAssignedNotification error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function sendTripCompletedNotification(booking, driver) {
+  try {
+    const phone = booking.customer_phone;
+    if (!phone) return { success: false, error: 'No customer phone' };
+
+    const components = [{
+      type: "body",
+      parameters: [
+        { type: "text", text: booking.customer_name || "Customer" },             // {{1}}
+        { type: "text", text: booking.id ? booking.id.substring(0, 8).toUpperCase() : "N/A" }, // {{2}}
+        { type: "text", text: booking.vehicle_model || "Standard" },             // {{3}}
+        { type: "text", text: driver ? driver.name : "Driver" }                  // {{4}}
+      ]
+    }];
+
+    const resp = await sendWhatsAppTemplate(phone, 'trip_completed_customer', 'en', components);
+
+    try {
+      await Notification.logNotification({
+        recipient_type: 'customer',
+        recipient_phone: phone,
+        channel: 'whatsapp',
+        template_id: 'trip_completed_customer',
+        content: JSON.stringify(components),
+        status: resp.success ? 'sent' : 'failed',
+        metadata: { booking_id: booking.id }
+      });
+    } catch (e) {
+      logger.error('Notification log error (trip completed):', e);
+    }
+    return resp;
+  } catch (error) {
+    logger.error('sendTripCompletedNotification error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function sendWhatsAppToDriver(phone, booking) {
+  try {
+    // Use approved template for driver (requires 9 parameters)
+    // Generate map URL from pickup location
+    let mapUrl = 'https://maps.google.com';
+    if (booking.pickup_location) {
+      mapUrl = `https://maps.google.com/?q=${encodeURIComponent(booking.pickup_location)}`;
+    }
+
+    const components = [{
+      type: "body",
+      parameters: [
+        { type: "text", text: booking.driver_name || "Driver" },                    // {{1}}
+        { type: "text", text: booking.pickup_location || "N/A" },                   // {{2}}
+        { type: "text", text: booking.dropoff_location || "N/A" },                  // {{3}}
+        { type: "text", text: booking.pickup_datetime || new Date().toLocaleString() }, // {{4}}
+        { type: "text", text: booking.customer_name || "Customer" },                // {{5}}
+        { type: "text", text: booking.customer_phone || "N/A" },                    // {{6}}
+        { type: "text", text: booking.vehicle_model || booking.vehicle_type || "Standard" }, // {{7}}
+        { type: "text", text: booking.id ? booking.id.substring(0, 8).toUpperCase() : "N/A" }, // {{8}}
+        { type: "text", text: mapUrl }                                              // {{9}}
+      ]
+    }];
+
+    const resp = await sendWhatsAppTemplate(phone, 'booking_assigned_driver', 'en', components);
+
+    try {
+      await Notification.logNotification({
+        recipient_type: 'driver',
+        recipient_phone: phone,
+        channel: 'whatsapp',
+        template_id: 'booking_assigned_driver',
+        content: JSON.stringify(components),
+        status: resp.success ? 'sent' : 'failed',
+        metadata: { booking_id: booking.id }
+      });
+    } catch (e) {
+      logger.error('Notification log error (driver whatsapp):', e);
+    }
+    return resp;
+  } catch (error) {
+    logger.error('sendWhatsAppToDriver error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function sendWhatsAppToAdmin(booking) {
+  try {
+    const adminNumber = process.env.ADMIN_WHATSAPP || '';
+    const text = `New booking: ${booking.id.substring(0, 8).toUpperCase()} - ${booking.customer_name} - ${booking.pickup_location} -> ${booking.dropoff_location}`;
+    if (!adminNumber) {
+      logger.warn('No ADMIN_WHATSAPP configured');
+      return { success: true, message: 'Admin WhatsApp not configured' };
+    }
+    const resp = await sendWhatsAppMessage(adminNumber, text);
+    try {
+      await Notification.logNotification({
+        recipient_type: 'admin',
+        recipient_phone: adminNumber,
+        channel: 'whatsapp',
+        template_id: 'booking_alert',
+        content: text,
+        status: resp.success ? 'sent' : 'failed',
+        metadata: { booking_id: booking.id }
+      });
+    } catch (e) {
+      logger.error('Notification log error (admin whatsapp):', e);
+    }
+    return resp;
+  } catch (error) {
+    logger.error('sendWhatsAppToAdmin error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function sendEmailToCustomer(toEmail, booking) {
+  try {
+    const resp = await emailService.sendCustomerNotification(booking, null);
+    try {
+      await Notification.logNotification({
+        recipient_type: 'customer',
+        recipient_email: toEmail,
+        channel: 'email',
+        template_id: 'booking_confirmation_email',
+        content: `Booking confirmation sent to ${toEmail}`,
+        status: resp.success ? 'sent' : 'failed',
+        metadata: { booking_id: booking.id }
+      });
+    } catch (e) {
+      logger.error('Notification log error (customer email):', e);
+    }
+    return resp;
+  } catch (error) {
+    logger.error('sendEmailToCustomer error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function sendEmailToDriver(driverEmail, booking) {
+  try {
+    if (!driverEmail) {
+      logger.warn('No driver email configured');
+      return { success: false, error: 'No driver email' };
+    }
+    if (!RESEND_API_KEY) {
+      logger.warn('Resend API key not configured - driver email not sent (test mode)');
+      return { success: true, message: 'Driver email would be sent (Resend API key not configured)' };
+    }
+
+    const template = emailTemplates.bookingConfirmation(booking, null);
+
+    // Primary: SMTP
+    const smtpHost = process.env.SMTP_HOST;
+    try {
+      if (nodemailer && smtpHost) {
+        const transporter = nodemailer.createTransport({
+          host: smtpHost,
+          port: parseInt(process.env.SMTP_PORT || '465', 10),
+          secure: (process.env.SMTP_SECURE === 'true' || process.env.SMTP_SECURE === 'TRUE'),
+          auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined
+        });
+
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM || 'info@booking.digitalmindsdemo.com',
+          to: driverEmail,
+          subject: template.subject,
+          html: template.html
+        });
+
+        logger.info(`Driver email sent to ${driverEmail} via SMTP`);
+
+        try {
+          await Notification.logNotification({
+            recipient_type: 'driver',
+            recipient_email: driverEmail,
+            channel: 'email',
+            template_id: 'booking_assigned_email',
+            content: `Driver email sent to ${driverEmail}`,
+            status: 'sent',
+            metadata: { booking_id: booking.id }
+          });
+        } catch (e) {
+          logger.error('Notification log error (driver email):', e);
+        }
+        return { success: true, message: 'Email sent via SMTP' };
+      }
+    } catch (smtpError) {
+      logger.error(`SMTP failed, trying Resend: ${smtpError.message}`);
+    }
+
+    if (!fetchImpl) {
+      logger.warn('Fetch not available - cannot send driver email');
+      return { success: false, error: 'Fetch not available' };
+    }
+
+    const resp = await fetchImpl('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: RESEND_FROM_EMAIL,
+        to: driverEmail,
+        subject: template.subject,
+        html: template.html
+      })
+    });
+
+    const json = await resp.json();
+    if (!resp.ok) throw new Error(json.message || 'Failed to send driver email');
+    logger.info(`Driver email sent to ${driverEmail}`);
+    try {
+      await Notification.logNotification({
+        recipient_type: 'driver',
+        recipient_email: driverEmail,
+        channel: 'email',
+        template_id: 'booking_assigned_email',
+        content: `Driver email sent to ${driverEmail}`,
+        status: 'sent',
+        metadata: { booking_id: booking.id }
+      });
+    } catch (e) {
+      logger.error('Notification log error (driver email):', e);
+    }
+    return { success: true, result: json };
+  } catch (error) {
+    logger.error('sendEmailToDriver error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function sendEmailToAdmin(booking) {
+  try {
+    const resp = await emailService.sendAdminNotification(booking, null);
+    try {
+      await Notification.logNotification({
+        recipient_type: 'admin',
+        recipient_email: process.env.ADMIN_EMAIL || null,
+        channel: 'email',
+        template_id: 'booking_alert_email',
+        content: `Admin email sent for booking ${booking.id}`,
+        status: resp.success ? 'sent' : 'failed',
+        metadata: { booking_id: booking.id }
+      });
+    } catch (e) {
+      logger.error('Notification log error (admin email):', e);
+    }
+    return resp;
+  } catch (error) {
+    logger.error('sendEmailToAdmin error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function sendDriverApprovalNotification(driver) {
+  try {
+    const text = `Hello ${driver.name}, your driver account has been approved. You can now log in and receive bookings.`;
+    await sendWhatsAppMessage(driver.phone, text);
+    if (driver.email) {
+      const template = {
+        subject: 'Driver Account Approved',
+        html: `<p>Hello ${driver.name},</p><p>Your driver account has been <strong>approved</strong>. You can now log in.</p>`
+      };
+
+      // Primary: SMTP
+      let sentViaSmtp = false;
+      const smtpHost = process.env.SMTP_HOST;
+      try {
+        if (nodemailer && smtpHost) {
+          const transporter = nodemailer.createTransport({
+            host: smtpHost,
+            port: parseInt(process.env.SMTP_PORT || '465', 10),
+            secure: (process.env.SMTP_SECURE === 'true' || process.env.SMTP_SECURE === 'TRUE'),
+            auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined
+          });
+
+          await transporter.sendMail({
+            from: process.env.SMTP_FROM || 'info@booking.digitalmindsdemo.com',
+            to: driver.email,
+            subject: template.subject,
+            html: template.html
+          });
+          logger.info(`Driver approval email sent to ${driver.email} via SMTP`);
+          sentViaSmtp = true;
+        }
+      } catch (smtpError) {
+        logger.error(`SMTP failed, trying Resend: ${smtpError.message}`);
+      }
+
+      if (!sentViaSmtp && RESEND_API_KEY) {
+        if (!fetchImpl) {
+          logger.warn('Fetch not available - cannot send approval email');
+        } else {
+          const resp = await fetchImpl('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ from: RESEND_FROM_EMAIL, to: driver.email, subject: template.subject, html: template.html })
+          });
+          const json = await resp.json();
+          if (!resp.ok) throw new Error(json.message || 'Failed to send approval email');
+        }
+      } else {
+        logger.warn('Resend API not configured - approval email not sent (test mode)');
+      }
+    }
+    try {
+      await Notification.logNotification({
+        recipient_type: 'driver',
+        recipient_phone: driver.phone,
+        recipient_email: driver.email || null,
+        channel: 'whatsapp',
+        template_id: 'driver_approved',
+        content: text,
+        status: 'sent',
+        metadata: {}
+      });
+    } catch (e) {
+      logger.error('Notification log error (driver approval):', e);
+    }
+    return { success: true };
+  } catch (error) {
+    logger.error('sendDriverApprovalNotification error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function sendWordPressBookingAdminEmail(booking, vehicle) {
+  try {
+    const resp = await emailService.sendWordPressBookingNotification(booking, vehicle);
+    try {
+      await Notification.logNotification({
+        recipient_type: 'admin',
+        recipient_email: process.env.ADMIN_EMAIL || 'multiple_recipients',
+        channel: 'email',
+        template_id: 'wordpress_booking_alert',
+        content: `WordPress booking email sent for ${booking.id}`,
+        status: resp.success ? 'sent' : 'failed',
+        metadata: { booking_id: booking.id }
+      });
+    } catch (e) {
+      logger.error('Notification log error (wordpress admin email):', e);
+    }
+    return resp;
+  } catch (error) {
+    logger.error('sendWordPressBookingAdminEmail error:', error);
+    return { success: false, error: error.message };
+  }
+}
 
 module.exports = {
+  sendWhatsAppMessage,
+  sendWhatsAppTemplate,
   sendWhatsAppToCustomer,
   sendWhatsAppToDriver,
   sendWhatsAppToAdmin,
   sendEmailToCustomer,
   sendEmailToDriver,
-  sendEmailToAdmin
+  sendEmailToAdmin,
+  sendDriverApprovalNotification,
+  sendWordPressBookingAdminEmail,
+  sendDriverAssignedNotification,
+  sendTripCompletedNotification
 };

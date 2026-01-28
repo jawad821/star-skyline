@@ -1,0 +1,241 @@
+{
+  "data": [
+    {
+      "name": "booking_cancelled_customer",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "Booking Cancelled"
+        },
+        {
+          "type": "BODY",
+          "text": "Hello {{1}},\n\nYour booking has been cancelled.\n\n📄 Booking ID: {{2}}\n📅 Date & Time: {{3}}\n\nIf you need assistance or want to reschedule, please contact us.\n\nStar Skyline Support Team",
+          "example": {
+            "body_text": [
+              [
+                "Zaid Mansoor",
+                "20245",
+                "29 Jan 2026, 04:00 PM"
+              ]
+            ]
+          }
+        }
+      ],
+      "language": "en",
+      "status": "APPROVED",
+      "id": "736535915883792"
+    },
+    {
+      "name": "trip_completed_customer",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "Trip Completed"
+        },
+        {
+          "type": "BODY",
+          "text": "Hello {{1}},\n\nYour trip has been completed successfully. 🎉\n\n📄 Booking ID: {{2}}\n🚗 Vehicle: {{3}}\n👨‍✈️ Driver: {{4}}\n\nWe hope you had a great experience with Star Skyline.\n\nPlease reply with a rating from 1–5 ⭐\nor share your feedback with us.\n\nThank you for riding with us!",
+          "example": {
+            "body_text": [
+              [
+                "Omer Farooq",
+                "10291",
+                "Honda Civic",
+                "Rajesh"
+              ]
+            ]
+          }
+        }
+      ],
+      "language": "en",
+      "status": "APPROVED",
+      "id": "894017106557250"
+    },
+    {
+      "name": "payment_pending_customer",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "Payment Pending"
+        },
+        {
+          "type": "BODY",
+          "text": "Hello {{1}},\n\nWe have received your booking request, but payment is still pending.\n\n📍 Pickup: {{2}}\n📍 Drop-off: {{3}}\n📅 Date & Time: {{4}}\n🚗 Vehicle: {{5}}\n💰 Fare: AED {{6}}\n📄 Booking ID: {{7}}\n\nOur team will contact you shortly to confirm your booking.\n\nThank you,\nStar Skyline",
+          "example": {
+            "body_text": [
+              [
+                "Ali Mansoor",
+                "JBR, Dubai",
+                "Abu Dhabi Airport",
+                "28 Jan 2026, 02:00 PM",
+                "Chevrolet Suburban",
+                "450",
+                "10192"
+              ]
+            ]
+          }
+        }
+      ],
+      "language": "en",
+      "status": "APPROVED",
+      "id": "1615902546100116"
+    },
+    {
+      "name": "booking_assigned_driver",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "New Trip Assigned"
+        },
+        {
+          "type": "BODY",
+          "text": "Hello {{1}},\n\nYou have been assigned a new trip.\n\n📍 Pickup: {{2}}\n📍 Drop-off: {{3}}\n📅 Date & Time: {{4}}\n👤 Passenger: {{5}}\n📞 Passenger Phone: {{6}}\n🚗 Vehicle: {{7}}\n📄 Booking ID: {{8}}\n🗺️ Pickup Location Map: {{9}}\nPlease confirm availability and proceed accordingly.",
+          "example": {
+            "body_text": [
+              [
+                "Rajesh",
+                "Marina Heights, Dubai",
+                "Palm Jumeirah",
+                "26 Jan 2026, 11:30 PM",
+                "John Doe",
+                "+971 55 9876543",
+                "Toyota Previa",
+                "5541",
+                "https://maps.google.com/?q=25.2048,55.2708"
+              ]
+            ]
+          }
+        },
+        {
+          "type": "BUTTONS",
+          "buttons": [
+            {
+              "type": "QUICK_REPLY",
+              "text": "Accept Trip"
+            },
+            {
+              "type": "QUICK_REPLY",
+              "text": "Reject / Busy"
+            }
+          ]
+        }
+      ],
+      "language": "en",
+      "status": "APPROVED",
+      "id": "1269363895051417"
+    },
+    {
+      "name": "new_booking_admin_alert",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "New Booking Alert"
+        },
+        {
+          "type": "BODY",
+          "text": "🚨 New booking received!\n\nCustomer: {{1}}  \nPhone: {{2}}  \nPickup: {{3}}  \nDrop-off: {{4}}  \nDate & Time: {{5}}  \nVehicle: {{6}}  \nFare: AED {{7}}  \nPayment Status: {{8}}  \nBooking ID: {{9}}\n\nPlease review and take action in the admin panel.",
+          "example": {
+            "body_text": [
+              [
+                "Ahmed Khan",
+                "+971 50 123 4567",
+                "Dubai Mall",
+                "DXB Airport Terminal 3",
+                "27 Jan 2026, 10:00 PM",
+                "Luxury Sedan",
+                "150",
+                "Paid / Pending",
+                "9921"
+              ]
+            ]
+          }
+        }
+      ],
+      "language": "en",
+      "status": "APPROVED",
+      "id": "1243598590971689"
+    },
+    {
+      "name": "driver_assigned_customer",
+      "components": [
+        {
+          "type": "HEADER",
+          "format": "TEXT",
+          "text": "Driver Assigned"
+        },
+        {
+          "type": "BODY",
+          "text": "Hello {{1}},\n\nYour driver has been assigned for your upcoming trip.\n\n👨‍✈️ Driver Name: {{2}}\n📞 Contact: {{3}}\n🚗 Vehicle: {{4}}\n📅 Pickup Time: {{5}}\n📍 Pickup: {{6}}\n\nPlease be ready 10 minutes before pickup time.\n\nSafe travels with Star Skyline 🚘",
+          "example": {
+            "body_text": [
+              [
+                "Rameez",
+                "Ahmed Khan",
+                "+971501234567",
+                "Toyota Camry",
+                "25 Jan 2026, 3:30 PM",
+                "Dubai Mall, Main Entrance"
+              ]
+            ]
+          }
+        }
+      ],
+      "language": "en",
+      "status": "APPROVED",
+      "id": "926619243056021"
+    },
+    {
+      "name": "booking_confirmed_customer",
+      "components": [
+        {
+          "type": "BODY",
+          "text": "Hello {{1}}, 👋\n\nYour booking has been *confirmed* with Star Skyline.\n\n📍 Pickup: {{2}}  \n📍 Drop-off: {{3}}  \n📅 Date & Time: {{4}}  \n🚗 Vehicle: {{5}}  \n💰 Fare: AED {{6}}  \n📄 Booking ID: {{7}}\n\nOur driver will contact you shortly.\n\nThank you for choosing Star Skyline ✨",
+          "example": {
+            "body_text": [
+              [
+                "Rameez",
+                "Dubai Mall, Downtown Dubai",
+                "DXB Airport Terminal 3",
+                "25 Jan 2026, 7:30 PM",
+                "Luxury Sedan",
+                "350",
+                "10245"
+              ]
+            ]
+          }
+        },
+        {
+          "type": "BUTTONS",
+          "buttons": [
+            {
+              "type": "QUICK_REPLY",
+              "text": "Confirm Booking"
+            },
+            {
+              "type": "QUICK_REPLY",
+              "text": "Cancel Booking"
+            },
+            {
+              "type": "QUICK_REPLY",
+              "text": "Call Support"
+            }
+          ]
+        }
+      ],
+      "language": "en",
+      "status": "APPROVED",
+      "id": "2379844445793870"
+    }
+  ],
+  "paging": {
+    "cursors": {
+      "before": "QVFIU0NFZAXFaNk5ucGRqN1RwdThhMVNiNUh1UzZAZAUkxER1RyWkVkSGhUcTFTRnU2cVdsaG52VWpKdkdRSkU2NzRQTEFKRWNYY2w1OURxWXVUQmczUnBQMUxR",
+      "after": "QVFIUzM3VGVzX0ZAHV3VPRVZAzRXd1U2QtZA3JxdF9DRWhIbGVfdi1rcmtoT0d6WC1qWnVtOVdaTVpPYmVUV1BsWE93d0NTSWpBQXdmS0tPNThrOWN4el9uWVVR"
+    }
+  }
+}

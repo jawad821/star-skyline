@@ -1,12 +1,12 @@
-
+﻿
 function updateUAEClock() {
   // Check if clock elements exist before trying to update them
   const secondElem = document.getElementById("uaeSecond");
   const minuteElem = document.getElementById("uaeMinute");
   const hourElem = document.getElementById("uaeHour");
-  
+
   if (!secondElem || !minuteElem || !hourElem) return; // Elements don't exist, skip
-  
+
   const now = new Date(
     new Date().toLocaleString("en-US", { timeZone: "Asia/Dubai" })
   );
@@ -82,20 +82,20 @@ function showToast(message, type = 'success') {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-  
+
   const icons = {
     success: '✅',
     error: '❌',
     info: 'ℹ️'
   };
-  
+
   toast.innerHTML = `
     <span class="toast-icon">${icons[type] || icons.success}</span>
     <span>${message}</span>
   `;
-  
+
   container.appendChild(toast);
-  
+
   // Auto-remove after 4 seconds
   setTimeout(() => {
     toast.classList.add('removing');
@@ -123,20 +123,20 @@ async function authFetch(url, options = {}) {
     window.location.href = '/dashboard/login.html';
     return null;
   }
-  
+
   options.headers = {
     ...options.headers,
     'Authorization': 'Bearer ' + token
   };
-  
+
   try {
     const response = await fetch(url, options);
     const data = await response.json();
-    
+
     if (handleAuthError(response, data)) {
       return null;
     }
-    
+
     return data;
   } catch (error) {
     console.error('Fetch error:', error);
@@ -147,7 +147,7 @@ async function authFetch(url, options = {}) {
 // UAE COMPREHENSIVE Locations for Autocomplete (ALL EMIRATES & AREAS - 400+ Locations)
 const UAE_LOCATIONS = [
   // ===== DUBAI (120+ Locations) =====
-  
+
   // DUBAI - NORTHERN AREAS
   'Deira',
   'Bur Dubai',
@@ -162,7 +162,7 @@ const UAE_LOCATIONS = [
   'Dubai Creek',
   'Creek Park',
   'Deira City Centre',
-  
+
   // DUBAI - CENTRAL AREAS
   'Downtown Dubai',
   'Burj Khalifa',
@@ -176,7 +176,7 @@ const UAE_LOCATIONS = [
   'Souk Al Bahar',
   'Old Town Island',
   'The Fountain Dubai',
-  
+
   // DUBAI - MARINA & BEACHFRONT
   'Dubai Marina',
   'Dubai Marina Mall',
@@ -198,7 +198,7 @@ const UAE_LOCATIONS = [
   'Umm Suqeim',
   'Umm Suqeim Beach',
   'Umm Suqeim Park',
-  
+
   // DUBAI - RESIDENTIAL COMMUNITIES
   'Arabian Ranches',
   'Emirates Hills',
@@ -229,7 +229,7 @@ const UAE_LOCATIONS = [
   'Hills Living',
   'Hillside Villas',
   'Hillside Gardens',
-  
+
   // DUBAI - SHOPPING MALLS
   'Mall of the Emirates',
   'Ibn Battuta Mall',
@@ -243,7 +243,7 @@ const UAE_LOCATIONS = [
   'Carrefour',
   'Spinneys',
   'Lulu Hypermarket',
-  
+
   // DUBAI - PARKS & RECREATION
   'Zabeel Park',
   'Safa Park',
@@ -259,7 +259,7 @@ const UAE_LOCATIONS = [
   'Khatt Springs',
   'Ras Al Khor Wildlife Sanctuary',
   'Dubai Desert Conservation Reserve',
-  
+
   // DUBAI - SPORTS & ENTERTAINMENT
   'Dubai Sports City',
   'Dubai Cricket Ground',
@@ -273,7 +273,7 @@ const UAE_LOCATIONS = [
   'Arabian Ranches Golf Club',
   'Emirates Golf Club',
   'Dubai Golf Club',
-  
+
   // DUBAI - BUSINESS & INDUSTRIAL
   'Jebel Ali',
   'Jebel Ali Port',
@@ -292,7 +292,7 @@ const UAE_LOCATIONS = [
   'Al Safa',
   'Manara',
   'Dubai South',
-  
+
   // DUBAI - AIRPORTS & TRANSPORT
   'Dubai International Airport',
   'DXB',
@@ -308,7 +308,7 @@ const UAE_LOCATIONS = [
   'Downtown Metro',
   'Jumeirah Lake Towers',
   'JLT',
-  
+
   // DUBAI - OTHER AREAS
   'Rashidiya',
   'Karama',
@@ -324,9 +324,9 @@ const UAE_LOCATIONS = [
   'Al Furjan',
   'Al Warqa',
   'Hadaeq Mohammed Bin Zayed',
-  
+
   // ===== ABU DHABI (100+ Locations) =====
-  
+
   // ABU DHABI - CENTRAL
   'Abu Dhabi City',
   'Abu Dhabi Corniche',
@@ -339,7 +339,7 @@ const UAE_LOCATIONS = [
   'The Galleria Al Maryah',
   'Abu Dhabi National Theatre',
   'Abu Dhabi Cultural Foundation',
-  
+
   // ABU DHABI - LANDMARKS & ATTRACTIONS
   'Sheikh Zayed Grand Mosque',
   'Louvre Abu Dhabi',
@@ -349,7 +349,7 @@ const UAE_LOCATIONS = [
   'Sheikh Zayed Palace',
   'Heritage Village Abu Dhabi',
   'Al Jahili Fort Al Ain',
-  
+
   // ABU DHABI - YAS & SAADIYAT
   'Yas Island',
   'Yas Marina',
@@ -367,7 +367,7 @@ const UAE_LOCATIONS = [
   'Saadiyat Beach',
   'Saadiyat Lagoons',
   'Manarat Al Saadiyat',
-  
+
   // ABU DHABI - RESIDENTIAL
   'Khalifa City',
   'Khalifa City A',
@@ -397,7 +397,7 @@ const UAE_LOCATIONS = [
   'Zayed First Street',
   'Mohamed Bin Zayed City',
   'Ruwais',
-  
+
   // ABU DHABI - MALLS & SHOPPING
   'Abu Dhabi Mall',
   'Marina Mall Abu Dhabi',
@@ -408,7 +408,7 @@ const UAE_LOCATIONS = [
   'Bawabat Al Reef Mall',
   'Al Bateen Mall',
   'Repton School Abu Dhabi',
-  
+
   // ABU DHABI - BUSINESS & PORTS
   'Abu Dhabi Port',
   'Port Rashid',
@@ -421,7 +421,7 @@ const UAE_LOCATIONS = [
   'Industrial Zone',
   'Abu Dhabi Airport',
   'Bateen Airport',
-  
+
   // ABU DHABI - OTHER
   'Al Ain',
   'Al Ain City',
@@ -434,9 +434,9 @@ const UAE_LOCATIONS = [
   'Liwa Oasis',
   'Liwa Desert',
   'Dunes of Liwa',
-  
+
   // ===== SHARJAH (80+ Locations) =====
-  
+
   'Sharjah City',
   'Sharjah Old Town',
   'Sharjah Corniche',
@@ -489,9 +489,9 @@ const UAE_LOCATIONS = [
   'Sharjah Botanical Museum',
   'Sharjah Aquarium',
   'Al Mahatta Museum',
-  
+
   // ===== AJMAN (40+ Locations) =====
-  
+
   'Ajman City',
   'Ajman Town',
   'Ajman Corniche',
@@ -517,9 +517,9 @@ const UAE_LOCATIONS = [
   'Ajman Industrial Area',
   'Ajman Freezone',
   'Ajman Port Free Zone',
-  
+
   // ===== RAS AL KHAIMAH (50+ Locations) =====
-  
+
   'Ras Al Khaimah',
   'RAK City',
   'Ras Al Khaimah Town',
@@ -560,9 +560,9 @@ const UAE_LOCATIONS = [
   'Ras Al Khaimah Freezone',
   'RAK Freezone',
   'Industrial Area RAK',
-  
+
   // ===== UMM AL QUWAIN (30+ Locations) =====
-  
+
   'Umm Al Quwain',
   'UAQ City',
   'Umm Al Quwain Town',
@@ -588,9 +588,9 @@ const UAE_LOCATIONS = [
   'Mushrif Island',
   'Dreamland Aqua Park',
   'UAQ Waterpark',
-  
+
   // ===== FUJAIRAH (50+ Locations) =====
-  
+
   'Fujairah City',
   'Fujairah Town',
   'Fujairah Beach',
@@ -638,7 +638,7 @@ const UAE_LOCATIONS = [
   'Telegraph Island',
   'Wadi Sharm',
   'Oman Border',
-  
+
   // ===== INTER-EMIRATES ROUTES =====
   'Emirates Road',
   'E11 Highway',
@@ -675,7 +675,7 @@ const UAE_LOCATIONS = [
   'Mandarin Oriental Dubai',
   'Mina A\'Salam',
   'Al Qahira Dubai',
-  'Le Méridien Dubai',
+  'Le MÃ©ridien Dubai',
   'Hilton Dubai',
   'Sheraton Dubai',
   'Dusit Thani Dubai',
@@ -806,7 +806,7 @@ const UAE_LOCATIONS = [
   'Gucci Dubai',
   'Louis Vuitton Dubai',
   'Chanel Dubai',
-  'Hermès Dubai',
+  'HermÃ¨s Dubai',
   'Dior Dubai',
   'Prada Dubai',
 
@@ -920,10 +920,10 @@ function setupLocationAutocomplete(inputId, suggestionsId) {
   const input = document.getElementById(inputId);
   const suggestionsDiv = document.getElementById(suggestionsId);
   if (!input || !suggestionsDiv) return;
-  
+
   // Set container background to solid white
   suggestionsDiv.style.background = '#ffffff';
-  
+
   input.addEventListener('input', (e) => {
     const value = e.target.value.toLowerCase();
     if (value.length < 2) {
@@ -932,7 +932,7 @@ function setupLocationAutocomplete(inputId, suggestionsId) {
     }
     const matches = UAE_LOCATIONS.filter(loc => loc.toLowerCase().includes(value));
     if (matches.length > 0) {
-      suggestionsDiv.innerHTML = matches.slice(0, 8).map((loc) => 
+      suggestionsDiv.innerHTML = matches.slice(0, 8).map((loc) =>
         `<div style="padding: 12px; cursor: pointer; border-bottom: 1px solid #e5e7eb; background: #ffffff; color: #1f2937; font-size: 13px;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='#ffffff'" onclick="setLocationAuto('${inputId}', '${loc}', '${suggestionsId}')">${loc}</div>`
       ).join('');
       suggestionsDiv.style.display = 'block';
@@ -1016,7 +1016,7 @@ function setupUserInfo() {
 // Navigation
 function setupNavigation() {
   document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', function(e) {
+    item.addEventListener('click', function (e) {
       e.preventDefault();
       const page = this.getAttribute('data-page');
       if (page) navigateToPage(page);
@@ -1040,14 +1040,17 @@ function hideAdminOnlyTabs() {
 }
 
 function navigateToPage(page) {
+  console.log('🔍 Navigating to page:', page);
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
   const active = document.querySelector('[data-page="' + page + '"]');
   if (active) active.classList.add('active');
-  
+
   document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
   const pageEl = document.getElementById('page-' + page);
+  console.log('📄 Found page element:', pageEl ? 'YES' : 'NO');
   if (pageEl) {
     pageEl.style.display = 'block';
+    console.log('✅ Page visibility set to block for:', page);
     if (page === 'drivers-all') loadDrivers(null, 'drivers-table-body');
     else if (page === 'drivers-online') loadDrivers('online', 'drivers-online-table-body');
     else if (page === 'drivers-offline') loadDrivers('offline', 'drivers-offline-table-body');
@@ -1063,7 +1066,10 @@ function navigateToPage(page) {
     else if (page === 'kpi') loadKPI();
     else if (page === 'fares') loadFareRules();
     else if (page === 'settings') setupUserInfo();
-    else if (page === 'logs') loadLogs();
+    else if (page === 'logs') {
+      console.log('🔥 Calling loadLogs()...');
+      loadLogs();
+    }
     else if (page === 'alerts') loadAlerts();
   }
 }
@@ -1075,26 +1081,26 @@ async function loadVendors(status = null) {
     let url = API_BASE + '/vendors';
     if (status) url += '/status/' + status;
     url = getCacheBustUrl(url);
-    
+
     const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
-    
+
     if (!response.ok) throw new Error('HTTP ' + response.status);
-    
+
     const data = await response.json();
     const tbody = document.getElementById('vendors-table-body');
     if (!tbody) return;
-    
+
     const vendors = data.data || [];
     if (!vendors || !vendors.length) {
       tbody.innerHTML = '<tr><td colspan="10">No vendors found</td></tr>';
       return;
     }
-    
+
     tbody.innerHTML = vendors.map(v => {
       const statusColor = v.status === 'approved' ? '#10b981' : v.status === 'rejected' ? '#ef4444' : '#f59e0b';
-      const autoAssignStatus = v.auto_assign_disabled ? '❌ Disabled' : '✅ Enabled';
+      const autoAssignStatus = v.auto_assign_disabled ? 'âŒ Disabled' : '✅ Enabled';
       return '<tr><td>' + v.id.substring(0, 8) + '</td><td>' + (v.company_name || v.name || 'N/A') + '</td><td>' + (v.email || 'N/A') + '</td><td>' + (v.phone || 'N/A') + '</td><td><span style="padding: 4px 8px; border-radius: 4px; background: ' + statusColor + '; color: white; font-size: 12px;">' + (v.status || 'pending') + '</span></td><td>' + (v.total_vehicles || 0) + '</td><td>AED ' + ((v.total_earnings || 0).toFixed(2)) + '</td><td>' + (v.completed_bookings || 0) + '</td><td>' + autoAssignStatus + '</td><td><button onclick="viewVendor(\'' + v.id + '\')" class="btn-small">View</button></td></tr>';
     }).join('');
   } catch (e) {
@@ -1112,16 +1118,16 @@ async function viewVendor(id) {
   try {
     const token = localStorage.getItem('token');
     const url = getCacheBustUrl(API_BASE + '/vendors/' + id);
-    
+
     const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
-    
+
     if (!response.ok) throw new Error('Failed to load vendor details');
-    
+
     const data = await response.json();
     const vendor = data.data || data.vendor || {};
-    
+
     // Populate modal fields
     document.getElementById('vendorName').textContent = vendor.name || vendor.company_name || 'N/A';
     document.getElementById('vendorEmail').textContent = vendor.email || 'N/A';
@@ -1130,14 +1136,29 @@ async function viewVendor(id) {
     document.getElementById('vendorVehicles').textContent = vendor.total_vehicles || 0;
     document.getElementById('vendorEarnings').textContent = 'AED ' + (parseFloat(vendor.total_earnings || 0).toFixed(2));
     document.getElementById('vendorBookings').textContent = vendor.completed_bookings || 0;
-    
-    const autoAssignText = vendor.auto_assign_disabled ? '❌ Disabled' : '✅ Enabled';
+
+    const autoAssignText = vendor.auto_assign_disabled ? 'âŒ Disabled' : '✅ Enabled';
     document.getElementById('vendorAutoAssignText').textContent = autoAssignText;
-    
+
     // Store vendor ID for toggle function
     window.currentVendorId = id;
     window.currentVendorAutoAssignDisabled = vendor.auto_assign_disabled || false;
-    
+
+    // Show/Hide buttons based on status
+    const btnApprove = document.getElementById('btnApproveVendor');
+    const btnReject = document.getElementById('btnRejectVendor');
+    const btnDelete = document.getElementById('btnDeleteVendor');
+
+    if (btnApprove) {
+      btnApprove.style.display = (vendor.status === 'pending' || vendor.status === 'rejected') ? 'block' : 'none';
+    }
+    if (btnReject) {
+      btnReject.style.display = (vendor.status === 'pending' || vendor.status === 'approved') ? 'block' : 'none';
+    }
+    if (btnDelete) {
+      btnDelete.style.display = 'block'; // Always allow deleting
+    }
+
     // Show modal
     document.getElementById('vendorModal').style.display = 'block';
     document.getElementById('vendorModalOverlay').style.display = 'block';
@@ -1155,10 +1176,10 @@ function closeVendorModal() {
 async function toggleVendorAutoAssign() {
   try {
     if (!window.currentVendorId) throw new Error('No vendor selected');
-    
+
     const token = localStorage.getItem('token');
     const newDisabledStatus = !window.currentVendorAutoAssignDisabled;
-    
+
     const response = await fetch(API_BASE + '/vendors/' + window.currentVendorId + '/toggle-auto-assign', {
       method: 'POST',
       headers: {
@@ -1167,22 +1188,96 @@ async function toggleVendorAutoAssign() {
       },
       body: JSON.stringify({ disabled: newDisabledStatus })
     });
-    
+
     if (!response.ok) throw new Error('Failed to toggle auto-assign');
-    
+
     const data = await response.json();
     window.currentVendorAutoAssignDisabled = newDisabledStatus;
-    
-    const autoAssignText = newDisabledStatus ? '❌ Disabled' : '✅ Enabled';
+
+    const autoAssignText = newDisabledStatus ? 'âŒ Disabled' : '✅ Enabled';
     document.getElementById('vendorAutoAssignText').textContent = autoAssignText;
-    
+
     showToast('Auto-assign ' + (newDisabledStatus ? 'disabled' : 'enabled') + ' for this vendor', 'success');
-    
+
     // Reload vendors table
     loadVendors();
   } catch (e) {
     showToast('Error toggling auto-assign: ' + e.message, 'error');
     console.error('Error:', e);
+  }
+}
+
+// Approve Vendor
+async function approveVendor() {
+  if (!window.currentVendorId) return;
+  if (!confirm('Are you sure you want to APPROVE this vendor?')) return;
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(API_BASE + '/vendor-management/approve-vendor/' + window.currentVendorId, {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+    });
+    const data = await response.json();
+    if (response.ok) {
+      showToast('Vendor approved successfully!', 'success');
+      closeVendorModal();
+      loadVendors();
+    } else {
+      showToast('Error: ' + (data.message || data.error || 'Failed to approve'), 'error');
+    }
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+// Reject Vendor
+async function rejectVendor() {
+  if (!window.currentVendorId) return;
+  const reason = prompt('Please enter reason for rejection:', 'Policy violation');
+  if (reason === null) return;
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(API_BASE + '/vendor-management/reject-vendor/' + window.currentVendorId, {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason: reason })
+    });
+    const data = await response.json();
+    if (response.ok) {
+      showToast('Vendor rejected successfully!', 'success');
+      closeVendorModal();
+      loadVendors();
+    } else {
+      showToast('Error: ' + (data.message || data.error || 'Failed to reject'), 'error');
+    }
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+// Delete Vendor
+async function deleteVendor() {
+  if (!window.currentVendorId) return;
+  if (!confirm('Are you sure you want to DELETE this vendor? This action cannot be undone.')) return;
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(API_BASE + '/vendor-management/delete-vendor/' + window.currentVendorId, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await response.json();
+    if (response.ok) {
+      showToast('Vendor deleted successfully!', 'success');
+      closeVendorModal();
+      loadVendors();
+    } else {
+      showToast('Error: ' + (data.message || data.error || 'Failed to delete'), 'error');
+    }
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
   }
 }
 
@@ -1195,12 +1290,12 @@ async function loadDashboard() {
     const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
-    
+
     if (!response.ok) throw new Error('HTTP ' + response.status);
-    
+
     const data = await response.json();
     if (!data.success) throw new Error(data.error || 'API error');
-    
+
     const d = data.data && data.data.summary ? data.data.summary : {};
     const stat = (id, val) => {
       const el = document.getElementById(id);
@@ -1213,10 +1308,10 @@ async function loadDashboard() {
     stat('stat-revenue', 'AED ' + (parseFloat(d.total_revenue || 0).toFixed(2)));
     stat('stat-cash', 'AED ' + (parseFloat(d.cash_revenue || 0).toFixed(2)));
     stat('stat-card', 'AED ' + (parseFloat(d.card_revenue || 0).toFixed(2)));
-    
+
     // Load Dashboard Charts
     await loadDashboardCharts(data);
-    
+
     // Load New Feature Cards
     await loadFeatureCards();
   } catch (e) {
@@ -1227,7 +1322,7 @@ async function loadDashboard() {
 async function loadDashboardCharts(data = {}) {
   try {
     const apiData = data.data || {};
-    
+
     // 1. 7-Day Booking Trend Chart
     const bookingsCtx = document.getElementById('bookingsChart');
     if (bookingsCtx && apiData.trend && apiData.trend.length > 0) {
@@ -1255,7 +1350,7 @@ async function loadDashboardCharts(data = {}) {
         options: { responsive: true, plugins: { legend: { display: true } }, scales: { y: { beginAtZero: true } } }
       });
     }
-    
+
     // 2. Revenue by Vehicle Type Chart
     const revenueCtx = document.getElementById('revenueChart');
     if (revenueCtx && apiData.revenueByType && apiData.revenueByType.length > 0) {
@@ -1276,7 +1371,7 @@ async function loadDashboardCharts(data = {}) {
         options: { responsive: true, plugins: { legend: { position: 'right' } } }
       });
     }
-    
+
     // 3. Top Drivers List
     const driversStats = document.getElementById('driversStats');
     if (driversStats && apiData.driverStats && apiData.driverStats.length > 0) {
@@ -1300,36 +1395,36 @@ async function loadKPI() {
   try {
     const token = localStorage.getItem('token');
     const range = document.querySelector('.filter-group .filter-btn.active')?.dataset?.range || 'month';
-    
+
     // Load KPI cards
     const url = getCacheBustUrl(API_BASE + '/stats/summary?range=' + range);
     const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
-    
+
     if (!response.ok) throw new Error('HTTP ' + response.status);
-    
+
     const data = await response.json();
     if (!data.success) throw new Error(data.error || 'API error');
-    
+
     const d = data.data && data.data.summary ? data.data.summary : {};
     const totalRev = parseFloat(d.total_revenue) || 0;
     const vendorComm = totalRev * 0.8;
     const profit = totalRev * 0.2;
-    
+
     const stat = (id, val) => {
       const el = document.getElementById(id);
       if (el) el.textContent = val;
     };
-    
+
     stat('kpi-total-revenue', 'AED ' + totalRev.toFixed(2));
     stat('kpi-vendor-commission', 'AED ' + vendorComm.toFixed(2));
     stat('kpi-company-profit', 'AED ' + profit.toFixed(2));
     stat('kpi-profit-margin', totalRev > 0 ? ((profit / totalRev) * 100).toFixed(1) + '%' : '0%');
-    
+
     // Load Chart Data
     await loadKPICharts(range);
-    
+
   } catch (e) {
     console.error('KPI error:', e.message, e);
   }
@@ -1338,17 +1433,17 @@ async function loadKPI() {
 async function loadKPICharts(range = 'month') {
   try {
     const token = localStorage.getItem('token');
-    
+
     // Fetch earnings breakdown
     const earningsUrl = getCacheBustUrl(API_BASE + '/stats/earnings-breakdown?range=' + range);
     const earningsRes = await fetch(earningsUrl, { headers: { 'Authorization': 'Bearer ' + token } });
     const earningsData = earningsRes.ok ? await earningsRes.json() : { data: [] };
-    
+
     // Fetch vendors earnings
     const vendorUrl = getCacheBustUrl(API_BASE + '/stats/vendor-earnings?range=' + range);
     const vendorRes = await fetch(vendorUrl, { headers: { 'Authorization': 'Bearer ' + token } });
     const vendorData = vendorRes.ok ? await vendorRes.json() : { data: {} };
-    
+
     // Render Earnings Breakdown Chart
     const earningsCtx = document.getElementById('earningsChart');
     if (earningsCtx && earningsData.data && earningsData.data.length > 0) {
@@ -1368,7 +1463,7 @@ async function loadKPICharts(range = 'month') {
         options: { responsive: true, plugins: { legend: { display: true } }, scales: { y: { beginAtZero: true } } }
       });
     }
-    
+
     // Render Company vs Vendor Chart
     const vendorCtx = document.getElementById('companyVendorChart');
     if (vendorCtx && vendorData.data) {
@@ -1389,12 +1484,12 @@ async function loadKPICharts(range = 'month') {
         options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
       });
     }
-    
+
     // Load Top Vendors List
     const topVendorsUrl = getCacheBustUrl(API_BASE + '/stats/top-vendors?range=' + range);
     const topVendorsRes = await fetch(topVendorsUrl, { headers: { 'Authorization': 'Bearer ' + token } });
     const topVendorsData = topVendorsRes.ok ? await topVendorsRes.json() : { data: [] };
-    
+
     const topVendorsList = document.getElementById('topVendorsList');
     if (topVendorsList) {
       if (topVendorsData.data && topVendorsData.data.length > 0) {
@@ -1405,7 +1500,7 @@ async function loadKPICharts(range = 'month') {
         topVendorsList.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">No vendor data</div>';
       }
     }
-    
+
   } catch (e) {
     console.error('KPI charts error:', e.message, e);
   }
@@ -1418,26 +1513,26 @@ async function loadDrivers(status = null, targetTableId = 'drivers-table-body') 
     let url = API_BASE + '/drivers';
     if (status) url += '?status=' + status;
     url = getCacheBustUrl(url);
-    
+
     const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
-    
+
     if (!response.ok) throw new Error('HTTP ' + response.status);
-    
+
     const data = await response.json();
     const tbody = document.getElementById(targetTableId);
     if (!tbody) return;
-    
+
     const drivers = data.data || [];
     if (!drivers || !drivers.length) {
       tbody.innerHTML = '<tr><td colspan="7">No drivers found</td></tr>';
       return;
     }
-    
+
     tbody.innerHTML = drivers.map(d => {
       const carAssigned = d.assigned_vehicle_model ? d.assigned_vehicle_model + ' (' + (d.assigned_vehicle_plate || 'N/A') + ')' : '-';
-      return '<tr><td>' + d.id.substring(0, 8) + '</td><td>' + d.name + '</td><td>' + (d.phone || 'N/A') + '</td><td><span style="padding: 4px 8px; border-radius: 4px; background: ' + (d.status === 'online' ? '#10b981' : '#ef4444') + '; color: white; font-size: 12px;">' + (d.status || 'offline') + '</span></td><td>' + carAssigned + '</td><td>0</td><td><button onclick="viewDriver(\'' + d.id + '\')" class="btn-small">View</button> <button onclick="editDriver(\'' + d.id + '\')" class="btn-small">Edit</button></td></tr>';
+      return '<tr><td>' + d.id.substring(0, 8) + '</td><td>' + d.name + '</td><td>' + (d.phone || 'N/A') + '</td><td><span style="padding: 4px 8px; border-radius: 4px; background: ' + (d.status === 'online' ? '#10b981' : '#ef4444') + '; color: white; font-size: 12px;">' + (d.status || 'offline') + '</span></td><td>' + carAssigned + '</td><td>0</td><td><button onclick="viewDriver(\'' + d.id + '\')" class="btn-small">View</button> <button onclick="editDriver(\'' + d.id + '\')" class="btn-small">Edit</button> <button onclick="deleteDriver(\'' + d.id + '\')" class="btn-small" style="background: #ef4444; color: white;">Delete</button></td></tr>';
     }).join('');
   } catch (e) {
     const tbody = document.getElementById(targetTableId);
@@ -1451,35 +1546,58 @@ function editDriver(id) {
   fetch(url, {
     headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
   })
-  .then(r => {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-  })
-  .then(d => {
-    // API returns {success:true, driver:{...}}
-    const driver = d.driver || d.data;
-    if (driver) {
-      const modal = document.getElementById('driverEditModal');
-      if (modal) {
-        document.getElementById('driverEditId').value = driver.id;
-        document.getElementById('driverName').value = driver.name || '';
-        document.getElementById('driverPhone').value = driver.phone || '';
-        document.getElementById('driverEmail').value = driver.email || '';
-        document.getElementById('driverStatus').value = driver.status || 'offline';
-        
-        // Auto Assign Checkbox
-        const autoAssignCheckbox = document.getElementById('driverAutoAssign');
-        autoAssignCheckbox.checked = driver.auto_assign === true || driver.auto_assign === 1;
-        
-        modal.style.display = 'block';
-        document.getElementById('modalOverlay').style.display = 'block';
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(d => {
+      // API returns {success:true, driver:{...}}
+      const driver = d.driver || d.data;
+      if (driver) {
+        const modal = document.getElementById('driverEditModal');
+        if (modal) {
+          document.getElementById('driverEditId').value = driver.id;
+          document.getElementById('driverName').value = driver.name || '';
+          document.getElementById('driverPhone').value = driver.phone || '';
+          document.getElementById('driverEmail').value = driver.email || '';
+          document.getElementById('driverStatus').value = driver.status || 'offline';
+
+          // Auto Assign Checkbox
+          const autoAssignCheckbox = document.getElementById('driverAutoAssign');
+          autoAssignCheckbox.checked = driver.auto_assign === true || driver.auto_assign === 1;
+
+          modal.style.display = 'block';
+          document.getElementById('modalOverlay').style.display = 'block';
+        }
       }
-    }
+    })
+    .catch(e => {
+      console.error('Edit driver error:', e);
+      showToast('Error loading driver details', 'error');
+    });
+}
+
+function deleteDriver(id) {
+  if (!confirm('Are you sure you want to DELETE this driver? This action cannot be undone.')) return;
+
+  const token = localStorage.getItem('token');
+  fetch(getCacheBustUrl(API_BASE + '/drivers/' + id), {
+    method: 'DELETE',
+    headers: { 'Authorization': 'Bearer ' + token }
   })
-  .catch(e => {
-    console.error('Edit driver error:', e);
-    showToast('Error loading driver details', 'error');
-  });
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        showToast('Driver deleted successfully!', 'success');
+        loadDrivers();
+      } else {
+        showToast('Error: ' + (data.error || 'Failed to delete driver'), 'error');
+      }
+    })
+    .catch(e => {
+      console.error('Delete driver error:', e);
+      showToast('Error deleting driver', 'error');
+    });
 }
 
 // Vehicles
@@ -1489,32 +1607,32 @@ async function loadVehicles(type = null, targetContainerId = 'carsGrid') {
     let url = API_BASE + '/vehicles';
     if (type) url += '?type=' + type;
     url = getCacheBustUrl(url);
-    
+
     const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
-    
+
     if (!response.ok) throw new Error('HTTP ' + response.status);
-    
+
     const data = await response.json();
     const container = document.getElementById(targetContainerId);
     if (!container) return;
-    
+
     const vehicles = data.data || data.vehicles || [];
     if (!vehicles || !vehicles.length) {
       container.innerHTML = '<p style="padding:20px; text-align:center; color: var(--text-secondary);">No vehicles found</p>';
       return;
     }
-    
+
     const vehicleCardsHtml = vehicles.map(v => {
-      const typeEmoji = v.type === 'sedan' ? '🚗' : v.type === 'suv' ? '🚙' : v.type === 'luxury' ? '💎' : v.type === 'van' ? '🚐' : v.type === 'bus' ? '🚌' : '🚐';
+      const typeEmoji = v.type === 'sedan' ? '🚗' : v.type === 'suv' ? '🚙' : v.type === 'luxury' ? '💎' : v.type === 'van' ? '🚐' : v.type === 'bus' ? '🚌' : '🚘';
       const statusColor = v.status === 'available' ? '#10b981' : v.status === 'on_duty' ? '#3b82f6' : '#ef4444';
-      const imageSrc = v.image_url || 'https://via.placeholder.com/300x200/e5e7eb/999999?text=' + encodeURIComponent(v.model);
-      
+      const imageSrc = v.image_url || '/images/vehicles/professional_car_pho_18395f0d.jpg';
+
       return `
         <div class="vehicle-card">
           <div class="vehicle-image">
-            <img src="${imageSrc}" alt="${v.model}" onerror="this.src='https://via.placeholder.com/300x200/e5e7eb/999999?text=' + encodeURIComponent('${v.model}')">
+            <img src="${imageSrc}" alt="${v.model}" onerror="this.src='/images/vehicles/professional_car_pho_18395f0d.jpg'">
             <div class="vehicle-type-badge">${typeEmoji} ${v.type.toUpperCase()}</div>
             <div class="vehicle-status-badge" style="background: ${statusColor};">${(v.status || 'available').toUpperCase()}</div>
           </div>
@@ -1531,7 +1649,7 @@ async function loadVehicles(type = null, targetContainerId = 'carsGrid') {
               </div>
               <div class="detail-row">
                 <span class="detail-label">Capacity:</span>
-                <span class="detail-value">👥 ${v.max_passengers || 4} / 🧳 ${v.max_luggage || 2}</span>
+                <span class="detail-value">👤 ${v.max_passengers || 4} / 🧳 ${v.max_luggage || 2}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Hourly Rate:</span>
@@ -1546,7 +1664,7 @@ async function loadVehicles(type = null, targetContainerId = 'carsGrid') {
         </div>
       `;
     }).join('');
-    
+
     container.innerHTML = '<div class="vehicles-grid">' + vehicleCardsHtml + '</div>';
   } catch (e) {
     const container = document.getElementById(targetContainerId);
@@ -1568,11 +1686,11 @@ function viewVehicleDetails(vehicleId) {
         const content = document.getElementById('vehicleDetailContent');
         if (content) {
           const statusColor = v.status === 'available' ? '#10b981' : v.status === 'on_duty' ? '#3b82f6' : '#ef4444';
-          const imageSrc = v.image_url || 'https://via.placeholder.com/400x300/e5e7eb/999999?text=' + encodeURIComponent(v.model);
-          
+          const imageSrc = v.image_url || '/images/vehicles/professional_car_pho_18395f0d.jpg';
+
           content.innerHTML = `
             <div class="detail-modal-content">
-              <img src="${imageSrc}" alt="${v.model}" class="detail-image" onerror="this.src='https://via.placeholder.com/400x300/e5e7eb/999999?text=' + encodeURIComponent('${v.model}')">
+              <img src="${imageSrc}" alt="${v.model}" class="detail-image" onerror="this.src='/images/vehicles/professional_car_pho_18395f0d.jpg'">
               <div class="detail-grid">
                 <div class="detail-item">
                   <label>Model:</label>
@@ -1629,7 +1747,7 @@ function viewVehicleDetails(vehicleId) {
 
 function editVehicleModal(vehicleId) {
   const token = localStorage.getItem('token');
-  
+
   // Load vehicle data
   fetch(getCacheBustUrl(API_BASE + '/vehicles/' + vehicleId), {
     headers: { 'Authorization': 'Bearer ' + token }
@@ -1649,10 +1767,10 @@ function editVehicleModal(vehicleId) {
         document.getElementById('vehicleHourly').value = v.hourly_price || 0;
         document.getElementById('vehiclePerKm').value = v.per_km_price || 2.5;
         document.getElementById('vehicleDriver').value = v.driver_id || '';
-        
+
         // Load drivers list
         loadDriversForVehicleEdit();
-        
+
         const modal = document.getElementById('vehicleEditModal');
         if (modal) {
           modal.style.display = 'block';
@@ -1674,7 +1792,7 @@ function loadDriversForVehicleEdit() {
       const driverSelect = document.getElementById('vehicleDriver');
       if (driverSelect) {
         const currentValue = driverSelect.value;
-        driverSelect.innerHTML = '<option value="">-- No Driver --</option>' + 
+        driverSelect.innerHTML = '<option value="">-- No Driver --</option>' +
           drivers.map(d => '<option value="' + d.id + '">' + d.name + ' (' + (d.phone || 'N/A') + ')</option>').join('');
         driverSelect.value = currentValue;
       }
@@ -1688,37 +1806,37 @@ async function loadBookings() {
     const token = localStorage.getItem('token');
     const tbody = document.getElementById('bookings-table-body');
     if (tbody) tbody.innerHTML = '<tr><td colspan="15" style="text-align:center; padding:20px;">Loading bookings...</td></tr>';
-    
+
     // Build URL with filters and pagination
     let url = API_BASE + '/stats/bookings?range=' + bookingsRange + '&page=' + bookingsPage + '&limit=' + bookingsLimit;
     if (bookingsStatus) url += '&status=' + bookingsStatus;
     if (bookingsVehicleType) url += '&vehicle_type=' + bookingsVehicleType;
     if (bookingsSearch) url += '&search=' + encodeURIComponent(bookingsSearch);
     url = getCacheBustUrl(url);
-    
+
     const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
-    
+
     if (!response.ok) throw new Error('HTTP ' + response.status);
-    
+
     const data = await response.json();
     if (!tbody) return;
-    
+
     const bookings = data.data?.bookings || [];
     const pagination = data.data?.pagination || { page: 1, totalPages: 1, total: 0 };
-    
+
     if (!bookings.length) {
       tbody.innerHTML = '<tr><td colspan="15">No bookings found</td></tr>';
       renderBookingsPagination(pagination);
       return;
     }
-    
+
     tbody.innerHTML = bookings.map(b => {
       const driverDisplay = b.driver_name || (b.driver_id ? 'Driver assigned' : 'Unassigned');
       const statusDisplay = b.status || 'pending';
       const paymentDisplay = (b.payment_method || 'cash').toUpperCase();
-      
+
       // Booking Source: Manual (dashboard), AI Agent (Bareerah), Website (form)
       let sourceLabel = '👤 Manual';
       let sourceColor = '#6b7280';
@@ -1733,15 +1851,15 @@ async function loadBookings() {
         sourceLabel = '👤 Manual';
         sourceColor = '#6b7280';
       }
-      
+
       const bookingTypeIcon = b.booking_type === 'multi_stop' ? '🛣️ Multi-Stop' : (b.booking_type === 'round_trip' ? '🔄 Round-Trip' : (b.booking_type === 'hourly' ? '⏰ Hourly' : 'Point-to-Point'));
       const createdTime = new Date(b.created_at);
       const updatedTime = new Date(b.updated_at);
       const createdStr = formatDubaiDateTime(createdTime);
       const updatedStr = formatDubaiDateTime(updatedTime);
-      return '<tr data-booking-id="' + b.id + '"><td>' + b.id.substring(0, 8) + '</td><td><span style="padding: 3px 8px; border-radius: 12px; background: ' + sourceColor + '22; color: ' + sourceColor + '; font-size: 11px; font-weight: 600; white-space: nowrap;">' + sourceLabel + '</span></td><td>' + b.customer_name + '</td><td>' + b.customer_phone + '</td><td>' + b.pickup_location + '</td><td>' + b.dropoff_location + '</td><td>' + b.distance_km + '</td><td>' + bookingTypeIcon + '</td><td>AED ' + (b.fare_aed || b.total_fare || 0) + '</td><td>' + driverDisplay + '</td><td>' + paymentDisplay + '</td><td>' + statusDisplay + '</td><td style="font-size: 12px;">' + createdStr + '</td><td style="font-size: 12px;">' + updatedStr + '</td><td><button onclick="viewBooking(\'' + b.id + '\')" class="btn-small">View</button> <button onclick="editBooking(\'' + b.id + '\')" class="btn-small">Edit</button></td></tr>';
+      return '<tr data-booking-id="' + b.id + '"><td>' + b.id.substring(0, 8) + '</td><td><span style="padding: 3px 8px; border-radius: 12px; background: ' + sourceColor + '22; color: ' + sourceColor + '; font-size: 11px; font-weight: 600; white-space: nowrap;">' + sourceLabel + '</span></td><td>' + b.customer_name + '</td><td>' + b.customer_phone + '</td><td>' + b.pickup_location + '</td><td>' + b.dropoff_location + '</td><td>' + b.distance_km + '</td><td>' + bookingTypeIcon + '</td><td>AED ' + (b.fare_aed || b.total_fare || 0) + '</td><td>' + driverDisplay + '</td><td>' + paymentDisplay + '</td><td>' + statusDisplay + '</td><td style="font-size: 12px;">' + createdStr + '</td><td style="font-size: 12px;">' + updatedStr + '</td><td><button onclick="viewBooking(\'' + b.id + '\')" class="btn-small">View</button> <button onclick="editBooking(\'' + b.id + '\')" class="btn-small">Edit</button> <button onclick="deleteBooking(\'' + b.id + '\')" class="btn-small" style="background: #ef4444; color: white;">Delete</button></td></tr>';
     }).join('');
-    
+
     renderBookingsPagination(pagination);
   } catch (e) {
     const tbody = document.getElementById('bookings-table-body');
@@ -1753,32 +1871,32 @@ async function loadBookings() {
 function renderBookingsPagination(pagination) {
   const container = document.getElementById('bookingsPagination');
   if (!container) return;
-  
+
   const { page, totalPages, total } = pagination;
   const start = (page - 1) * bookingsLimit + 1;
   const end = Math.min(page * bookingsLimit, total);
-  
+
   let html = '<div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #f9fafb; border-radius: 8px; margin-top: 15px;">';
   html += '<div style="color: #6b7280; font-size: 14px;">Showing ' + start + '-' + end + ' of ' + total + ' bookings</div>';
   html += '<div style="display: flex; gap: 8px; align-items: center;">';
-  
+
   // Previous button
   if (page > 1) {
-    html += '<button onclick="goToBookingsPage(' + (page - 1) + ')" class="btn btn-small" style="padding: 8px 16px;">← Previous</button>';
+    html += '<button onclick="goToBookingsPage(' + (page - 1) + ')" class="btn btn-small" style="padding: 8px 16px;">â† Previous</button>';
   } else {
-    html += '<button disabled class="btn btn-small" style="padding: 8px 16px; opacity: 0.5; cursor: not-allowed;">← Previous</button>';
+    html += '<button disabled class="btn btn-small" style="padding: 8px 16px; opacity: 0.5; cursor: not-allowed;">â† Previous</button>';
   }
-  
+
   // Page numbers
   html += '<span style="padding: 0 12px; font-weight: 600;">Page ' + page + ' of ' + totalPages + '</span>';
-  
+
   // Next button
   if (page < totalPages) {
-    html += '<button onclick="goToBookingsPage(' + (page + 1) + ')" class="btn btn-small btn-primary" style="padding: 8px 16px;">Next →</button>';
+    html += '<button onclick="goToBookingsPage(' + (page + 1) + ')" class="btn btn-small btn-primary" style="padding: 8px 16px;">Next â†’</button>';
   } else {
-    html += '<button disabled class="btn btn-small" style="padding: 8px 16px; opacity: 0.5; cursor: not-allowed;">Next →</button>';
+    html += '<button disabled class="btn btn-small" style="padding: 8px 16px; opacity: 0.5; cursor: not-allowed;">Next â†’</button>';
   }
-  
+
   html += '</div></div>';
   container.innerHTML = html;
 }
@@ -1799,7 +1917,7 @@ function initBookingsFilters() {
   const vehicleFilter = document.getElementById('vehicleFilter');
   const searchInput = document.getElementById('bookingSearch');
   const rangeButtons = document.querySelectorAll('#page-bookings .filter-btn[data-range]');
-  
+
   if (statusFilter) {
     statusFilter.addEventListener('change', () => {
       bookingsStatus = statusFilter.value;
@@ -1807,7 +1925,7 @@ function initBookingsFilters() {
       loadBookings();
     });
   }
-  
+
   if (vehicleFilter) {
     vehicleFilter.addEventListener('change', () => {
       bookingsVehicleType = vehicleFilter.value;
@@ -1815,7 +1933,7 @@ function initBookingsFilters() {
       loadBookings();
     });
   }
-  
+
   if (searchInput) {
     let searchTimeout;
     searchInput.addEventListener('input', () => {
@@ -1827,7 +1945,7 @@ function initBookingsFilters() {
       }, 300);
     });
   }
-  
+
   rangeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       rangeButtons.forEach(b => b.classList.remove('active'));
@@ -1864,21 +1982,21 @@ function viewBooking(id) {
           const updatedStr = formatDubaiDateTime(updatedTime);
           const vehicleColorDisplay = b.vehicle_color ? b.vehicle_color : 'N/A';
           const notesDisplay = b.notes ? b.notes : '(No notes)';
-          
+
           let journeyHtml = '';
           if (b.booking_type === 'multi_stop' && b.stops && b.stops.length > 0) {
-            journeyHtml = '<div style="padding: 12px; background: #f3f4f6; border-radius: 6px;"><strong>🛣️ Multi-Stop Journey:</strong><div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">' + b.stops.map((s, i) => {
-              const icon = s.stop_type === 'pickup' ? '📍' : (s.stop_type === 'dropoff' ? '🏁' : '🛑');
-              return '<div style="display: flex; align-items: center; gap: 8px;"><span style="font-weight: bold; color: #2563eb;">' + (i+1) + '.</span><span>' + icon + ' ' + s.location + '</span><span style="margin-left: auto; color: #666; font-size: 12px;">Wait: ' + (s.duration_minutes || 0) + ' min</span></div>';
+            journeyHtml = '<div style="padding: 12px; background: #f3f4f6; border-radius: 6px;"><strong>🛣️ Multi-Stop Journey:</strong><div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">' + b.stops.map((s, i) => {
+              const icon = s.stop_type === 'pickup' ? '🏁“' : (s.stop_type === 'dropoff' ? '🏁' : '🏁›‘');
+              return '<div style="display: flex; align-items: center; gap: 8px;"><span style="font-weight: bold; color: #2563eb;">' + (i + 1) + '.</span><span>' + icon + ' ' + s.location + '</span><span style="margin-left: auto; color: #666; font-size: 12px;">Wait: ' + (s.duration_minutes || 0) + ' min</span></div>';
             }).join('<div style="height: 1px; background: #ccc; margin: 4px 0;"></div>') + '</div></div>';
           } else if (b.booking_type === 'round_trip' && b.stops && b.stops.length >= 3) {
             const leg1Duration = b.stops[0].duration_minutes || 0;
             const waitingDuration = b.stops[1].duration_minutes || 0;
-            journeyHtml = '<div style="padding: 12px; background: #f3f4f6; border-radius: 6px;"><strong>🔄 Round-Trip Journey:</strong><div style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;"><div style="padding: 8px; background: white; border-left: 4px solid #2563eb; border-radius: 4px;"><strong>🚗 Outbound Leg</strong><div style="margin-top: 6px; font-size: 13px;">📍 ' + b.stops[0].location + ' (Pickup)</div><div style="color: #666; font-size: 12px;">↓</div><div style="font-size: 13px;">🏁 ' + b.stops[1].location + ' (Drop-off)</div></div><div style="padding: 8px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;"><strong>⏱️ Waiting Time</strong><div style="margin-top: 6px; font-size: 13px;">📍 ' + b.stops[1].location + '</div><div style="color: #d97706; font-weight: bold;">' + Math.floor(waitingDuration / 60) + ' hours ' + (waitingDuration % 60) + ' min</div></div><div style="padding: 8px; background: white; border-left: 4px solid #059669; border-radius: 4px;"><strong>🚗 Return Leg</strong><div style="margin-top: 6px; font-size: 13px;">📍 ' + b.stops[1].location + ' (Pick-up)</div><div style="color: #666; font-size: 12px;">↓</div><div style="font-size: 13px;">🏁 ' + b.stops[2].location + ' (Return)</div></div></div></div>';
+            journeyHtml = '<div style="padding: 12px; background: #f3f4f6; border-radius: 6px;"><strong>📝„ Round-Trip Journey:</strong><div style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;"><div style="padding: 8px; background: white; border-left: 4px solid #2563eb; border-radius: 4px;"><strong>🚗 Outbound Leg</strong><div style="margin-top: 6px; font-size: 13px;">🏁“ ' + b.stops[0].location + ' (Pickup)</div><div style="color: #666; font-size: 12px;">â†“</div><div style="font-size: 13px;">🏁 ' + b.stops[1].location + ' (Drop-off)</div></div><div style="padding: 8px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;"><strong>â±ï¸ Waiting Time</strong><div style="margin-top: 6px; font-size: 13px;">🏁“ ' + b.stops[1].location + '</div><div style="color: #d97706; font-weight: bold;">' + Math.floor(waitingDuration / 60) + ' hours ' + (waitingDuration % 60) + ' min</div></div><div style="padding: 8px; background: white; border-left: 4px solid #059669; border-radius: 4px;"><strong>🚗 Return Leg</strong><div style="margin-top: 6px; font-size: 13px;">🏁“ ' + b.stops[1].location + ' (Pick-up)</div><div style="color: #666; font-size: 12px;">â†“</div><div style="font-size: 13px;">🏁 ' + b.stops[2].location + ' (Return)</div></div></div></div>';
           }
-          
+
           const pickupTimeStr = b.pickup_time ? formatDubaiDateTime(b.pickup_time) : 'Not scheduled';
-          content.innerHTML = '<div style="display: grid; gap: 12px; font-size: 14px;"><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Booking ID:</strong><br>' + b.id.substring(0, 8) + '</div><div><strong>Status:</strong><br><span style="padding: 4px 8px; border-radius: 4px; background: ' + (b.status === 'completed' ? '#10b981' : b.status === 'in-process' ? '#3b82f6' : b.status === 'pending' ? '#f59e0b' : '#ef4444') + '; color: white; font-weight: bold;">' + (b.status || 'pending').toUpperCase() + '</span></div></div><div><strong>Source:</strong><br>' + sourceDisplay + '</div><div><strong>Customer:</strong><br>' + b.customer_name + ' (' + b.customer_phone + ')</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Pickup Location:</strong><br>' + b.pickup_location + '</div><div><strong>Dropoff Location:</strong><br>' + b.dropoff_location + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>🕐 Pickup Time:</strong><br>' + pickupTimeStr + '</div><div></div></div>' + journeyHtml + '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Distance:</strong><br>' + b.distance_km + ' km</div><div><strong>Fare:</strong><br>AED ' + (b.fare_aed || b.total_fare || 0) + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Booking Type:</strong><br>' + bookingTypeDisplay + '</div><div><strong>Payment:</strong><br>' + (b.payment_method || 'N/A').toUpperCase() + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Vehicle Type:</strong><br>' + (b.vehicle_type || 'N/A').toUpperCase() + '</div><div><strong>Vehicle Model:</strong><br>' + vehicleModelDisplay + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>🎨 Vehicle Color:</strong><br>' + vehicleColorDisplay + '</div><div><strong>Assigned Vehicle:</strong><br>' + assignedVehicleDisplay + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Driver:</strong><br>' + driverInfo + '</div><div><strong>Passengers:</strong><br>' + (b.passengers_count || 1) + '</div></div><div><strong>Luggage:</strong><br>' + (b.luggage_count || 0) + '</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Created:</strong><br>' + createdStr + '</div><div><strong>Updated:</strong><br>' + updatedStr + '</div></div><div><strong>📝 Notes:</strong><br>' + notesDisplay + '</div></div>';
+          content.innerHTML = '<div style="display: grid; gap: 12px; font-size: 14px;"><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Booking ID:</strong><br>' + b.id.substring(0, 8) + '</div><div><strong>Status:</strong><br><span style="padding: 4px 8px; border-radius: 4px; background: ' + (b.status === 'completed' ? '#10b981' : b.status === 'in-process' ? '#3b82f6' : b.status === 'pending' ? '#f59e0b' : '#ef4444') + '; color: white; font-weight: bold;">' + (b.status || 'pending').toUpperCase() + '</span></div></div><div><strong>Source:</strong><br>' + sourceDisplay + '</div><div><strong>Customer:</strong><br>' + b.customer_name + ' (' + b.customer_phone + ')</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Pickup Location:</strong><br>' + b.pickup_location + '</div><div><strong>Dropoff Location:</strong><br>' + b.dropoff_location + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>🕐 Pickup Time:</strong><br>' + pickupTimeStr + '</div><div></div></div>' + journeyHtml + '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Distance:</strong><br>' + b.distance_km + ' km</div><div><strong>Fare:</strong><br>AED ' + (b.fare_aed || b.total_fare || 0) + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Booking Type:</strong><br>' + bookingTypeDisplay + '</div><div><strong>Payment:</strong><br>' + (b.payment_method || 'N/A').toUpperCase() + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Vehicle Type:</strong><br>' + (b.vehicle_type || 'N/A').toUpperCase() + '</div><div><strong>Vehicle Model:</strong><br>' + vehicleModelDisplay + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>🎨 Vehicle Color:</strong><br>' + vehicleColorDisplay + '</div><div><strong>Assigned Vehicle:</strong><br>' + assignedVehicleDisplay + '</div></div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Driver:</strong><br>' + driverInfo + '</div><div><strong>Passengers:</strong><br>' + (b.passengers_count || 1) + '</div></div><div><strong>Luggage:</strong><br>' + (b.luggage_count || 0) + '</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"><div><strong>Created:</strong><br>' + createdStr + '</div><div><strong>Updated:</strong><br>' + updatedStr + '</div></div><div><strong>🏁“ Notes:</strong><br>' + notesDisplay + '</div></div>';
           const modal = document.getElementById('bookingDetailModal');
           const overlay = document.getElementById('modalOverlay');
           if (modal) modal.style.display = 'block';
@@ -1896,6 +2014,29 @@ function openDetailEditModal() {
   }
 }
 
+function deleteBooking(id) {
+  if (!confirm('Are you sure you want to DELETE this booking? This action cannot be undone.')) return;
+
+  const token = localStorage.getItem('token');
+  fetch(getCacheBustUrl(API_BASE + '/bookings/' + id), {
+    method: 'DELETE',
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        showToast('Booking deleted successfully!', 'success');
+        loadBookings();
+      } else {
+        showToast('Error: ' + (data.error || 'Failed to delete'), 'error');
+      }
+    })
+    .catch(e => {
+      console.error('Delete booking error:', e);
+      showToast('Error deleting booking', 'error');
+    });
+}
+
 // Helper Functions
 function toggleSubmenu(element) {
   const submenu = element.nextElementSibling;
@@ -1908,14 +2049,14 @@ function toggleSubmenu(element) {
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const toggleBtn = document.getElementById('sidebarToggle');
-  
+
   if (sidebar && toggleBtn) {
     sidebar.classList.toggle('collapsed');
     toggleBtn.classList.toggle('collapsed');
-    
+
     // Change icon based on state
     if (sidebar.classList.contains('collapsed')) {
-      toggleBtn.innerHTML = '☰';
+      toggleBtn.innerHTML = 'â˜°';
       toggleBtn.title = 'Show Sidebar';
       localStorage.setItem('sidebarCollapsed', 'true');
     } else {
@@ -1931,11 +2072,11 @@ function initSidebar() {
   const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
   const sidebar = document.getElementById('sidebar');
   const toggleBtn = document.getElementById('sidebarToggle');
-  
+
   if (isCollapsed && sidebar && toggleBtn) {
     sidebar.classList.add('collapsed');
     toggleBtn.classList.add('collapsed');
-    toggleBtn.innerHTML = '☰';
+    toggleBtn.innerHTML = 'â˜°';
     toggleBtn.title = 'Show Sidebar';
   } else if (toggleBtn) {
     toggleBtn.innerHTML = '✕';
@@ -1956,7 +2097,7 @@ function saveVehicleChanges() {
   const id = document.getElementById('vehicleEditId').value;
   const token = localStorage.getItem('token');
   const driverId = document.getElementById('vehicleDriver').value;
-  
+
   const vehicleData = {
     model: document.getElementById('vehicleModel').value,
     plate_number: document.getElementById('vehiclePlate').value,
@@ -1968,15 +2109,13 @@ function saveVehicleChanges() {
     hourly_price: parseFloat(document.getElementById('vehicleHourly').value) || 0,
     per_km_price: parseFloat(document.getElementById('vehiclePerKm').value) || 2.5
   };
-  
-  // Add driver_id if selected
-  if (driverId) {
-    vehicleData.driver_id = driverId;
-  }
-  
+
+  // Add driver_id (allow empty string for unassignment)
+  vehicleData.driver_id = driverId || "";
+
   fetch(API_BASE + '/vehicles/' + id, {
     method: 'PUT',
-    headers: { 
+    headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
     },
@@ -1989,11 +2128,11 @@ function saveVehicleChanges() {
       // Reload drivers to see updated assignments
       loadDrivers();
     } else {
-      showToast('Error updating vehicle', 'error');
+      showToast('Error: ' + (d.error || d.message || 'Failed to update vehicle'), 'error');
     }
   }).catch(e => {
     console.error('Error:', e);
-    showToast('Error updating vehicle: ' + e.message, 'error');
+    showToast('Network error: ' + e.message, 'error');
   });
 }
 
@@ -2028,7 +2167,7 @@ function saveDriverChanges() {
 
   fetch(url, {
     method: method,
-    headers: { 
+    headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
     },
@@ -2081,7 +2220,7 @@ function saveDriverAdd() {
 
   fetch(API_BASE + '/drivers', {
     method: 'POST',
-    headers: { 
+    headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
     },
@@ -2130,13 +2269,13 @@ function exportKPIReport(format) {
   const vendorComm = document.getElementById('kpi-vendor-commission').textContent.replace('AED ', '');
   const profit = document.getElementById('kpi-company-profit').textContent.replace('AED ', '');
   const margin = document.getElementById('kpi-profit-margin').textContent;
-  
+
   let csv = 'KPI Report - ' + range.charAt(0).toUpperCase() + range.slice(1) + '\n\n';
   csv += 'Total Revenue (AED),' + totalRev + '\n';
   csv += 'Vendor Commission (AED),' + vendorComm + '\n';
   csv += 'Company Profit (AED),' + profit + '\n';
   csv += 'Profit Margin (%),' + margin + '\n';
-  
+
   const blob = new Blob([csv], { type: 'text/csv' });
   const objUrl = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -2170,18 +2309,18 @@ async function openAddBookingModal() {
     document.getElementById('roundTripMeetingLocation').value = '';
     modal.style.display = 'block';
     document.getElementById('modalOverlay').style.display = 'block';
-    
+
     // Clear stops for multi-stop
     const stopsContainer = document.getElementById('stopsContainer');
     if (stopsContainer) stopsContainer.innerHTML = '';
-    
+
     // Hide all booking type fields initially
     toggleBookingTypeFields();
-    
+
     // Load vehicles and drivers
     await loadVehiclesForModels();
     updateVehicleModels('sedan', 'bookingVehicleModel');
-    
+
     // Load drivers for assignment
     const token = localStorage.getItem('token');
     fetch(getCacheBustUrl(API_BASE + '/drivers'), { headers: { 'Authorization': 'Bearer ' + token } })
@@ -2193,17 +2332,17 @@ async function openAddBookingModal() {
           d.data.forEach(driver => {
             const opt = document.createElement('option');
             opt.value = driver.id;
-            opt.textContent = driver.name + ' (' + (driver.status === 'online' ? '🟢 Online' : '🔴 Offline') + ')';
+            opt.textContent = driver.name + ' (' + (driver.status === 'online' ? '🏁Ÿ¢ Online' : '📝´ Offline') + ')';
             driverSelect.appendChild(opt);
           });
         }
       })
       .catch(e => console.error('Error loading drivers:', e));
-    
+
     // Set default to auto-assign
     window.createAssignmentMode = 'auto';
     setCreateAssignmentMode('auto');
-    
+
     setTimeout(() => initAddMapAutocomplete(), 100);
   }
 }
@@ -2214,13 +2353,13 @@ async function calculateCreateBookingDistanceAndFare() {
   const distanceField = document.getElementById('bookingDistance');
   const fareField = document.getElementById('bookingFare');
   const vehicleTypeSelect = document.getElementById('bookingVehicleType');
-  
+
   if (!pickupInput || !dropoffInput || !pickupInput.value || !dropoffInput.value) return;
-  
+
   // Calculate distance
   const distance = parseFloat(estimateDistance(pickupInput.value, dropoffInput.value));
   if (distanceField) distanceField.value = distance;
-  
+
   // Map old vehicle types to new fare rule categories
   const vehicleType = vehicleTypeSelect?.value || 'sedan';
   const typeMapping = {
@@ -2233,7 +2372,7 @@ async function calculateCreateBookingDistanceAndFare() {
     'minibus': 'mini_bus'
   };
   const fareRuleType = typeMapping[vehicleType] || 'classic';
-  
+
   // Always get fresh from DB - NO STALE CACHE
   let baseFare = 95, perKmRate = 1;
   if (!fareRules[fareRuleType] || !Object.keys(fareRules).length) {
@@ -2243,7 +2382,7 @@ async function calculateCreateBookingDistanceAndFare() {
     baseFare = parseFloat(fareRules[fareRuleType].base_fare);
     perKmRate = parseFloat(fareRules[fareRuleType].per_km_rate);
   }
-  
+
   // Calculate: base_fare + (distance * per_km_rate)
   const fare = baseFare + (distance * perKmRate);
   if (fareField) fareField.value = parseFloat(fare).toFixed(2);
@@ -2253,7 +2392,7 @@ function initAddMapAutocomplete() {
   const vehicleTypeSelect = document.getElementById('bookingVehicleType');
   const pickupInput = document.getElementById('bookingPickup');
   const dropoffInput = document.getElementById('bookingDropoff');
-  
+
   // Vehicle type change handler
   if (vehicleTypeSelect) {
     vehicleTypeSelect.addEventListener('change', () => {
@@ -2261,7 +2400,7 @@ function initAddMapAutocomplete() {
       calculateCreateBookingDistanceAndFare();
     });
   }
-  
+
   // Location change handlers
   if (pickupInput) {
     pickupInput.addEventListener('change', calculateCreateBookingDistanceAndFare);
@@ -2271,12 +2410,46 @@ function initAddMapAutocomplete() {
     dropoffInput.addEventListener('change', calculateCreateBookingDistanceAndFare);
     dropoffInput.addEventListener('blur', calculateCreateBookingDistanceAndFare);
   }
-  
-  // Setup location autocomplete
-  setupLocationAutocomplete('bookingPickup', 'addPickupSuggestions');
-  setupLocationAutocomplete('bookingDropoff', 'addDropoffSuggestions');
-  setupLocationAutocomplete('roundTripMeetingLocation', 'roundTripMeetingSuggestions');
-  
+
+  // Setup Google Maps Autocomplete
+  const options = {
+    componentRestrictions: { country: "ae" },
+    fields: ["geometry", "name", "formatted_address"],
+    strictBounds: false,
+  };
+
+  if (pickupInput) {
+    const autocompletePickup = new google.maps.places.Autocomplete(pickupInput, options);
+    autocompletePickup.addListener("place_changed", () => {
+      const place = autocompletePickup.getPlace();
+      if (place.formatted_address) {
+        pickupInput.value = place.name + ', ' + place.formatted_address; // Use name + address for better context or just formatted_address
+        // Or just place.formatted_address? The static list was just names.
+        // Let's use formatted_address as it's more complete. 
+        // Actually, user typed "ter", suggestion "Terminal 1...". 
+        // Let's try to keep it simple.
+        pickupInput.value = place.formatted_address || place.name;
+        calculateCreateBookingDistanceAndFare();
+      }
+    });
+  }
+
+  if (dropoffInput) {
+    const autocompleteDropoff = new google.maps.places.Autocomplete(dropoffInput, options);
+    autocompleteDropoff.addListener("place_changed", () => {
+      const place = autocompleteDropoff.getPlace();
+      if (place.formatted_address || place.name) {
+        dropoffInput.value = place.formatted_address || place.name;
+        calculateCreateBookingDistanceAndFare();
+      }
+    });
+  }
+
+  const meetingInput = document.getElementById('roundTripMeetingLocation');
+  if (meetingInput) {
+    new google.maps.places.Autocomplete(meetingInput, options);
+  }
+
   // Hourly rental fare calculation
   const hoursInput = document.getElementById('bookingHourlyHours');
   const hoursVehicleType = document.getElementById('bookingVehicleType');
@@ -2286,14 +2459,14 @@ function initAddMapAutocomplete() {
       const vehicleType = hoursVehicleType?.value || 'sedan';
       const typeMapping = { 'sedan': 'classic', 'executive': 'executive', 'suv': 'urban_suv', 'luxury': 'luxury_suv', 'van': 'elite_van', 'bus': 'mini_bus', 'minibus': 'mini_bus' };
       const fareRuleType = typeMapping[vehicleType] || 'classic';
-      
+
       if (!window.rentalRules || !window.rentalRules.length) {
         await fetch(getCacheBustUrl(API_BASE + '/bookings/rental-rules/all'), { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') } })
           .then(r => r.json())
           .then(d => { window.rentalRules = d.data || []; })
           .catch(e => console.error('Error loading rental rules:', e));
       }
-      
+
       const rule = window.rentalRules?.find(r => r.vehicle_type === fareRuleType);
       if (rule) {
         const hourlyRate = parseFloat(rule.hourly_rate_aed) || 95;
@@ -2331,7 +2504,7 @@ function setCreateAssignmentMode(mode) {
   const autoStatus = document.getElementById('createAutoAssignStatus');
   const manualBtn = document.getElementById('createManualAssignBtn');
   const autoBtn = document.getElementById('createAutoAssignBtn');
-  
+
   if (mode === 'manual') {
     driverSelect.style.display = 'block';
     autoStatus.style.display = 'none';
@@ -2351,23 +2524,23 @@ function setCreateAssignmentMode(mode) {
 
 function createManualBooking() {
   const token = localStorage.getItem('token');
-  
+
   // Get all values
   const bookingType = document.getElementById('bookingType')?.value;
   const vehicleType = document.getElementById('bookingVehicleType')?.value;
   const vehicleModelSelect = document.getElementById('bookingVehicleModel');
-  
+
   // Validate required fields
   if (!bookingType || !vehicleType) {
     showToast('Please select Booking Type and Vehicle Type', 'error');
     return;
   }
-  
+
   if (!vehicleModelSelect?.value) {
     showToast('Please select a Vehicle Model', 'error');
     return;
   }
-  
+
   const body = {
     customer_name: document.getElementById('bookingCustomerName').value,
     customer_email: document.getElementById('bookingCustomerEmail').value,
@@ -2386,7 +2559,7 @@ function createManualBooking() {
     pickup_time: document.getElementById('bookingPickupTime').value || null,
     booking_source: 'manually_created'
   };
-  
+
   // Add flight times if Airport Transfer and fields have values
   if (bookingType === 'airport_transfer') {
     const flightArrival = document.getElementById('bookingFlightArrival')?.value;
@@ -2394,17 +2567,13 @@ function createManualBooking() {
     if (flightArrival) body.flight_arrival_time = flightArrival;
     if (flightDeparture) body.flight_departure_time = flightDeparture;
   }
-  
+
   // Auto-assign a vehicle and driver if in auto mode
   if (window.createAssignmentMode === 'auto') {
-    const availableVehicles = window.vehiclesList?.filter(v => v.type === vehicleType && v.status === 'available') || [];
-    if (availableVehicles.length > 0) {
-      body.assigned_vehicle_id = availableVehicles[0].id;
-    }
-    const onlineDrivers = window.driversList?.filter(d => d.status === 'online') || [];
-    if (onlineDrivers.length > 0) {
-      body.driver_id = onlineDrivers[0].id;
-    }
+    // For auto-assign, we send NULL to let the backend find the best vehicle/driver
+    // The previous frontend logic was trying to pick one randomly/first available, which is race-condition prone and suboptimal.
+    body.assigned_vehicle_id = null;
+    body.driver_id = null;
   } else if (window.createAssignmentMode === 'manual') {
     // Manual driver assignment
     const driverId = document.getElementById('createDriver').value;
@@ -2415,12 +2584,12 @@ function createManualBooking() {
       body.assigned_vehicle_id = availableVehicles[0].id;
     }
   }
-  
+
   console.log('Creating booking with:', body);
-  
+
   fetch(API_BASE + '/bookings/create-manual', {
     method: 'POST',
-    headers: { 
+    headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
     },
@@ -2470,59 +2639,59 @@ function viewDriver(id) {
   fetch(url, {
     headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
   })
-  .then(r => {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-  })
-  .then(d => {
-    // API returns {success:true, driver:{...}} 
-    const driver = d.driver || d.data;
-    if (driver) {
-      const modal = document.getElementById('driverViewModal');
-      if (modal) {
-        // Driver Image with fallback to placeholder
-        const imgElement = document.getElementById('driverViewImage');
-        if (driver.image_url) {
-          imgElement.src = driver.image_url;
-          imgElement.onerror = function() {
-            this.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(driver.name) + '&background=random&size=128&bold=true&font-size=0.4';
-          };
-        } else {
-          imgElement.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(driver.name) + '&background=random&size=128&bold=true&font-size=0.4';
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(d => {
+      // API returns {success:true, driver:{...}} 
+      const driver = d.driver || d.data;
+      if (driver) {
+        const modal = document.getElementById('driverViewModal');
+        if (modal) {
+          // Driver Image with fallback to placeholder
+          const imgElement = document.getElementById('driverViewImage');
+          if (driver.image_url) {
+            imgElement.src = driver.image_url;
+            imgElement.onerror = function () {
+              this.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(driver.name) + '&background=random&size=128&bold=true&font-size=0.4';
+            };
+          } else {
+            imgElement.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(driver.name) + '&background=random&size=128&bold=true&font-size=0.4';
+          }
+
+          document.getElementById('driverViewName').value = driver.name || '';
+          document.getElementById('driverViewPhone').value = driver.phone || '';
+          document.getElementById('driverViewEmail').value = driver.email || '';
+          document.getElementById('driverViewStatus').value = (driver.status || 'offline').toUpperCase();
+
+          // Rating with star symbol
+          const rating = driver.avg_rating || 0;
+          document.getElementById('driverViewRating').value = '⭐ ' + rating + '/5';
+
+          document.getElementById('driverViewLicense').value = driver.license_number || '';
+
+          // Format license expiry date
+          if (driver.license_expiry_date) {
+            const expiryDate = new Date(driver.license_expiry_date);
+            document.getElementById('driverViewLicenseExpiry').value = formatDubaiDate(expiryDate);
+          } else {
+            document.getElementById('driverViewLicenseExpiry').value = 'N/A';
+          }
+
+          // Auto Assign Status
+          const autoAssignCheckbox = document.getElementById('driverViewAutoAssign');
+          autoAssignCheckbox.checked = driver.auto_assign === true || driver.auto_assign === 1;
+
+          modal.style.display = 'block';
+          document.getElementById('modalOverlay').style.display = 'block';
         }
-        
-        document.getElementById('driverViewName').value = driver.name || '';
-        document.getElementById('driverViewPhone').value = driver.phone || '';
-        document.getElementById('driverViewEmail').value = driver.email || '';
-        document.getElementById('driverViewStatus').value = (driver.status || 'offline').toUpperCase();
-        
-        // Rating with star symbol
-        const rating = driver.avg_rating || 0;
-        document.getElementById('driverViewRating').value = '⭐ ' + rating + '/5';
-        
-        document.getElementById('driverViewLicense').value = driver.license_number || '';
-        
-        // Format license expiry date
-        if (driver.license_expiry_date) {
-          const expiryDate = new Date(driver.license_expiry_date);
-          document.getElementById('driverViewLicenseExpiry').value = formatDubaiDate(expiryDate);
-        } else {
-          document.getElementById('driverViewLicenseExpiry').value = 'N/A';
-        }
-        
-        // Auto Assign Status
-        const autoAssignCheckbox = document.getElementById('driverViewAutoAssign');
-        autoAssignCheckbox.checked = driver.auto_assign === true || driver.auto_assign === 1;
-        
-        modal.style.display = 'block';
-        document.getElementById('modalOverlay').style.display = 'block';
       }
-    }
-  })
-  .catch(e => {
-    console.error('View driver error:', e);
-    alert('Error loading driver details');
-  });
+    })
+    .catch(e => {
+      console.error('View driver error:', e);
+      alert('Error loading driver details');
+    });
 }
 
 // Edit Booking
@@ -2536,91 +2705,91 @@ function editBooking(id) {
       return r.json();
     }).catch(() => ({ data: [] }))
   ])
-  .then(([booking, drivers, vehicles]) => {
-    if (booking.data) {
-      const b = booking.data;
-      document.getElementById('editBookingId').value = id;
-      document.getElementById('editStatus').value = b.status || 'pending';
-      document.getElementById('editBookingType').value = b.booking_type || 'point_to_point';
-      document.getElementById('editPickup').value = b.pickup_location || '';
-      document.getElementById('editDropoff').value = b.dropoff_location || '';
-      document.getElementById('editDistance').value = b.distance_km || 0;
-      // Format pickup_time for datetime-local input
-      if (b.pickup_time) {
-        const date = new Date(b.pickup_time);
-        const localStr = date.toISOString().slice(0, 16);
-        document.getElementById('editPickupTime').value = localStr;
-      } else {
-        document.getElementById('editPickupTime').value = '';
+    .then(([booking, drivers, vehicles]) => {
+      if (booking.data) {
+        const b = booking.data;
+        document.getElementById('editBookingId').value = id;
+        document.getElementById('editStatus').value = b.status || 'pending';
+        document.getElementById('editBookingType').value = b.booking_type || 'point_to_point';
+        document.getElementById('editPickup').value = b.pickup_location || '';
+        document.getElementById('editDropoff').value = b.dropoff_location || '';
+        document.getElementById('editDistance').value = b.distance_km || 0;
+        // Format pickup_time for datetime-local input
+        if (b.pickup_time) {
+          const date = new Date(b.pickup_time);
+          const localStr = date.toISOString().slice(0, 16);
+          document.getElementById('editPickupTime').value = localStr;
+        } else {
+          document.getElementById('editPickupTime').value = '';
+        }
+        document.getElementById('editVehicleType').value = b.vehicle_type || 'sedan';
+        document.getElementById('editVehicleModel').value = b.vehicle_model || '';
+        document.getElementById('editPayment').value = b.payment_method || 'cash';
+        document.getElementById('editFare').value = b.fare_aed || 0;
+        document.getElementById('editNotes').value = b.notes || '';
+
+        // Add change listeners
+        document.getElementById('editPickup').addEventListener('change', calculateDistanceAndFare);
+        document.getElementById('editDropoff').addEventListener('change', calculateDistanceAndFare);
+        document.getElementById('editVehicleType').addEventListener('change', calculateDistanceAndFare);
+
+        // Load drivers for selection
+        const driverSelect = document.getElementById('editDriver');
+        driverSelect.innerHTML = '<option value="">-- Select Driver --</option>';
+        if (drivers.data && drivers.data.length) {
+          drivers.data.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.textContent = d.name + ' (' + (d.status === 'online' ? '🏁Ÿ¢ Online' : '📝´ Offline') + ')';
+            if (b.driver_id === d.id) opt.selected = true;
+            driverSelect.appendChild(opt);
+          });
+        }
+
+        // Load vehicles for assignment override
+        const vehicleSelect = document.getElementById('editAssignedVehicle');
+        vehicleSelect.innerHTML = '<option value="">-- Auto Select --</option>';
+        if (vehicles.data && vehicles.data.length) {
+          vehicles.data.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.id;
+            opt.textContent = (v.model || 'Unknown') + ' (' + (v.type || 'sedan').toUpperCase() + ') - ' + (v.status || 'unknown').toUpperCase();
+            if (b.assigned_vehicle_id === v.id) opt.selected = true;
+            vehicleSelect.appendChild(opt);
+          });
+        }
+
+        // Disable/enable assignment controls based on booking status
+        const isLocked = b.status === 'in_progress' || b.status === 'completed';
+        driverSelect.disabled = isLocked;
+        vehicleSelect.disabled = isLocked;
+        document.getElementById('manualAssignBtn').disabled = isLocked;
+        document.getElementById('autoAssignBtn').disabled = isLocked;
+        if (isLocked) {
+          document.getElementById('manualAssignBtn').style.opacity = '0.5';
+          document.getElementById('autoAssignBtn').style.opacity = '0.5';
+        }
+
+        // Set assignment mode
+        window.assignmentMode = b.driver_id ? 'manual' : 'auto';
+        setAssignmentMode(window.assignmentMode);
+
+        // Initialize Google Maps autocomplete
+        setTimeout(() => {
+          initEditMapAutocomplete();
+        }, 100);
+
+        const modal = document.getElementById('editBookingModal');
+        if (modal) modal.style.display = 'block';
+        document.getElementById('modalOverlay').style.display = 'block';
+        window.editingBookingId = id;
+
+        // Handle form submission
+        const form = document.getElementById('editBookingForm');
+        form.onsubmit = saveBookingChanges;
       }
-      document.getElementById('editVehicleType').value = b.vehicle_type || 'sedan';
-      document.getElementById('editVehicleModel').value = b.vehicle_model || '';
-      document.getElementById('editPayment').value = b.payment_method || 'cash';
-      document.getElementById('editFare').value = b.fare_aed || 0;
-      document.getElementById('editNotes').value = b.notes || '';
-      
-      // Add change listeners
-      document.getElementById('editPickup').addEventListener('change', calculateDistanceAndFare);
-      document.getElementById('editDropoff').addEventListener('change', calculateDistanceAndFare);
-      document.getElementById('editVehicleType').addEventListener('change', calculateDistanceAndFare);
-      
-      // Load drivers for selection
-      const driverSelect = document.getElementById('editDriver');
-      driverSelect.innerHTML = '<option value="">-- Select Driver --</option>';
-      if (drivers.data && drivers.data.length) {
-        drivers.data.forEach(d => {
-          const opt = document.createElement('option');
-          opt.value = d.id;
-          opt.textContent = d.name + ' (' + (d.status === 'online' ? '🟢 Online' : '🔴 Offline') + ')';
-          if (b.driver_id === d.id) opt.selected = true;
-          driverSelect.appendChild(opt);
-        });
-      }
-      
-      // Load vehicles for assignment override
-      const vehicleSelect = document.getElementById('editAssignedVehicle');
-      vehicleSelect.innerHTML = '<option value="">-- Auto Select --</option>';
-      if (vehicles.data && vehicles.data.length) {
-        vehicles.data.forEach(v => {
-          const opt = document.createElement('option');
-          opt.value = v.id;
-          opt.textContent = (v.model || 'Unknown') + ' (' + (v.type || 'sedan').toUpperCase() + ') - ' + (v.status || 'unknown').toUpperCase();
-          if (b.assigned_vehicle_id === v.id) opt.selected = true;
-          vehicleSelect.appendChild(opt);
-        });
-      }
-      
-      // Disable/enable assignment controls based on booking status
-      const isLocked = b.status === 'in_progress' || b.status === 'completed';
-      driverSelect.disabled = isLocked;
-      vehicleSelect.disabled = isLocked;
-      document.getElementById('manualAssignBtn').disabled = isLocked;
-      document.getElementById('autoAssignBtn').disabled = isLocked;
-      if (isLocked) {
-        document.getElementById('manualAssignBtn').style.opacity = '0.5';
-        document.getElementById('autoAssignBtn').style.opacity = '0.5';
-      }
-      
-      // Set assignment mode
-      window.assignmentMode = b.driver_id ? 'manual' : 'auto';
-      setAssignmentMode(window.assignmentMode);
-      
-      // Initialize Google Maps autocomplete
-      setTimeout(() => {
-        initEditMapAutocomplete();
-      }, 100);
-      
-      const modal = document.getElementById('editBookingModal');
-      if (modal) modal.style.display = 'block';
-      document.getElementById('modalOverlay').style.display = 'block';
-      window.editingBookingId = id;
-      
-      // Handle form submission
-      const form = document.getElementById('editBookingForm');
-      form.onsubmit = saveBookingChanges;
-    }
-  })
-  .catch(e => console.error('Edit booking error:', e));
+    })
+    .catch(e => console.error('Edit booking error:', e));
 }
 
 function setAssignmentMode(mode) {
@@ -2629,7 +2798,7 @@ function setAssignmentMode(mode) {
   const autoStatus = document.getElementById('autoAssignStatus');
   const manualBtn = document.getElementById('manualAssignBtn');
   const autoBtn = document.getElementById('autoAssignBtn');
-  
+
   if (mode === 'manual') {
     driverSelect.style.display = 'block';
     autoStatus.style.display = 'none';
@@ -2651,7 +2820,7 @@ function saveBookingChanges(e) {
   e.preventDefault();
   const token = localStorage.getItem('token');
   const id = document.getElementById('editBookingId').value;
-  
+
   const body = {
     status: document.getElementById('editStatus').value,
     booking_type: document.getElementById('editBookingType').value,
@@ -2665,17 +2834,17 @@ function saveBookingChanges(e) {
     pickup_time: document.getElementById('editPickupTime').value || null,
     notes: document.getElementById('editNotes').value || ''
   };
-  
+
   // Vehicle assignment override
   const assignedVehicleId = document.getElementById('editAssignedVehicle')?.value;
   if (assignedVehicleId) body.assigned_vehicle_id = assignedVehicleId;
-  
+
   // Driver assignment
   if (window.assignmentMode === 'manual') {
     const driverId = document.getElementById('editDriver').value;
     if (driverId) body.driver_id = driverId;
   }
-  
+
   // Collect notification selections (for logging/future implementation)
   const notifications = {
     customer: {
@@ -2688,34 +2857,34 @@ function saveBookingChanges(e) {
     }
   };
   body.notifications_to_send = notifications;
-  
+
   fetch(API_BASE + '/bookings/' + id, {
     method: 'PUT',
-    headers: { 
+    headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
     },
     body: JSON.stringify(body)
   })
-  .then(r => r.json())
-  .then(d => {
-    if (d.success) {
-      showToast('Booking updated & notifications queued!', 'success');
-      closeModal('editBookingModal');
-      loadBookings();
-    } else {
-      showToast('Error: ' + (d.error || 'Failed to update booking'), 'error');
-    }
-  })
-  .catch(e => showToast('Error: ' + e.message, 'error'));
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) {
+        showToast('Booking updated & notifications queued!', 'success');
+        closeModal('editBookingModal');
+        loadBookings();
+      } else {
+        showToast('Error: ' + (d.error || 'Failed to update booking'), 'error');
+      }
+    })
+    .catch(e => showToast('Error: ' + e.message, 'error'));
 }
 
 async function initEditMapAutocomplete() {
   const vehicleTypeSelect = document.getElementById('editVehicleType');
-  
+
   // Load all vehicles - WAIT for data
   await loadVehiclesForModels();
-  
+
   // Vehicle type change handler
   if (vehicleTypeSelect) {
     vehicleTypeSelect.addEventListener('change', () => {
@@ -2723,10 +2892,38 @@ async function initEditMapAutocomplete() {
     });
     updateVehicleModels(vehicleTypeSelect.value, 'editVehicleModel');
   }
-  
-  // Setup location autocomplete
-  setupLocationAutocomplete('editPickup', 'pickupSuggestions');
-  setupLocationAutocomplete('editDropoff', 'dropoffSuggestions');
+
+  // Setup Google Maps Autocomplete (EDIT MODAL)
+  const options = {
+    componentRestrictions: { country: "ae" },
+    fields: ["geometry", "name", "formatted_address"],
+    strictBounds: false,
+  };
+
+  const pickupInput = document.getElementById('editPickup');
+  const dropoffInput = document.getElementById('editDropoff');
+
+  if (pickupInput) {
+    const autocompletePickup = new google.maps.places.Autocomplete(pickupInput, options);
+    autocompletePickup.addListener("place_changed", () => {
+      const place = autocompletePickup.getPlace();
+      if (place.formatted_address || place.name) {
+        pickupInput.value = place.formatted_address || place.name;
+        calculateDistanceAndFare();
+      }
+    });
+  }
+
+  if (dropoffInput) {
+    const autocompleteDropoff = new google.maps.places.Autocomplete(dropoffInput, options);
+    autocompleteDropoff.addListener("place_changed", () => {
+      const place = autocompleteDropoff.getPlace();
+      if (place.formatted_address || place.name) {
+        dropoffInput.value = place.formatted_address || place.name;
+        calculateDistanceAndFare();
+      }
+    });
+  }
 }
 
 let vehiclesList = [];
@@ -2736,15 +2933,15 @@ function loadVehiclesForModels() {
   return fetch(getCacheBustUrl(API_BASE + '/vehicles'), {
     headers: { 'Authorization': 'Bearer ' + token }
   })
-  .then(r => r.json())
-  .then(d => {
-    if (d.data) vehiclesList = d.data;
-    return vehiclesList;
-  })
-  .catch(e => {
-    console.error('Error loading vehicles:', e);
-    return [];
-  });
+    .then(r => r.json())
+    .then(d => {
+      if (d.data) vehiclesList = d.data;
+      return vehiclesList;
+    })
+    .catch(e => {
+      console.error('Error loading vehicles:', e);
+      return [];
+    });
 }
 
 function updateVehicleModels(vehicleType, targetId = 'editVehicleModel') {
@@ -2758,14 +2955,14 @@ function updateVehicleModels(vehicleType, targetId = 'editVehicleModel') {
     'bus': ['mini_bus', 'bus', 'minibus'],
     'minibus': ['mini_bus', 'minibus']
   };
-  
+
   // Get all matching types (both old and new names)
   const typesToMatch = typeMapping[vehicleType] || [vehicleType];
-  
+
   // Filter by ANY matching type name (old OR new)
   const vehicles = vehiclesList.filter(v => typesToMatch.includes(v.type));
   const select = document.getElementById(targetId);
-  
+
   if (select) {
     select.innerHTML = '<option value="">-- Select Vehicle Model --</option>';
     if (vehicles.length > 0) {
@@ -2814,10 +3011,10 @@ const locationDistances = {
 function estimateDistance(pickup, dropoff) {
   pickup = (pickup || '').toLowerCase();
   dropoff = (dropoff || '').toLowerCase();
-  
+
   // Try to find matching locations
   let pickupCoords = null, dropoffCoords = null;
-  
+
   for (let loc in locationDistances) {
     if (pickup.includes(loc.toLowerCase()) || loc.toLowerCase().includes(pickup)) {
       pickupCoords = locationDistances[loc];
@@ -2826,7 +3023,7 @@ function estimateDistance(pickup, dropoff) {
       dropoffCoords = locationDistances[loc];
     }
   }
-  
+
   // If both found, calculate distance using simple formula
   if (pickupCoords && dropoffCoords) {
     const dx = pickupCoords.x - dropoffCoords.x;
@@ -2834,7 +3031,7 @@ function estimateDistance(pickup, dropoff) {
     const distance = Math.sqrt(dx * dx + dy * dy);
     return Math.max(2, Math.round(distance * 0.8 * 10) / 10); // Adjust for actual road distance
   }
-  
+
   // Fallback: reasonable city distance
   return (Math.random() * 25 + 10).toFixed(1);
 }
@@ -2843,7 +3040,7 @@ function estimateDistance(pickup, dropoff) {
 async function getFreshFareRules() {
   try {
     const token = localStorage.getItem('token');
-    const res = await fetch(API_BASE + '/fare-rules?t=' + Date.now(), { 
+    const res = await fetch(API_BASE + '/fare-rules?t=' + Date.now(), {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     if (res.ok) {
@@ -2864,13 +3061,13 @@ async function calculateDistanceAndFare() {
   const distanceField = document.getElementById('editDistance');
   const fareField = document.getElementById('editFare');
   const vehicleTypeSelect = document.getElementById('editVehicleType');
-  
+
   if (!pickupInput || !dropoffInput || !pickupInput.value || !dropoffInput.value) return;
-  
+
   // Calculate distance
   const distance = parseFloat(estimateDistance(pickupInput.value, dropoffInput.value));
   if (distanceField) distanceField.value = distance;
-  
+
   // Map old vehicle types to new fare rule categories
   const vehicleType = vehicleTypeSelect?.value || 'sedan';
   const typeMapping = {
@@ -2883,7 +3080,7 @@ async function calculateDistanceAndFare() {
     'minibus': 'mini_bus'
   };
   const fareRuleType = typeMapping[vehicleType] || 'classic';
-  
+
   // Always get fresh from DB
   let baseFare = 95, perKmRate = 1;
   if (!fareRules[fareRuleType] || !Object.keys(fareRules).length) {
@@ -2893,7 +3090,7 @@ async function calculateDistanceAndFare() {
     baseFare = parseFloat(fareRules[fareRuleType].base_fare);
     perKmRate = parseFloat(fareRules[fareRuleType].per_km_rate);
   }
-  
+
   // Calculate: base_fare + (distance * per_km_rate)
   const fare = baseFare + (distance * perKmRate);
   if (fareField) fareField.value = parseFloat(fare).toFixed(2);
@@ -2911,7 +3108,7 @@ async function loadFareRules() {
     const token = localStorage.getItem('token');
     const tbody = document.getElementById('fareRulesTableBody');
     if (!tbody) return;
-    
+
     // Vehicle model mappings for each category
     const modelMap = {
       'classic': 'Sedans: Toyota Camry, BMW 5 Series, BYD Han',
@@ -2923,20 +3120,20 @@ async function loadFareRules() {
       'mini_bus': 'Mini Bus: Mercedes Sprinter (8-10 passengers)',
       'urban_suv': 'Urban SUVs: Toyota Highlander, BYD Song'
     };
-    
+
     const url = getCacheBustUrl(API_BASE + '/fare-rules');
     const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
-    
+
     if (!response.ok) throw new Error('HTTP ' + response.status);
-    
+
     const data = await response.json();
     if (!data.data || !data.data.length) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px;">No fare rules found</td></tr>';
       return;
     }
-    
+
     tbody.innerHTML = data.data.map(rule => {
       const typeLabel = rule.vehicle_type.replace(/_/g, ' ').toUpperCase();
       const models = modelMap[rule.vehicle_type] || 'Multiple vehicle types';
@@ -2955,7 +3152,7 @@ function editFareRule(type, baseFare, perKmRate) {
   document.getElementById('editFareRuleTypeDisplay').textContent = typeLabel;
   document.getElementById('editFareRuleBase').value = baseFare;
   document.getElementById('editFareRulePerKm').value = perKmRate;
-  
+
   const modal = document.getElementById('editFareRuleModal');
   const overlay = document.getElementById('modalOverlay');
   if (modal) modal.style.display = 'block';
@@ -2966,12 +3163,12 @@ function saveFareRuleChanges() {
   const type = document.getElementById('editFareRuleType').value;
   const baseFare = parseFloat(document.getElementById('editFareRuleBase').value);
   const perKmRate = parseFloat(document.getElementById('editFareRulePerKm').value);
-  
+
   if (!baseFare && baseFare !== 0 || !perKmRate && perKmRate !== 0) {
     alert('Please enter valid values for both fields');
     return;
   }
-  
+
   fetch(API_BASE + '/fare-rules/' + type, {
     method: 'PUT',
     headers: {
@@ -3002,7 +3199,7 @@ async function loadAlerts() {
     const token = localStorage.getItem('token');
     const container = document.getElementById('alertsFullList');
     if (!container) return;
-    
+
     container.innerHTML = '<div style="text-align:center; padding:20px;"><p>✅ No critical alerts</p><p style="color:var(--text-secondary); font-size:12px;">System running normally</p></div>';
   } catch (e) {
     console.error(e);
@@ -3011,28 +3208,38 @@ async function loadAlerts() {
 
 // LOGS PAGE FUNCTIONS
 async function loadLogs(filter = {}) {
+  console.log('📝 loadLogs() called', filter);
   try {
     const token = localStorage.getItem('token');
+    console.log('📝‘ Token:', token ? 'EXISTS' : 'MISSING');
+
     const tbody = document.getElementById('logs-table-body');
+    console.log('🏁“‹ Table body element:', tbody ? 'FOUND' : 'NOT FOUND');
+
     if (tbody) tbody.innerHTML = '<tr><td colspan="7">Loading logs...</td></tr>';
-    
+
     let url = getCacheBustUrl(API_BASE + '/audit-logs?limit=100');
     if (filter.entity_type) url += '&entity_type=' + filter.entity_type;
     if (filter.action) url += '&action=' + filter.action;
-    
+    console.log('🏁Œ Fetching from:', url);
+
     const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+    console.log('🏁“¡ Response status:', response.status);
     if (!response.ok) throw new Error('HTTP ' + response.status);
-    
+
     const data = await response.json();
+    console.log('🏁“¦ Received data:', data);
+    console.log('🏁“Š Number of logs:', data.data ? data.data.length : 0);
+
     if (!tbody) return;
-    
+
     if (!data.data || !data.data.length) {
       tbody.innerHTML = '<tr><td colspan="7">No logs found</td></tr>';
       attachLogListeners();
       return;
     }
-    
-    tbody.innerHTML = data.data.map(log => {
+
+    const html = data.data.map(log => {
       const ts = new Date(log.created_at);
       const timeStr = formatDubaiDateTime(ts);
       let changes = 'N/A';
@@ -3046,9 +3253,14 @@ async function loadLogs(filter = {}) {
       }
       return '<tr><td style="font-size:12px;">' + timeStr + '</td><td>' + log.action + '</td><td>' + log.entity_type + '</td><td style="font-size:11px;">' + log.entity_id.substring(0, 8) + '</td><td><strong>' + (log.updated_by_name || 'System') + '</strong></td><td>' + (log.user_role || 'admin') + '</td><td style="font-size:11px;">' + changes + '</td></tr>';
     }).join('');
-    
+
+    console.log('✅ Setting innerHTML with', data.data.length, 'rows');
+    tbody.innerHTML = html;
+    console.log('✅ Logs rendered successfully!');
+
     attachLogListeners();
   } catch (e) {
+    console.error('âŒ Error loading logs:', e);
     const tbody = document.getElementById('logs-table-body');
     if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="color:red;">Error: ' + e.message + '</td></tr>';
   }
@@ -3064,10 +3276,10 @@ function filterLogs() {
 function attachLogListeners() {
   const logEntityFilter = document.getElementById('log-entity-filter');
   const logActionFilter = document.getElementById('log-action-filter');
-  
+
   if (logEntityFilter) logEntityFilter.removeEventListener('change', filterLogs);
   if (logActionFilter) logActionFilter.removeEventListener('change', filterLogs);
-  
+
   if (logEntityFilter) logEntityFilter.addEventListener('change', filterLogs);
   if (logActionFilter) logActionFilter.addEventListener('change', filterLogs);
 }
@@ -3080,18 +3292,18 @@ function toggleBookingTypeFields() {
   const multiStopFields = document.getElementById('multiStopFields');
   const roundTripFields = document.getElementById('roundTripFields');
   const flightTimesWrapper = document.getElementById('flightTimesWrapper');
-  
+
   // Hide all by default
   locationFieldsWrapper.style.display = 'none';
   hourlyRentalFieldsWrapper.style.display = 'none';
   multiStopFields.style.display = 'none';
   roundTripFields.style.display = 'none';
   flightTimesWrapper.style.display = 'none';
-  
+
   if (!bookingType) {
     return;
   }
-  
+
   // Show fields based on booking type
   if (bookingType === 'hourly_rental') {
     hourlyRentalFieldsWrapper.style.display = 'block';
@@ -3131,7 +3343,7 @@ function addStopField() {
   const stopDiv = document.createElement('div');
   const uniqueId = 'stop-' + stopNum + '-' + Date.now();
   const suggestionsId = 'stopSuggestions-' + uniqueId;
-  
+
   stopDiv.style.cssText = 'margin-bottom: 12px; padding: 10px; background: white; border-radius: 6px; border: 1px solid #e5e7eb; position: relative;';
   stopDiv.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -3148,7 +3360,7 @@ function addStopField() {
     </div>
   `;
   container.appendChild(stopDiv);
-  
+
   // Setup autocomplete for this stop
   setupLocationAutocomplete(uniqueId, suggestionsId);
 }
@@ -3159,9 +3371,9 @@ function removeStopField(btn) {
 
 // Override createManualBooking to handle multi-stop/round-trip
 const originalCreateManualBooking = window.createManualBooking;
-window.createManualBooking = async function() {
+window.createManualBooking = async function () {
   const bookingType = document.getElementById('bookingType').value;
-  
+
   if (bookingType === 'multi_stop') {
     const stops = [];
     const stopFields = document.querySelectorAll('#stopsContainer > div');
@@ -3173,7 +3385,7 @@ window.createManualBooking = async function() {
         stops.push({ location, distance_from_previous: distance, duration_minutes: duration, stop_type: 'stop' });
       }
     });
-    
+
     if (stops.length < 2) {
       showToast('Multi-stop requires at least 2 stops with locations', 'error');
       return;
@@ -3201,7 +3413,7 @@ window.createManualBooking = async function() {
         body: JSON.stringify(reqBody)
       });
       if (res.ok) {
-        showToast('🛣️ Multi-stop booking created!', 'success');
+        showToast('🛣️ Multi-stop booking created!', 'success');
         closeModal('addBookingModal');
         loadBookings();
       }
@@ -3234,7 +3446,7 @@ window.createManualBooking = async function() {
         body: JSON.stringify(reqBody)
       });
       if (res.ok) {
-        showToast('🔄 Round-trip booking created!', 'success');
+        showToast('📝„ Round-trip booking created!', 'success');
         closeModal('addBookingModal');
         loadBookings();
       }
@@ -3249,7 +3461,7 @@ window.createManualBooking = async function() {
 // ============ HOURLY RENTAL RULES MANAGEMENT ============
 function loadRentalRules() {
   const token = localStorage.getItem('token');
-  
+
   // Vehicle model mappings
   const modelMap = {
     'classic': 'Sedans: Toyota Camry, BMW 5 Series, BYD Han',
@@ -3261,25 +3473,25 @@ function loadRentalRules() {
     'mini_bus': 'Mini Bus: Mercedes Sprinter (8-10 passengers)',
     'urban_suv': 'Urban SUVs: Toyota Highlander, BYD Song'
   };
-  
+
   fetch(API_BASE + '/bookings/rental-rules/all', {
     headers: { 'Authorization': 'Bearer ' + token }
   })
-  .then(r => r.json())
-  .then(d => {
-    if (!d.success || !d.data) {
-      document.getElementById('rentalRulesTableBody').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-secondary);">No rental rules found</td></tr>';
-      return;
-    }
-    let html = '';
-    d.data.forEach(rule => {
-      const rate = parseFloat(rule.hourly_rate_aed);
-      const total3h = rate * 3;
-      const total14h = rate * 14;
-      const status = rule.is_active ? '<span style="color: #10b981; font-weight: 600;">✅ Active</span>' : '<span style="color: #ef4444; font-weight: 600;">❌ Inactive</span>';
-      const typeLabel = rule.vehicle_type.replace(/_/g, ' ').toUpperCase();
-      const models = modelMap[rule.vehicle_type] || 'Multiple vehicle types';
-      html += `
+    .then(r => r.json())
+    .then(d => {
+      if (!d.success || !d.data) {
+        document.getElementById('rentalRulesTableBody').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-secondary);">No rental rules found</td></tr>';
+        return;
+      }
+      let html = '';
+      d.data.forEach(rule => {
+        const rate = parseFloat(rule.hourly_rate_aed);
+        const total3h = rate * 3;
+        const total14h = rate * 14;
+        const status = rule.is_active ? '<span style="color: #10b981; font-weight: 600;">✅ Active</span>' : '<span style="color: #ef4444; font-weight: 600;">âŒ Inactive</span>';
+        const typeLabel = rule.vehicle_type.replace(/_/g, ' ').toUpperCase();
+        const models = modelMap[rule.vehicle_type] || 'Multiple vehicle types';
+        html += `
         <tr style="border-bottom: 1px solid var(--border); hover: background-color: var(--bg-secondary);">
           <td style="padding: 12px; text-align: left; font-weight: 500;">${typeLabel}</td>
           <td style="padding: 12px; text-align: left; font-size: 0.9em; color: var(--text-secondary);">${models}</td>
@@ -3292,33 +3504,33 @@ function loadRentalRules() {
           </td>
         </tr>
       `;
+      });
+      document.getElementById('rentalRulesTableBody').innerHTML = html;
+    })
+    .catch(e => {
+      console.error('Error loading rental rules:', e);
+      document.getElementById('rentalRulesTableBody').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-secondary);">Error loading rental rules</td></tr>';
     });
-    document.getElementById('rentalRulesTableBody').innerHTML = html;
-  })
-  .catch(e => {
-    console.error('Error loading rental rules:', e);
-    document.getElementById('rentalRulesTableBody').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-secondary);">Error loading rental rules</td></tr>';
-  });
 }
 
 function openRentalRuleModal(vehicleType, currentRate) {
   document.getElementById('editRentalVehicleType').value = vehicleType;
   document.getElementById('editRentalTypeDisplay').textContent = vehicleType.replace(/_/g, ' ').toUpperCase();
   document.getElementById('editRentalRate').value = currentRate;
-  
+
   // Calculate 3 and 14 hour totals
   const calc3h = (currentRate * 3).toFixed(2);
   const calc14h = (currentRate * 14).toFixed(2);
   document.getElementById('calc3Hour').textContent = 'AED ' + calc3h;
   document.getElementById('calc14Hour').textContent = 'AED ' + calc14h;
-  
+
   // Update on input change
-  document.getElementById('editRentalRate').onchange = function() {
+  document.getElementById('editRentalRate').onchange = function () {
     const newRate = parseFloat(this.value) || 0;
     document.getElementById('calc3Hour').textContent = 'AED ' + (newRate * 3).toFixed(2);
     document.getElementById('calc14Hour').textContent = 'AED ' + (newRate * 14).toFixed(2);
   };
-  
+
   document.getElementById('editRentalRuleModal').style.display = 'flex';
 }
 
@@ -3326,34 +3538,34 @@ function saveRentalRuleChanges() {
   const token = localStorage.getItem('token');
   const vehicleType = document.getElementById('editRentalVehicleType').value;
   const hourlyRate = parseFloat(document.getElementById('editRentalRate').value);
-  
+
   if (!hourlyRate || hourlyRate <= 0) {
     showToast('Hourly rate must be greater than 0', 'error');
     return;
   }
-  
+
   fetch(API_BASE + '/bookings/rental-rules/' + vehicleType, {
     method: 'PUT',
     headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
     body: JSON.stringify({ hourly_rate_aed: hourlyRate })
   })
-  .then(r => r.json())
-  .then(d => {
-    if (d.success) {
-      showToast('✅ Rental rate updated!', 'success');
-      closeModal('editRentalRuleModal');
-      loadRentalRules();
-    } else {
-      showToast('Error: ' + (d.error || 'Failed to update rate'), 'error');
-    }
-  })
-  .catch(e => showToast('Error: ' + e.message, 'error'));
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) {
+        showToast('✅ Rental rate updated!', 'success');
+        closeModal('editRentalRuleModal');
+        loadRentalRules();
+      } else {
+        showToast('Error: ' + (d.error || 'Failed to update rate'), 'error');
+      }
+    })
+    .catch(e => showToast('Error: ' + e.message, 'error'));
 }
 
 // Load rental rules when page is navigated to
 const rentalRulesNav = document.querySelector('[data-page="rental-rules"]');
 if (rentalRulesNav) {
-  rentalRulesNav.addEventListener('click', function() {
+  rentalRulesNav.addEventListener('click', function () {
     setTimeout(loadRentalRules, 100);
   });
 }
@@ -3382,7 +3594,7 @@ async function loadFeatureCards() {
 
     // Load revenue by type with default 'month'
     await loadRevenueByType('month');
-    
+
     // Load unassigned rides and accept ratio and pending bookings
     await Promise.all([
       loadUnassignedRides(),
@@ -3390,10 +3602,10 @@ async function loadFeatureCards() {
       loadAirportFlights(),
       loadPendingBookings()
     ]);
-    
+
     // Load funnels with default range
     await loadCustomerFunnels('month');
-    
+
     initDragDrop();
   } catch (e) {
     console.error('Error loading feature cards:', e);
@@ -3409,7 +3621,7 @@ async function loadCustomerFunnels(range = 'month') {
 
     if (data.success && data.data && data.data.length) {
       const funnelHtml = data.data.map(f => {
-        const source = f.booking_source === 'bareerah_ai' ? '📱 Bareerah AI' : f.booking_source === 'manually_created' ? '👤 Manual' : f.booking_source || 'WordPress';
+        const source = f.booking_source === 'bareerah_ai' ? '🏁“± Bareerah AI' : f.booking_source === 'manually_created' ? '🏁‘¤ Manual' : f.booking_source || 'WordPress';
         return `<div style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; font-size: 13px;">
           <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
             <span>${source}</span>
@@ -3439,11 +3651,11 @@ async function loadRevenueByType(range = 'month') {
 
     if (revenueType.success && revenueType.data && revenueType.data.length) {
       const typeHtml = revenueType.data.map(t => {
-        const icons = {'Airport Transfer': '✈️', 'Hourly Rental': '⏰', 'Point to Point': '🚗'};
+        const icons = { 'Airport Transfer': '✈️', 'Hourly Rental': 'â°', 'Point to Point': '🚗' };
         const revenue = typeof t.revenue === 'string' ? parseFloat(t.revenue) : t.revenue;
         return `<div style="padding: 10px; background: rgba(59,130,246,0.1); border-radius: 6px; margin-bottom: 8px;">
           <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-            <span style="font-weight: 600;">${icons[t.booking_type] || '📍'} ${t.booking_type}</span>
+            <span style="font-weight: 600;">${icons[t.booking_type] || '🏁“'} ${t.booking_type}</span>
             <span style="color: #10b981; font-weight: 700;">AED ${revenue.toFixed(2)}</span>
           </div>
           <div style="font-size: 12px; color: #666;">${t.trips} trips</div>
@@ -3462,8 +3674,8 @@ async function loadRevenueByType(range = 'month') {
 // Load unassigned rides count
 async function loadUnassignedRides() {
   try {
-    const response = await fetch(`${API_BASE}/stats/unassigned-rides`, { 
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } 
+    const response = await fetch(`${API_BASE}/stats/unassigned-rides`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     });
     const data = await response.json();
     if (data.success) {
@@ -3477,8 +3689,8 @@ async function loadUnassignedRides() {
 // Load accept to assigned ratio
 async function loadAcceptAssignedRatio() {
   try {
-    const response = await fetch(`${API_BASE}/stats/accept-assigned-ratio`, { 
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } 
+    const response = await fetch(`${API_BASE}/stats/accept-assigned-ratio`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     });
     const data = await response.json();
     if (data.success) {
@@ -3500,47 +3712,47 @@ async function loadAirportFlights() {
     const response = await fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
-    
+
     if (!response.ok) throw new Error('HTTP ' + response.status);
-    
+
     const data = await response.json();
     const bookings = data.data || [];
     const container = document.getElementById('airport-flights-list');
-    
+
     if (!bookings || bookings.length === 0) {
       container.innerHTML = '<div style="color: #999; text-align: center; padding: 20px; font-size: 12px;">✅ No pending airport transfer bookings</div>';
       return;
     }
-    
+
     // Filter to only show Airport Transfer bookings with flight info
     const flightBookings = bookings.filter(b => b.booking_type === 'airport_transfer' && (b.status === 'pending' || b.status === 'in-process'));
-    
+
     if (flightBookings.length === 0) {
       container.innerHTML = '<div style="color: #999; text-align: center; padding: 20px; font-size: 12px;">✅ No pending airport transfer bookings</div>';
       return;
     }
-    
+
     const html = flightBookings.map(b => {
       const bookingId = b.id.substring(0, 8).toUpperCase();
       let flightInfo = '';
-      
+
       if (b.flight_arrival_time) {
         const arrivalDate = new Date(b.flight_arrival_time);
         const arrivalStr = arrivalDate.toLocaleDateString('en-AE', { day: '2-digit', month: 'short', timeZone: 'Asia/Dubai' });
         const arrivalTime = arrivalDate.toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai' });
-        flightInfo += `<div style="display: flex; align-items: center; margin-bottom: 6px;"><span style="color: #3b82f6; font-weight: 600; margin-right: 8px; min-width: 65px;">🛬 Arrival:</span><span style="color: #1d1d1f; font-weight: 500;">${arrivalStr}, ${arrivalTime}</span></div>`;
+        flightInfo += `<div style="display: flex; align-items: center; margin-bottom: 6px;"><span style="color: #3b82f6; font-weight: 600; margin-right: 8px; min-width: 65px;">🏁›¬ Arrival:</span><span style="color: #1d1d1f; font-weight: 500;">${arrivalStr}, ${arrivalTime}</span></div>`;
       }
-      
+
       if (b.flight_departure_time) {
         const departureDate = new Date(b.flight_departure_time);
         const departureStr = departureDate.toLocaleDateString('en-AE', { day: '2-digit', month: 'short', timeZone: 'Asia/Dubai' });
         const departureTime = departureDate.toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai' });
-        flightInfo += `<div style="display: flex; align-items: center;"><span style="color: #f59e0b; font-weight: 600; margin-right: 8px; min-width: 65px;">🛫 Departure:</span><span style="color: #1d1d1f; font-weight: 500;">${departureStr}, ${departureTime}</span></div>`;
+        flightInfo += `<div style="display: flex; align-items: center;"><span style="color: #f59e0b; font-weight: 600; margin-right: 8px; min-width: 65px;">🏁›« Departure:</span><span style="color: #1d1d1f; font-weight: 500;">${departureStr}, ${departureTime}</span></div>`;
       }
-      
+
       const statusBadgeColor = b.status === 'pending' ? '#fca5a5' : '#bfdbfe';
       const statusBadgeTextColor = b.status === 'pending' ? '#991b1b' : '#1e40af';
-      
+
       return `
         <div style="padding: 12px; background: #f8f9fa; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #3b82f6; cursor: pointer;" onclick="goToBookingDetail('${b.id}')">
           <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
@@ -3554,7 +3766,7 @@ async function loadAirportFlights() {
         </div>
       `;
     }).join('');
-    
+
     container.innerHTML = html;
   } catch (e) {
     console.error('Error loading airport flights:', e);
@@ -3568,8 +3780,8 @@ async function loadAirportFlights() {
 // Load pending bookings list
 async function loadPendingBookings() {
   try {
-    const response = await fetch(`${API_BASE}/stats/pending-bookings`, { 
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } 
+    const response = await fetch(`${API_BASE}/stats/pending-bookings`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     });
     const data = await response.json();
     if (data.success && data.data && data.data.length) {
@@ -3625,14 +3837,713 @@ function goToBookingPanel() {
 function initDragDrop() {
   const container = document.getElementById('featureCardsContainer');
   if (!container) return;
-  
+
   Sortable.create(container, {
     animation: 200,
     ghostClass: 'sortable-ghost',
     handle: '.drag-handle',
-    onEnd: function(evt) {
+    onEnd: function (evt) {
       const cardOrder = Array.from(container.querySelectorAll('[data-card-id]')).map(el => el.dataset.cardId);
       localStorage.setItem('dashboardCardOrder', JSON.stringify(cardOrder));
     }
   });
 }
+// Vendor Management
+function openAddVendorModal() {
+  const modal = document.getElementById('addVendorModal');
+  if (modal) {
+    modal.style.display = 'block';
+  }
+}
+
+function closeAddVendorModal() {
+  const modal = document.getElementById('addVendorModal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.getElementById('addVendorForm').reset();
+  }
+}
+
+async function handleAddVendorSubmit(event) {
+  event.preventDefault();
+
+  const name = document.getElementById('newVendorName').value;
+  const email = document.getElementById('newVendorEmail').value;
+  const phone = document.getElementById('newVendorPhone').value;
+  const password = document.getElementById('newVendorPassword').value;
+  const bankName = document.getElementById('newVendorBankName').value;
+  const accountNum = document.getElementById('newVendorAccountNum').value;
+  const accountHolder = document.getElementById('newVendorAccountHolder').value;
+
+  try {
+    const response = await authFetch(`${API_BASE}/vendor-management/create-vendor`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        phone,
+        password,
+        bank_name: bankName,
+        bank_account_number: accountNum,
+        account_holder_name: accountHolder
+      })
+    });
+
+    if (response && response.success) {
+      showToast('Vendor created successfully!', 'success');
+      closeAddVendorModal();
+      // Refresh vendor list if on the vendors page
+      if (document.getElementById('page-vendors').classList.contains('active')) {
+        // Trigger a refresh of the vendors list - assuming loadVendors or similar exists
+        // Since loadVendors isn't globally exposed or readily available in the snippet I saw,
+        // and filterVendors is on the select, I'll try to trigger that or reload page.
+        // Better: check if we can find the function to load vendors. 
+        // Based on previous grep, filterVendors exists.
+        if (typeof filterVendors === 'function') {
+          filterVendors(document.getElementById('vendor-status-filter').value);
+        } else {
+          // Fallback
+          window.location.reload();
+        }
+      }
+    } else {
+      showToast(response?.error || 'Failed to create vendor', 'error');
+    }
+  } catch (error) {
+    console.error('Error creating vendor:', error);
+    showToast('Error creating vendor', 'error');
+  }
+}
+
+// Close modal when clicking outside
+window.onclick = function (event) {
+  const modal = document.getElementById('addVendorModal');
+  if (event.target == modal) {
+    closeAddVendorModal();
+  }
+}
+
+// SETTINGS PAGE FUNCTIONS
+function switchSettingsTab(tabName) {
+  // Remove active class from all tabs and contents
+  document.querySelectorAll('.settings-tab').forEach(tab => tab.classList.remove('active'));
+  document.querySelectorAll('.settings-tab-content').forEach(content => content.classList.remove('active'));
+
+  // Add active class to selected tab  
+  event.target.classList.add('active');
+  document.getElementById(`settings-tab-${tabName}`).classList.add('active');
+}
+
+async function setupUserInfo() {
+  try {
+    // Load all settings
+    await loadSettings();
+
+    // Load system info
+    await loadSystemInfo();
+
+    // Set up form submit handlers
+    setupSettingsForms();
+
+    // Display current user email
+    const userEmail = localStorage.getItem('userEmail') || 'admin@example.com';
+    const userEmailEl = document.getElementById('userEmail');
+    if (userEmailEl) userEmailEl.textContent = userEmail;
+  } catch (error) {
+    console.error('Error setting up user info:', error);
+  }
+}
+
+async function loadSettings() {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(API_BASE + '/settings', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+
+    if (!response.ok) throw new Error('Failed to load settings');
+
+    const data = await response.json();
+    if (!data.success) throw new Error(data.message || 'Failed to load settings');
+
+    const settings = data.data;
+
+    // Populate company settings
+    if (settings.company) {
+      document.getElementById('companyName').value = settings.company.company_name || '';
+      document.getElementById('companyEmail').value = settings.company.company_email || '';
+      document.getElementById('companyPhone').value = settings.company.company_phone || '';
+      document.getElementById('companyAddress').value = settings.company.company_address || '';
+    }
+
+    // Populate app settings
+    if (settings.app) {
+      document.getElementById('defaultCurrency').value = settings.app.default_currency || 'AED';
+      document.getElementById('timezone').value = settings.app.timezone || 'Asia/Dubai';
+    }
+
+    // Populate API settings
+    if (settings.api) {
+      document.getElementById('googleMapsApiKey').value = settings.api.google_maps_api_key || '';
+    }
+
+    // Populate WhatsApp settings
+    if (settings.whatsapp) {
+      const provider = settings.whatsapp.whatsapp_provider || '';
+      document.getElementById('whatsappProvider').value = provider;
+      document.getElementById('whatsappPhoneNumber').value = settings.whatsapp.whatsapp_phone_number || '';
+      document.getElementById('whatsappWebhookUrl').value = settings.whatsapp.whatsapp_webhook_url || '';
+
+      // Meta fields
+      document.getElementById('whatsappAccessToken').value = settings.whatsapp.whatsapp_access_token || '';
+      document.getElementById('whatsappWabaId').value = settings.whatsapp.whatsapp_waba_id || '';
+      document.getElementById('whatsappPhoneNumberId').value = settings.whatsapp.whatsapp_phone_number_id || '';
+
+      // Update visibility based on provider
+      toggleWhatsAppFields();
+
+      // Update Templates
+      document.getElementById('whatsappBookingTemplate').value = settings.whatsapp.whatsapp_booking_template || '';
+      document.getElementById('whatsappDriverTemplate').value = settings.whatsapp.whatsapp_driver_template || '';
+      document.getElementById('whatsappCompletedTemplate').value = settings.whatsapp.whatsapp_completed_template || '';
+    }
+
+    // Populate Email settings
+    if (settings.email) {
+      document.getElementById('smtpHost').value = settings.email.smtp_host || '';
+      document.getElementById('smtpPort').value = settings.email.smtp_port || '';
+      document.getElementById('smtpUser').value = settings.email.smtp_user || '';
+      // Password is not populated for security, only updated if entered
+      document.getElementById('smtpFromEmail').value = settings.email.smtp_from || '';
+      document.getElementById('smtpSecure').checked = settings.email.smtp_secure === 'true';
+
+      // Update status display
+      document.getElementById('currentSmtpHost').textContent = settings.email.smtp_host || '--';
+      document.getElementById('currentSmtpUser').textContent = settings.email.smtp_user || '--';
+      document.getElementById('currentFromEmail').textContent = settings.email.smtp_from || '--';
+    }
+
+    // Populate system info
+    if (settings.system) {
+      document.getElementById('systemVersion').textContent = settings.system.dashboard_version || '2.1.0';
+    }
+  } catch (error) {
+    console.error('Error loading settings:', error);
+    showToast('Failed to load settings', 'error');
+  }
+}
+
+async function loadSystemInfo() {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(API_BASE + '/settings/system-info', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+
+    if (!response.ok) throw new Error('Failed to load system info');
+
+    const data = await response.json();
+    if (!data.success) throw new Error(data.message || 'Failed to load system info');
+
+    const info = data.data;
+
+    // Update system info display
+    document.getElementById('systemVersion').textContent = info.version || '2.1.0';
+    document.getElementById('serverTime').textContent = new Date(info.serverTime).toLocaleString();
+    document.getElementById('totalUsers').textContent = info.totalUsers || '0';
+    document.getElementById('totalDrivers').textContent = info.totalDrivers || '0';
+    document.getElementById('totalVehicles').textContent = info.totalVehicles || '0';
+    document.getElementById('totalBookings').textContent = info.totalBookings || '0';
+
+    // Update user info
+    document.getElementById('userEmail').textContent = info.currentUser || '--';
+  } catch (error) {
+    console.error('Error loading system info:', error);
+  }
+}
+
+function setupSettingsForms() {
+  // Company settings form
+  const companyForm = document.getElementById('companySettingsForm');
+  if (companyForm) {
+    companyForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await saveCompanySettings();
+    });
+  }
+
+  // App settings form
+  const appForm = document.getElementById('appSettingsForm');
+  if (appForm) {
+    appForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await saveAppSettings();
+    });
+  }
+
+  // Password change form
+  const passwordForm = document.getElementById('passwordChangeForm');
+  if (passwordForm) {
+    passwordForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await changePassword();
+    });
+  }
+
+  // Profile update form
+  const profileForm = document.getElementById('profileUpdateForm');
+  if (profileForm) {
+    profileForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await updateUserProfile();
+    });
+  }
+
+  // WhatsApp settings form
+  const whatsappForm = document.getElementById('whatsappSettingsForm');
+  if (whatsappForm) {
+    whatsappForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await saveWhatsAppSettings();
+    });
+  }
+
+  // Email settings form
+  const emailForm = document.getElementById('emailSettingsForm');
+  if (emailForm) {
+    emailForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await saveEmailSettings();
+    });
+  }
+}
+
+async function saveCompanySettings() {
+  try {
+    const token = localStorage.getItem('token');
+    const data = {
+      company_name: document.getElementById('companyName').value,
+      company_email: document.getElementById('companyEmail').value,
+      company_phone: document.getElementById('companyPhone').value,
+      company_address: document.getElementById('companyAddress').value
+    };
+
+    const response = await fetch(API_BASE + '/settings/company', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+    if (!result.success) throw new Error(result.message || 'Failed to save settings');
+
+    showToast('Company settings saved successfully!', 'success');
+  } catch (error) {
+    console.error('Error saving company settings:', error);
+    showToast('Failed to save company settings: ' + error.message, 'error');
+  }
+}
+
+async function saveAppSettings() {
+  try {
+    const token = localStorage.getItem('token');
+    const data = {
+      default_currency: document.getElementById('defaultCurrency').value,
+      timezone: document.getElementById('timezone').value,
+      google_maps_api_key: document.getElementById('googleMapsApiKey').value
+    };
+
+    const response = await fetch(API_BASE + '/settings/app', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+    if (!result.success) throw new Error(result.message || 'Failed to save settings');
+
+    showToast('App settings saved successfully!', 'success');
+  } catch (error) {
+    console.error('Error saving app settings:', error);
+    showToast('Failed to save app settings: ' + error.message, 'error');
+  }
+}
+
+async function changePassword() {
+  try {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (newPassword !== confirmPassword) {
+      showToast('New passwords do not match', 'error');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    const response = await fetch(API_BASE + '/settings/password', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword
+      })
+    });
+
+    const result = await response.json();
+    if (!result.success) throw new Error(result.message || 'Failed to change password');
+
+    showToast('Password changed successfully!', 'success');
+
+    // Clear form
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
+  } catch (error) {
+    console.error('Error changing password:', error);
+    showToast('Failed to change password: ' + error.message, 'error');
+  }
+}
+
+
+// WHATSAPP API FUNCTIONS
+function toggleWhatsAppFields() {
+  const provider = document.getElementById('whatsappProvider').value;
+  const metaFields = document.getElementById('metaFields');
+  const genericFields = document.getElementById('genericFields');
+
+  if (provider === 'meta') {
+    metaFields.style.display = 'block';
+    genericFields.style.display = 'none';
+  } else if (provider && provider !== '') {
+    metaFields.style.display = 'none';
+    genericFields.style.display = 'block';
+  } else {
+    metaFields.style.display = 'none';
+    genericFields.style.display = 'none';
+  }
+}
+
+async function saveWhatsAppSettings() {
+  try {
+    const token = localStorage.getItem('token');
+    const provider = document.getElementById('whatsappProvider').value;
+
+    const data = {
+      whatsapp_provider: provider,
+      whatsapp_phone_number: document.getElementById('whatsappPhoneNumber').value,
+      whatsapp_webhook_url: document.getElementById('whatsappWebhookUrl').value
+    };
+
+    // Add Meta-specific fields
+    if (provider === 'meta') {
+      data.whatsapp_access_token = document.getElementById('whatsappAccessToken').value;
+      data.whatsapp_waba_id = document.getElementById('whatsappWabaId').value;
+      data.whatsapp_phone_number_id = document.getElementById('whatsappPhoneNumberId').value;
+    } else {
+      // Add generic API key for other providers
+      data.whatsapp_api_key = document.getElementById('whatsappApiKey').value;
+    }
+
+    const response = await fetch(API_BASE + '/settings/whatsapp', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+    if (!result.success) throw new Error(result.message || 'Failed to save settings');
+
+    showToast('WhatsApp settings saved successfully!', 'success');
+  } catch (error) {
+    console.error('Error saving WhatsApp settings:', error);
+    showToast('Failed to save WhatsApp settings: ' + error.message, 'error');
+  }
+}
+
+async function saveWhatsAppTemplates() {
+  try {
+    const token = localStorage.getItem('token');
+    const data = {
+      whatsapp_booking_template: document.getElementById('whatsappBookingTemplate').value,
+      whatsapp_driver_template: document.getElementById('whatsappDriverTemplate').value,
+      whatsapp_completed_template: document.getElementById('whatsappCompletedTemplate').value
+    };
+
+    const response = await fetch(API_BASE + '/settings/whatsapp-templates', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+    if (!result.success) throw new Error(result.message || 'Failed to save templates');
+
+    showToast('WhatsApp templates saved successfully!', 'success');
+  } catch (error) {
+    console.error('Error saving WhatsApp templates:', error);
+    showToast('Failed to save templates: ' + error.message, 'error');
+  }
+}
+
+async function testWhatsAppConnection() {
+  try {
+    const token = localStorage.getItem('token');
+
+    showToast('Testing WhatsApp connection...', 'info');
+
+    const response = await fetch(API_BASE + '/settings/test-whatsapp', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    });
+
+    const result = await response.json();
+    if (!result.success) throw new Error(result.message || 'Connection test failed');
+
+    showToast(result.message || 'WhatsApp connection successful!', 'success');
+    document.getElementById('whatsappStatus').textContent = 'Connected';
+  } catch (error) {
+    console.error('Error testing WhatsApp connection:', error);
+    showToast('Connection test failed: ' + error.message, 'error');
+    document.getElementById('whatsappStatus').textContent = 'Connection Failed';
+  }
+}
+
+// Test WhatsApp Template Functions
+function toggleCustomTemplate() {
+  const selector = document.getElementById('testTemplateName');
+  const customGroup = document.getElementById('customTemplateGroup');
+  if (selector.value === 'other') {
+    customGroup.style.display = 'block';
+  } else {
+    customGroup.style.display = 'none';
+    document.getElementById('customTemplateNameInput').value = '';
+  }
+}
+
+async function testWhatsAppTemplate() {
+  try {
+    const token = localStorage.getItem('token');
+    const selector = document.getElementById('testTemplateName');
+    let templateName = selector.value;
+    const phone = document.getElementById('testTemplatePhone').value;
+
+    if (!phone) {
+      showToast('Please enter a phone number', 'error');
+      return;
+    }
+
+    if (templateName === 'other') {
+      templateName = document.getElementById('customTemplateNameInput').value;
+      if (!templateName) {
+        showToast('Please enter a custom template name', 'error');
+        return;
+      }
+    }
+
+    // Collect optional parameters
+    const components = [];
+    const param1 = document.getElementById('testTemplateParam1').value;
+    const param2 = document.getElementById('testTemplateParam2').value;
+
+    if (param1 || param2) {
+      const params = [];
+      if (param1) params.push({ type: 'text', text: param1 });
+      if (param2) params.push({ type: 'text', text: param2 });
+
+      components.push({
+        type: 'body',
+        parameters: params
+      });
+    }
+
+    showToast('Sending test template...', 'info');
+
+    const response = await fetch(API_BASE + '/settings/whatsapp/test-template', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        phone,
+        templateName,
+        components
+      })
+    });
+
+    const result = await response.json();
+    if (!result.success) throw new Error(result.message || 'Failed to send template');
+
+    showToast('Template sent successfully!', 'success');
+    console.log('Result:', result.data);
+  } catch (error) {
+    console.error('Error sending test template:', error);
+    showToast('Failed to send template: ' + error.message, 'error');
+  }
+}
+
+// PROFILE UPDATE FUNCTION
+async function updateUserProfile() {
+  try {
+    const token = localStorage.getItem('token');
+    const data = {
+      username: document.getElementById('profileUsername').value,
+      email: document.getElementById('profileUserEmail').value
+    };
+
+    const response = await fetch(API_BASE + '/settings/profile', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+    if (!result.success) throw new Error(result.message || 'Failed to update profile');
+
+    showToast('Profile updated successfully!', 'success');
+
+    // Update localStorage
+    localStorage.setItem('userEmail', data.email);
+
+    // Reload user info
+    await setupUserInfo();
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    showToast('Failed to update profile: ' + error.message, 'error');
+  }
+}
+
+
+
+// SMTP EMAIL CONFIGURATION FUNCTION
+async function saveEmailSettings() {
+  try {
+    const token = localStorage.getItem('token');
+
+    const data = {
+      smtp_host: document.getElementById('smtpHost').value,
+      smtp_port: document.getElementById('smtpPort').value,
+      smtp_user: document.getElementById('smtpUser').value,
+      smtp_password: document.getElementById('smtpPassword').value,
+      smtp_from: document.getElementById('smtpFromEmail').value,
+      smtp_secure: document.getElementById('smtpSecure').checked ? 'true' : 'false'
+    };
+
+    const response = await fetch(API_BASE + '/settings/email', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+    if (!result.success) throw new Error(result.message || 'Failed to save settings');
+
+    showToast('SMTP settings saved successfully!', 'success');
+
+    // Update current configuration display
+    document.getElementById('currentSmtpHost').textContent = data.smtp_host || '--';
+    document.getElementById('currentSmtpUser').textContent = data.smtp_user || '--';
+    document.getElementById('currentFromEmail').textContent = data.smtp_from || '--';
+  } catch (error) {
+    console.error('Error saving SMTP settings:', error);
+    showToast('Failed to save SMTP settings: ' + error.message, 'error');
+  }
+}
+
+// Load Alerts/Notifications
+async function loadAlerts() {
+  try {
+    const response = await fetch(API_BASE + '/notifications?limit=50', {
+      headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+    });
+    const data = await response.json();
+
+    if (data.success) {
+      const alertsHtml = (data.data || []).map(alert => {
+        const date = new Date(alert.created_at).toLocaleString('en-AE', { timeZone: 'Asia/Dubai' });
+        const icon = alert.channel === 'whatsapp' ? '💬' : '📧';
+        const statusColor = alert.status === 'sent' ? 'green' : 'red';
+        const bgColor = alert.status === 'sent' ? '#f0fdf4' : '#fef2f2';
+
+        return `
+            <div class="alert-item" style="padding: 12px; border-bottom: 1px solid #eee; display: flex; align-items: start; gap: 12px; background: ${bgColor}; border-radius: 6px; margin-bottom: 8px;">
+                <div style="font-size: 20px; padding-top: 2px;">${icon}</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; font-size: 14px; color: #374151;">${alert.template_id || 'Notification'}</div>
+                    <div style="color: #4b5563; font-size: 13px; margin: 2px 0;">${alert.content}</div>
+                    <div style="color: #6b7280; font-size: 11px; margin-top: 4px; display: flex; justify-content: space-between;">
+                        <span>${date} • ${alert.recipient_type}</span>
+                        <span style="color: ${statusColor}; font-weight: 600; text-transform: uppercase;">${alert.status}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+      }).join('');
+
+      // Update Dashboard Widget (limit to 5)
+      const dashboardList = document.getElementById('alertsList');
+      if (dashboardList) {
+        const dashboardHtml = (data.data || []).slice(0, 5).map(alert => {
+          const icon = alert.channel === 'whatsapp' ? '💬' : '📧';
+          return `<div style="padding: 8px; border-bottom: 1px solid #eee; display: flex; gap: 8px; font-size: 12px;">
+                <span>${icon}</span>
+                <div style="flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">${alert.content}</div>
+                <span style="color: ${alert.status === 'sent' ? 'green' : 'red'}">${alert.status}</span>
+             </div>`;
+        }).join('') + '<div style="text-align:center; padding:5px;"><a href="#" onclick="document.querySelector(\'[data-page=alerts]\').click()">View All</a></div>';
+        dashboardList.innerHTML = dashboardHtml;
+      }
+
+      // Update Full Alerts Page
+      const fullList = document.getElementById('alertsFullList');
+      if (fullList) fullList.innerHTML = alertsHtml;
+    } else {
+      const fullList = document.getElementById('alertsFullList');
+      if (fullList) fullList.innerHTML = '<div style="text-align:center; padding:20px;">No alerts found</div>';
+    }
+  } catch (e) {
+    console.error('Error loading alerts:', e);
+  }
+}
+
+// Init Alerts Listener
+document.addEventListener('DOMContentLoaded', () => {
+  const alertsNav = document.querySelector('[data-page="alerts"]');
+  if (alertsNav) {
+    alertsNav.addEventListener('click', () => {
+      // Small delay to ensure page switch happens (if handled by other listeners)
+      setTimeout(loadAlerts, 100);
+    });
+  }
+
+  // Also load on init
+  setTimeout(loadAlerts, 1000);
+});

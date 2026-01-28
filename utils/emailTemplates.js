@@ -9,337 +9,129 @@ const emailTemplates = {
     const bookingDate = new Date(booking.created_at);
     const bookingId = booking.id.substring(0, 8).toUpperCase();
     const fare = typeof booking.fare_aed === 'string' ? parseFloat(booking.fare_aed) : booking.fare_aed;
-    const paymentStatus = booking.payment_method === 'cash' 
+    const paymentStatus = booking.payment_method === 'cash'
       ? 'Cash - To be collected in vehicle'
       : 'Card - Prepaid';
 
-    // Format date (Dubai timezone)
-    const dateStr = bookingDate.toLocaleDateString('en-AE', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      timeZone: 'Asia/Dubai'
-    });
-    const timeStr = bookingDate.toLocaleTimeString('en-AE', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      timeZone: 'Asia/Dubai'
-    });
+    const vehicleName = booking.vehicle_model || (booking.vehicle_type ? booking.vehicle_type.replace('_', ' ').toUpperCase() : 'Standard');
+    const vehicleColor = booking.vehicle_color || 'Color TBA';
 
-    // Format flight times if they exist
-    let flightInfoHtml = '';
-    if (booking.booking_type === 'airport_transfer') {
-      if (booking.flight_arrival_time || booking.flight_departure_time) {
-        flightInfoHtml = '<div style="margin-top: 15px; padding: 12px; background: #f0f9ff; border-left: 4px solid #3b82f6; border-radius: 4px;"><div style="font-size: 12px; font-weight: 600; color: #1e40af; margin-bottom: 8px;">✈️ FLIGHT INFORMATION</div>';
-        if (booking.flight_arrival_time) {
-          const arrivalDate = new Date(booking.flight_arrival_time);
-          const arrivalStr = arrivalDate.toLocaleDateString('en-AE', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Dubai' });
-          const arrivalTime = arrivalDate.toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai' });
-          flightInfoHtml += `<div style="font-size: 13px; color: #1d1d1f; margin-bottom: 6px;"><strong>Arrival:</strong> ${arrivalStr}, ${arrivalTime} (Dubai Time)</div>`;
-        }
-        if (booking.flight_departure_time) {
-          const departureDate = new Date(booking.flight_departure_time);
-          const departureStr = departureDate.toLocaleDateString('en-AE', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Dubai' });
-          const departureTime = departureDate.toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai' });
-          flightInfoHtml += `<div style="font-size: 13px; color: #1d1d1f;"><strong>Departure:</strong> ${departureStr}, ${departureTime} (Dubai Time)</div>`;
-        }
-        flightInfoHtml += '</div>';
-      }
-    }
-
-    // Build journey info based on booking type
-    let journeyHtml = '';
-    if (booking.booking_type === 'round_trip') {
-      journeyHtml = `
-        <div style="margin-top: 15px; padding: 12px; background: #f8f8f8; border-left: 4px solid #1e3a8a;">
-          <div style="margin: 8px 0;">
-            <div style="display: flex; align-items: center;">
-              <span style="color: #1e3a8a; font-weight: bold; margin-right: 8px;">📍</span>
-              <div>
-                <div style="font-size: 12px; color: #666;">Pickup</div>
-                <div style="font-weight: 600; color: #1d1d1f;">${booking.pickup_location}</div>
-              </div>
-            </div>
-          </div>
-          <div style="margin: 12px 0; text-align: center; color: #999; font-size: 12px;">
-            ↓ ${booking.return_after_hours ? booking.return_after_hours + ' hours' : 'Duration'} ↓
-          </div>
-          <div style="margin: 8px 0;">
-            <div style="display: flex; align-items: center;">
-              <span style="color: #f59e0b; font-weight: bold; margin-right: 8px;">🎯</span>
-              <div>
-                <div style="font-size: 12px; color: #666;">Destination</div>
-                <div style="font-weight: 600; color: #1d1d1f;">${booking.meeting_location || booking.dropoff_location}</div>
-              </div>
-            </div>
-          </div>
-          <div style="margin: 12px 0; text-align: center; color: #999; font-size: 12px;">
-            ↓ Return ↓
-          </div>
-          <div style="margin: 8px 0;">
-            <div style="display: flex; align-items: center;">
-              <span style="color: #10b981; font-weight: bold; margin-right: 8px;">🏁</span>
-              <div>
-                <div style="font-size: 12px; color: #666;">Return To</div>
-                <div style="font-weight: 600; color: #1d1d1f;">${booking.pickup_location}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-    } else if (booking.booking_type === 'multi_stop') {
-      journeyHtml = `
-        <div style="margin-top: 15px; padding: 12px; background: #f8f8f8; border-left: 4px solid #1e3a8a;">
-          <div style="margin: 8px 0;">
-            <div style="display: flex; align-items: center;">
-              <span style="color: #1e3a8a; font-weight: bold; margin-right: 8px;">📍</span>
-              <div>
-                <div style="font-size: 12px; color: #666;">Pickup</div>
-                <div style="font-weight: 600; color: #1d1d1f;">${booking.pickup_location}</div>
-              </div>
-            </div>
-          </div>
-          <div style="margin: 12px 0; text-align: center; color: #999; font-size: 12px;">↓</div>
-          <div style="margin: 8px 0;">
-            <div style="display: flex; align-items: center;">
-              <span style="color: #f59e0b; font-weight: bold; margin-right: 8px;">🎯</span>
-              <div>
-                <div style="font-size: 12px; color: #666;">Dropoff</div>
-                <div style="font-weight: 600; color: #1d1d1f;">${booking.dropoff_location}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-    } else {
-      journeyHtml = `
-        <div style="margin-top: 15px; padding: 12px; background: #f8f8f8; border-left: 4px solid #1e3a8a;">
-          <div style="margin: 8px 0;">
-            <div style="display: flex; align-items: center;">
-              <span style="color: #1e3a8a; font-weight: bold; margin-right: 8px;">📍</span>
-              <div>
-                <div style="font-size: 12px; color: #666;">Pickup</div>
-                <div style="font-weight: 600; color: #1d1d1f;">${booking.pickup_location}</div>
-              </div>
-            </div>
-          </div>
-          <div style="margin: 12px 0; text-align: center; color: #999; font-size: 12px;">↓</div>
-          <div style="margin: 8px 0;">
-            <div style="display: flex; align-items: center;">
-              <span style="color: #10b981; font-weight: bold; margin-right: 8px;">🏁</span>
-              <div>
-                <div style="font-size: 12px; color: #666;">Dropoff</div>
-                <div style="font-weight: 600; color: #1d1d1f;">${booking.dropoff_location}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-    }
+    // Format date
+    const dateStr = bookingDate.toLocaleDateString('en-AE', {
+      year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Dubai'
+    });
+    const timeStr = bookingDate.toLocaleTimeString('en-AE', {
+      hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai'
+    });
 
     return {
-      subject: `✅ Your Bareerrah Ride Confirmed - ${booking.booking_type === 'round_trip' ? '🔄 Round Trip' : booking.booking_type === 'multi_stop' ? '📍 Multi-Stop' : '🚗 Point-to-Point'} - Ref #${bookingId}`,
+      subject: `✅ Your Star Skyline Limousine Ride Confirmed - ${booking.booking_type === 'round_trip' ? '🔄 Round Trip' : booking.booking_type === 'multi_stop' ? '📍 Multi-Stop' : '🚗 Point-to-Point'} - Ref #${bookingId}`,
       html: `
         <!DOCTYPE html>
         <html>
         <head>
-          <meta charset="UTF-8">
+          <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
-            .container { max-width: 600px; margin: 0 auto; background: white; }
-            .header { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: white; padding: 30px 20px; text-align: center; }
-            .header h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
-            .header p { margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
-            .content { padding: 30px 20px; }
-            .section { margin-bottom: 25px; }
-            .section-title { font-size: 14px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
-            .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
-            .info-row:last-child { border-bottom: none; }
-            .info-label { color: #666; font-weight: 500; }
-            .info-value { color: #1d1d1f; font-weight: 600; }
-            .highlight { color: #1e3a8a; font-weight: 700; }
-            .badge { display: inline-block; background: #e8f0fe; color: #1e3a8a; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-            .vehicle-card { background: linear-gradient(135deg, #f8f9fa 0%, #f0f3f7 100%); padding: 16px; border-radius: 8px; margin-top: 12px; border: 1px solid #e0e0e0; }
-            .vehicle-detail { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; }
-            .vehicle-detail-label { color: #666; }
-            .vehicle-detail-value { color: #1d1d1f; font-weight: 600; }
-            .fare-box { background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
-            .fare-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
-            .fare-amount { font-size: 36px; font-weight: 700; color: #10b981; }
-            .fare-method { font-size: 12px; color: #666; margin-top: 5px; }
-            .cta-button { background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; padding: 16px; text-align: center; border-radius: 8px; font-weight: 600; margin: 20px 0; text-decoration: none; display: block; font-size: 16px; letter-spacing: 0.5px; }
-            .cta-button:hover { opacity: 0.9; }
-            .notes-section { background: #fff8dc; border-left: 4px solid #f59e0b; padding: 12px; border-radius: 4px; margin: 15px 0; font-size: 13px; }
-            .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #e0e0e0; }
-            .footer-link { color: #2563eb; text-decoration: none; margin: 0 10px; }
-            .support-box { background: #f0f3f7; padding: 15px; border-radius: 8px; margin: 15px 0; font-size: 13px; text-align: center; }
-            .support-phone { font-size: 18px; font-weight: 700; color: #1e3a8a; margin: 10px 0; letter-spacing: 1px; }
-            .status-badge { background: #dcfce7; color: #16a34a; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
-          </style>
         </head>
-        <body>
-          <div class="container">
+        <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
+          <div style="max-width: 600px; margin: 0 auto; background: #ffffff;">
             <!-- Header -->
-            <div class="header">
-              <h1>🎉 Booking Confirmed!</h1>
-              <p>Your ride is ready. Ref: <strong>${bookingId}</strong></p>
+            <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; text-align: center;">
+              <h1 style="color: #ffc107; margin: 0; font-size: 24px; font-weight: 600;">Booking Confirmed!</h1>
+              <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 14px;">Your ride is ready. Ref: <strong>${bookingId}</strong></p>
             </div>
-
-            <!-- Main Content -->
-            <div class="content">
-              <!-- Booking Reference & Status -->
-              <div class="section">
-                <div class="section-title">📋 Booking Reference</div>
-                <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; border-left: 4px solid #2563eb;">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                      <div style="font-size: 12px; color: #666; margin-bottom: 4px;">Booking ID</div>
-                      <div style="font-size: 24px; font-weight: 700; color: #1e3a8a; letter-spacing: 2px;">${bookingId}</div>
-                    </div>
-                    <div style="text-align: right;">
-                      <div style="font-size: 12px; color: #666; margin-bottom: 4px;">Status</div>
-                      <span class="status-badge">PENDING CONFIRMATION</span>
-                    </div>
-                  </div>
-                  <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0; font-size: 13px; color: #666;">
-                    <strong>Booked on:</strong> ${dateStr} at ${timeStr}
-                  </div>
-                </div>
+            
+            <!-- Content -->
+            <div style="padding: 30px;">
+              <!-- Booking Reference Box -->
+              <div style="background: #ffc107; color: #1a1a2e; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 25px;">
+                <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Booking Reference</span>
+                <div style="font-size: 18px; font-weight: 700; margin-top: 5px;">${bookingId}</div>
+                <div style="margin-top: 5px; font-size: 11px; background: rgba(0,0,0,0.1); display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: 600;">PENDING CONFIRMATION</div>
               </div>
 
-              <!-- Passenger Details -->
-              <div class="section">
-                <div class="section-title">👥 Passenger Information</div>
-                <div class="info-row">
-                  <span class="info-label">Passengers</span>
-                  <span class="info-value">${booking.passengers_count || 1} ${booking.passengers_count === 1 ? 'person' : 'people'}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Luggage</span>
-                  <span class="info-value">${booking.luggage_count || 0} ${booking.luggage_count === 1 ? 'bag' : 'bags'}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Contact</span>
-                  <span class="info-value">${booking.customer_phone}</span>
-                </div>
+              <!-- Customer Details -->
+              <div style="margin-bottom: 25px;">
+                <h3 style="color: #1a1a2e; font-size: 16px; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #ffc107;">Customer Details</h3>
+                <table style="width: 100%; font-size: 14px;">
+                  <tr><td style="padding: 8px 0; color: #666;">Name:</td><td style="padding: 8px 0; color: #333; font-weight: 500;">${booking.customer_name}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #666;">Phone:</td><td style="padding: 8px 0; color: #333;">${booking.customer_phone}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #666;">Passengers:</td><td style="padding: 8px 0; color: #333;">${booking.passengers_count || 1}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #666;">Luggage:</td><td style="padding: 8px 0; color: #333;">${booking.luggage_count || 0}</td></tr>
+                </table>
               </div>
 
-              <!-- Journey Details -->
-              <div class="section">
-                <div class="section-title">🛣️ Your Journey</div>
-                <div style="background: white;">
-                  ${journeyHtml}
-                  ${flightInfoHtml}
-                  <div style="margin-top: 12px; padding: 10px 0; border-top: 1px solid #f0f0f0; font-size: 13px;">
-                    <strong>Distance:</strong> <span style="color: #1e3a8a; font-weight: 600;">${booking.distance_km} km</span>
+              <!-- Trip Details -->
+              <div style="margin-bottom: 25px;">
+                <h3 style="color: #1a1a2e; font-size: 16px; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #ffc107;">Trip Details</h3>
+                <div style="display: flex; margin-bottom: 15px;">
+                  <div style="width: 30px;">
+                    <div style="width: 12px; height: 12px; background: #4caf50; border-radius: 50%; margin: 3px auto;"></div>
+                    <div style="width: 2px; height: 40px; background: #ddd; margin: 0 auto;"></div>
+                    <div style="width: 12px; height: 12px; background: #f44336; border-radius: 50%; margin: 3px auto;"></div>
                   </div>
-                  ${booking.booking_type === 'round_trip' ? `
-                    <div style="margin-top: 10px; padding: 8px 0; font-size: 13px;">
-                      <strong>Return After:</strong> <span style="color: #f59e0b; font-weight: 600;">${booking.return_after_hours || 2} hours</span>
+                  <div style="flex: 1;">
+                    <div style="padding: 0 0 25px 10px;">
+                      <div style="font-size: 12px; color: #999;">Pickup</div>
+                      <div style="font-size: 14px; color: #333; font-weight: 500;">${booking.pickup_location}</div>
+                      <div style="font-size: 12px; color: #666;">${dateStr}, ${timeStr}</div>
                     </div>
-                  ` : ''}
+                    <div style="padding: 0 0 0 10px;">
+                      <div style="font-size: 12px; color: #999;">Dropoff</div>
+                      <div style="font-size: 14px; color: #333; font-weight: 500;">${booking.dropoff_location}</div>
+                    </div>
+                  </div>
                 </div>
+                
+                ${booking.booking_type === 'round_trip' ? `
+                <div style="background: #f8f9fa; padding: 10px; border-left: 3px solid #f59e0b; margin-top: 10px; font-size: 13px;">
+                  <strong>🔄 Return Trip:</strong> Driver will wait for ${booking.return_after_hours || 0} hours before returning.
+                </div>` : ''}
               </div>
 
               <!-- Vehicle Details -->
-              <div class="section">
-                <div class="section-title">🚗 Vehicle Details</div>
-                <div class="vehicle-card">
-                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                    <div>
-                      <div style="font-size: 16px; font-weight: 700; color: #1d1d1f;">
-                        ${booking.vehicle_model || 'Vehicle to be assigned'}
-                      </div>
-                      <div style="font-size: 12px; color: #666; margin-top: 2px;">
-                        ${booking.vehicle_type ? booking.vehicle_type.replace('_', ' ').toUpperCase() : 'Standard'}
-                      </div>
-                    </div>
-                    <div style="text-align: right;">
-                      <div style="font-size: 20px; margin-bottom: 4px;">🎨</div>
-                      <div style="font-size: 12px; font-weight: 600; color: #1e3a8a;">
-                        ${booking.vehicle_color || 'Color TBA'}
-                      </div>
-                    </div>
-                  </div>
-                  <div style="border-top: 1px solid #e0e0e0; padding-top: 12px;">
-                    <div style="font-size: 12px; color: #666; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Capacity</div>
-                    <div style="display: flex; gap: 15px;">
-                      <div>
-                        <div style="font-size: 11px; color: #999;">Seats</div>
-                        <div style="font-size: 14px; font-weight: 600; color: #1e3a8a;">Up to 4</div>
-                      </div>
-                      <div>
-                        <div style="font-size: 11px; color: #999;">Luggage</div>
-                        <div style="font-size: 14px; font-weight: 600; color: #1e3a8a;">Large Trunk</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div style="margin-bottom: 25px;">
+                <h3 style="color: #1a1a2e; font-size: 16px; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #ffc107;">Vehicle Information</h3>
+                <table style="width: 100%; font-size: 14px;">
+                  <tr><td style="padding: 8px 0; color: #666;">Vehicle:</td><td style="padding: 8px 0; color: #333; font-weight: 500;">${vehicleName}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #666;">Color:</td><td style="padding: 8px 0; color: #333;">${vehicleColor}</td></tr>
+                </table>
               </div>
 
-              <!-- Fare & Payment -->
-              <div class="section">
-                <div class="section-title">💰 Fare & Payment</div>
-                <div class="fare-box">
-                  <div class="fare-label">Total Fare</div>
-                  <div class="fare-amount">AED ${fare.toFixed(2)}</div>
-                  <div class="fare-method">
-                    <strong>${paymentStatus}</strong>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Special Notes -->
               ${booking.notes ? `
-                <div class="section">
-                  <div class="section-title">📝 Special Instructions</div>
-                  <div class="notes-section">
-                    "${booking.notes}"
-                  </div>
-                </div>
+              <!-- Notes -->
+              <div style="margin-bottom: 25px;">
+                <h3 style="color: #1a1a2e; font-size: 16px; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #ffc107;">Special Instructions</h3>
+                <p style="background: #fff8dc; padding: 15px; border-radius: 8px; font-size: 14px; color: #333; margin: 0; border-left: 4px solid #f59e0b;">${booking.notes}</p>
+              </div>
               ` : ''}
 
-              <!-- Support -->
-              <div class="support-box">
-                <div style="font-size: 12px; color: #666; margin-bottom: 8px;">Need Help?</div>
-                <div class="support-phone">📞 +971 4 XXXX XXXX</div>
-                <div style="font-size: 12px; color: #666; margin-top: 8px;">
-                  Available 24/7 | <a href="mailto:support@bareerah.com" style="color: #2563eb; text-decoration: none;">support@bareerah.com</a>
-                </div>
+              <!-- Fare -->
+              <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 25px;">
+                <span style="color: #999; font-size: 12px; text-transform: uppercase;">Total Fare</span>
+                <div style="color: #ffc107; font-size: 28px; font-weight: 700; margin-top: 5px;">AED ${fare.toFixed(2)}</div>
+                <div style="color: #ccc; font-size: 12px; margin-top: 5px;">${paymentStatus}</div>
               </div>
 
               <!-- CTA -->
-              <a href="#" class="cta-button">✓ Confirm Booking</a>
+              <a href="${process.env.API_BASE_URL || 'http://localhost:5000'}/api/bookings/status?id=${bookingId}" style="display: block; width: 220px; margin: 0 auto; padding: 14px 0; background: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; text-align: center; font-size: 15px;">Track My Booking</a>
 
-              <!-- What's Next -->
-              <div style="background: #f0f3f7; padding: 16px; border-radius: 8px; margin: 20px 0;">
-                <div style="font-weight: 600; color: #1e3a8a; margin-bottom: 10px; font-size: 14px;">What happens next?</div>
-                <ol style="margin: 0; padding-left: 20px; font-size: 13px; color: #666; line-height: 1.8;">
-                  <li>Your booking is pending confirmation</li>
-                  <li>Driver will be assigned shortly</li>
-                  <li>You'll receive driver details via SMS/WhatsApp</li>
-                  <li>Driver will contact you 10 mins before pickup</li>
-                  <li>Rate your experience after completion</li>
-                </ol>
+              <!-- Support -->
+              <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 25px; text-align: center;">
+                <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Need Help?</div>
+                <div style="font-size: 16px; font-weight: 700; color: #1e3a8a;">📞 +971 56 8662710</div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                  <a href="mailto:support@starskylinelimousine.com" style="color: #2563eb; text-decoration: none;">support@starskylinelimousine.com</a>
+                </div>
               </div>
-            </div>
 
-            <!-- Footer -->
-            <div class="footer">
-              <div style="margin-bottom: 12px;">
-                <strong style="color: #1d1d1f;">🚗 Bareerrah Premium Ride Service</strong>
-              </div>
-              <div style="margin: 12px 0; font-size: 11px;">
-                Trusted by thousands across UAE • Available 24/7
-              </div>
-              <div style="margin: 12px 0; font-size: 11px;">
-                <a href="#" class="footer-link">Terms & Conditions</a> | 
-                <a href="#" class="footer-link">Privacy Policy</a> | 
-                <a href="#" class="footer-link">Help Center</a>
-              </div>
-              <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid #e0e0e0; font-size: 10px; color: #999;">
-                This is an automated email. Please do not reply. For support, contact us at support@bareerah.com
+              <!-- Footer -->
+              <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">
+                <p style="color: #999; font-size: 11px; margin: 0;">Trusted by thousands across UAE • Available 24/7</p>
+                <div style="margin-top: 10px; font-size: 11px;">
+                  <a href="#" style="color: #2563eb; text-decoration: none; margin: 0 5px;">Terms</a> | 
+                  <a href="#" style="color: #2563eb; text-decoration: none; margin: 0 5px;">Privacy</a>
+                </div>
               </div>
             </div>
           </div>
@@ -351,10 +143,10 @@ const emailTemplates = {
 
   // WhatsApp message to customer
   whatsappTemplate: (booking, vehicle) => {
-    const paymentStatus = booking.payment_method === 'cash' 
+    const paymentStatus = booking.payment_method === 'cash'
       ? '💳 Payment in vehicle'
       : '✓ Paid by card';
-    
+
     return `
 🎉 *BOOKING CONFIRMED*
 
@@ -379,9 +171,9 @@ ${paymentStatus}
 ${booking.notes ? `📝 *Notes:* ${booking.notes}` : ''}
 
 ✅ Your driver will contact you shortly!
-📞 Call: +971 4 XXXX XXXX
+📞 Call: +971 56 8662710
 
-Thank you for choosing Bareerrah! 🙏
+Thank you for choosing Star Skyline Limousine! 🙏
     `.trim();
   },
 
@@ -390,49 +182,167 @@ Thank you for choosing Bareerrah! 🙏
     const fareAmount = typeof booking.fare_aed === 'string' ? parseFloat(booking.fare_aed) : booking.fare_aed;
     const vendorCommission = fareAmount * 0.80;
     const companyProfit = fareAmount * 0.20;
+    const bookingId = booking.id.substring(0, 8).toUpperCase();
 
     return {
-      subject: `📊 New Booking Alert - ${booking.booking_type.toUpperCase()} - Ref #${booking.id.substring(0, 8).toUpperCase()}`,
+      subject: `📊 New Booking Alert - ${booking.booking_type.toUpperCase()} - Ref #${bookingId}`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2563eb;">📊 New Booking Received</h2>
-          
-          <div style="background: #f5f5f7; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="margin-top: 0; color: #1d1d1f;">Customer Info</h3>
-            <p><strong>Name:</strong> ${booking.customer_name}</p>
-            <p><strong>Phone:</strong> ${booking.customer_phone}</p>
-            <p><strong>Email:</strong> ${booking.customer_email}</p>
-            <p><strong>Passengers:</strong> ${booking.passengers_count || 1} | <strong>Luggage:</strong> ${booking.luggage_count || 0}</p>
-          </div>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
+          <div style="max-width: 600px; margin: 0 auto; background: #ffffff;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; text-align: center;">
+              <h1 style="color: #ffc107; margin: 0; font-size: 24px; font-weight: 600;">New Admin Booking Alert</h1>
+              <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 14px;">Revenue: <strong style="color: #4caf50;">AED ${companyProfit.toFixed(2)}</strong></p>
+            </div>
+            
+            <!-- Content -->
+            <div style="padding: 30px;">
+              <!-- Booking Reference Box -->
+              <div style="background: #ffc107; color: #1a1a2e; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 25px;">
+                <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Booking Reference</span>
+                <div style="font-size: 18px; font-weight: 700; margin-top: 5px;">${bookingId}</div>
+              </div>
 
-          <div style="background: #f5f5f7; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="margin-top: 0;">Trip Details</h3>
-            <p><strong>Booking #:</strong> ${booking.id}</p>
-            <p><strong>Type:</strong> ${booking.booking_type}</p>
-            <p><strong>From:</strong> ${booking.pickup_location}</p>
-            <p><strong>To:</strong> ${booking.dropoff_location}</p>
-            <p><strong>Distance:</strong> ${booking.distance_km} km</p>
-            ${booking.meeting_location ? `<p><strong>Intermediate:</strong> ${booking.meeting_location}</p>` : ''}
-            ${booking.return_after_hours ? `<p><strong>Return After:</strong> ${booking.return_after_hours} hours</p>` : ''}
-          </div>
+              <!-- Customer Details -->
+              <div style="margin-bottom: 25px;">
+                <h3 style="color: #1a1a2e; font-size: 16px; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #ffc107;">Customer Info</h3>
+                <table style="width: 100%; font-size: 14px;">
+                  <tr><td style="padding: 8px 0; color: #666;">Name:</td><td style="padding: 8px 0; color: #333; font-weight: 500;">${booking.customer_name}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #666;">Email:</td><td style="padding: 8px 0; color: #333;">${booking.customer_email}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #666;">Phone:</td><td style="padding: 8px 0; color: #333;">${booking.customer_phone}</td></tr>
+                </table>
+              </div>
 
-          <div style="background: #f5f5f7; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="margin-top: 0;">Vehicle & Driver</h3>
-            <p><strong>Model:</strong> ${booking.vehicle_model || 'To be assigned'}</p>
-            <p><strong>Color:</strong> ${booking.vehicle_color || 'TBA'}</p>
-            <p><strong>Type:</strong> ${booking.vehicle_type || 'Standard'}</p>
-            <p><strong>Driver:</strong> ${booking.driver_name || 'Unassigned'}</p>
-          </div>
+              <!-- Trip Details -->
+              <div style="margin-bottom: 25px;">
+                <h3 style="color: #1a1a2e; font-size: 16px; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #ffc107;">Trip Details</h3>
+                <div style="display: flex; margin-bottom: 15px;">
+                  <div style="width: 30px;">
+                    <div style="width: 12px; height: 12px; background: #4caf50; border-radius: 50%; margin: 3px auto;"></div>
+                    <div style="width: 2px; height: 40px; background: #ddd; margin: 0 auto;"></div>
+                    <div style="width: 12px; height: 12px; background: #f44336; border-radius: 50%; margin: 3px auto;"></div>
+                  </div>
+                  <div style="flex: 1;">
+                    <div style="padding: 0 0 25px 10px;">
+                      <div style="font-size: 12px; color: #999;">Pickup</div>
+                      <div style="font-size: 14px; color: #333; font-weight: 500;">${booking.pickup_location}</div>
+                    </div>
+                    <div style="padding: 0 0 0 10px;">
+                      <div style="font-size: 12px; color: #999;">Dropoff</div>
+                      <div style="font-size: 14px; color: #333; font-weight: 500;">${booking.dropoff_location}</div>
+                    </div>
+                  </div>
+                </div>
+                <div style="font-size: 14px; color: #666; background: #f8f9fa; padding: 10px; border-radius: 4px;">
+                  <strong>Type:</strong> ${booking.booking_type} | <strong>Distance:</strong> ${booking.distance_km} km
+                </div>
+              </div>
 
-          <div style="background: #f5f5f7; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="margin-top: 0;">Revenue Breakdown</h3>
-            <p><strong>Total Fare:</strong> AED ${fareAmount.toFixed(2)}</p>
-            <p><strong>Vendor Commission (80%):</strong> AED ${vendorCommission.toFixed(2)}</p>
-            <p style="color: #34C759;"><strong>Company Profit (20%):</strong> AED ${companyProfit.toFixed(2)}</p>
-          </div>
+              <!-- Revenue Breakdown -->
+              <div style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                <h4 style="margin: 0 0 15px 0; color: #166534; font-size: 14px;">💰 Financial Breakdown</h4>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
+                  <span style="color: #666;">Total Fare:</span>
+                  <span style="font-weight: 700; color: #333;">AED ${fareAmount.toFixed(2)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
+                  <span style="color: #666;">Vendor (80%):</span>
+                  <span style="font-weight: 600; color: #333;">AED ${vendorCommission.toFixed(2)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 14px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.1);">
+                  <span style="color: #166534; font-weight: 600;">Using Company Profit (20%):</span>
+                  <span style="font-weight: 700; color: #166534;">AED ${companyProfit.toFixed(2)}</span>
+                </div>
+              </div>
 
-          <p style="color: #86868b; font-size: 12px;">Status: ${booking.status} | Time: ${new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai' })}</p>
-        </div>
+              <div style="text-align: center; font-size: 12px; color: #999; margin-top: 30px;">
+                Automated System Alert • Star Skyline Limousine
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    };
+  },
+
+  // Ride Completion Email
+  rideCompletion: (booking) => {
+    const fareAmount = typeof booking.fare_aed === 'string' ? parseFloat(booking.fare_aed) : booking.fare_aed;
+    const bookingId = booking.id.substring(0, 8).toUpperCase();
+
+    return {
+      subject: `✅ Ride Completed - Ref #${bookingId}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
+          <div style="max-width: 600px; margin: 0 auto; background: #ffffff;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; text-align: center;">
+              <h1 style="color: #ffc107; margin: 0; font-size: 24px; font-weight: 600;">Ride Completed</h1>
+              <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 14px;">We hope you enjoyed your journey!</p>
+            </div>
+            
+            <!-- Content -->
+            <div style="padding: 30px;">
+              <!-- Booking Reference Box -->
+              <div style="background: #ffc107; color: #1a1a2e; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 25px;">
+                <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Booking Reference</span>
+                <div style="font-size: 18px; font-weight: 700; margin-top: 5px;">${bookingId}</div>
+              </div>
+
+              <!-- Trip Summary -->
+              <div style="margin-bottom: 25px;">
+                <h3 style="color: #1a1a2e; font-size: 16px; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #ffc107;">Trip Summary</h3>
+                <div style="display: flex; margin-bottom: 15px;">
+                  <div style="width: 30px;">
+                    <div style="width: 12px; height: 12px; background: #4caf50; border-radius: 50%; margin: 3px auto;"></div>
+                    <div style="width: 2px; height: 30px; background: #ddd; margin: 0 auto;"></div>
+                    <div style="width: 12px; height: 12px; background: #f44336; border-radius: 50%; margin: 3px auto;"></div>
+                  </div>
+                  <div style="flex: 1;">
+                    <div style="padding: 0 0 20px 10px; font-size: 14px; color: #333;">${booking.pickup_location}</div>
+                    <div style="padding: 0 0 0 10px; font-size: 14px; color: #333;">${booking.dropoff_location}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Receipt -->
+              <div style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                <h4 style="margin: 0 0 15px 0; color: #166534; font-size: 14px;">💰 Receipt</h4>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
+                  <span style="color: #666;">Total Fare:</span>
+                  <span style="font-weight: 700; color: #333;">AED ${fareAmount.toFixed(2)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">
+                  <span style="color: #666;">Payment Method:</span>
+                  <span style="font-weight: 600; color: #333;">${booking.payment_method === 'cash' ? 'Cash' : 'Card'}</span>
+                </div>
+              </div>
+
+              <div style="text-align: center; margin-top: 30px;">
+                <p style="color: #666; font-size: 14px; margin-bottom: 20px;">How was your experience?</p>
+                <a href="${process.env.API_BASE_URL || 'http://localhost:5000'}/api/bookings/rate?id=${bookingId}" style="display: inline-block; padding: 12px 25px; background: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">Rate Your Driver</a>
+              </div>
+
+              <div style="text-align: center; font-size: 12px; color: #999; margin-top: 30px;">
+                Star Skyline Limousine Premium Ride Service
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
       `
     };
   }

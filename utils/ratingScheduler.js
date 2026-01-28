@@ -21,7 +21,7 @@ const ratingScheduler = {
 
         if (booking.rows[0]) {
           const emailTemplate = ratingTemplate.requestRating(booking.rows[0]);
-          
+
           const response = await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
@@ -29,7 +29,7 @@ const ratingScheduler = {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              from: process.env.RESEND_FROM_EMAIL || 'noreply@bareerah.com',
+              from: process.env.RESEND_FROM_EMAIL || 'noreply@starskylinelimousine.com',
               to: booking.rows[0].customer_email,
               subject: emailTemplate.subject,
               html: emailTemplate.html

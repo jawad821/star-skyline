@@ -1,5 +1,7 @@
 const { query } = require('../config/db');
 const logger = require('../utils/logger');
+const emailService = require('../utils/emailService');
+const notificationService = require('../services/notificationService');
 
 const driverStatsController = {
   // Summary stats for selected date range
@@ -7,9 +9,9 @@ const driverStatsController = {
     try {
       const driverId = req.user.id;
       const range = req.query.range || 'today';
-      
+
       const dateRange = getDateRange(range);
-      
+
       const result = await query(`
         SELECT 
           COUNT(*) as total_bookings,
@@ -20,7 +22,7 @@ const driverStatsController = {
         WHERE driver_id = $1
         AND created_at >= $2 AND created_at <= $3
       `, [driverId, dateRange.start, dateRange.end]);
-      
+
       const stats = result.rows[0] || {};
       res.json({
         success: true,
@@ -41,20 +43,24 @@ const driverStatsController = {
     try {
       const driverId = req.user.id;
       const range = req.query.range || 'today';
-      
+
       const dateRange = getDateRange(range);
-      
+
+      // Include recent active assignments even if created_at is outside the selected range.
       const result = await query(`
         SELECT 
           id, customer_name, customer_phone, pickup_location, dropoff_location, 
           fare_aed, status, created_at
         FROM bookings
         WHERE driver_id = $1
-        AND created_at >= $2 AND created_at <= $3
+        AND (
+          (created_at >= $2 AND created_at <= $3)
+          OR status IN ('pending', 'assigned', 'on_trip')
+        )
         ORDER BY created_at DESC
-        LIMIT 100
+        LIMIT 200
       `, [driverId, dateRange.start, dateRange.end]);
-      
+
       res.json({
         success: true,
         data: result.rows || []
@@ -69,9 +75,9 @@ const driverStatsController = {
     try {
       const driverId = req.user.id;
       const range = req.query.range || 'today';
-      
+
       const dateRange = getDateRange(range);
-      
+
       // Bookings by day
       const bookingsResult = await query(`
         SELECT 
@@ -83,7 +89,7 @@ const driverStatsController = {
         GROUP BY DATE(created_at)
         ORDER BY DATE(created_at) ASC
       `, [driverId, dateRange.start, dateRange.end]);
-      
+
       // Earnings by status
       const earningsResult = await query(`
         SELECT 
@@ -93,13 +99,13 @@ const driverStatsController = {
         WHERE driver_id = $1
         AND created_at >= $2 AND created_at <= $3
         GROUP BY status
-      `, [driverId, dateRange.start, dateRange.end]);
-      
+        `, [driverId, dateRange.start, dateRange.end]);
+
       const earnings = {};
       (earningsResult.rows || []).forEach(row => {
         earnings[row.status] = parseFloat(row.amount) || 0;
       });
-      
+
       res.json({
         success: true,
         data: {
@@ -123,7 +129,7 @@ const driverStatsController = {
   async getEarnings(req, res, next) {
     try {
       const driverId = req.user.id;
-      
+
       // Total earnings
       const earningsResult = await query(`
         SELECT 
@@ -132,9 +138,9 @@ const driverStatsController = {
         FROM bookings
         WHERE driver_id = $1
       `, [driverId]);
-      
+
       const earnings = earningsResult.rows[0] || {};
-      
+
       // Payouts
       const payoutsResult = await query(`
         SELECT id, amount_aed, status, created_at, payment_date
@@ -143,10 +149,10 @@ const driverStatsController = {
         ORDER BY created_at DESC
         LIMIT 20
       `, [driverId]);
-      
+
       const payouts = payoutsResult.rows || [];
       const lastPayout = payouts[0];
-      
+
       res.json({
         success: true,
         data: {
@@ -172,22 +178,95 @@ const driverStatsController = {
   async getVehicle(req, res, next) {
     try {
       const driverId = req.user.id;
-      
+
       const result = await query(`
         SELECT id, model, type as vehicle_type, color, plate_number, max_passengers, max_luggage, active as status
         FROM vehicles
         WHERE driver_id = $1
         LIMIT 1
       `, [driverId]);
-      
+
       if (result.rows.length === 0) {
         return res.json({ success: true, data: null });
       }
-      
+
       res.json({
         success: true,
         data: result.rows[0]
       });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Update booking status (Driver Action)
+  async updateBookingStatus(req, res, next) {
+    try {
+      const driverId = req.user.id;
+      const { bookingId, status } = req.body;
+
+      if (!bookingId || !status) {
+        return res.status(400).json({ success: false, error: 'Booking ID and status are required' });
+      }
+
+      // 1. Verify booking belongs to driver
+      const bookingRes = await query('SELECT * FROM bookings WHERE id = $1 AND driver_id = $2', [bookingId, driverId]);
+      if (bookingRes.rows.length === 0) {
+        return res.status(404).json({ success: false, error: 'Booking not found or not assigned to you' });
+      }
+      const booking = bookingRes.rows[0];
+
+      // 2. State transition validation
+      const validTransitions = {
+        'assigned': ['on_trip'],
+        'on_trip': ['completed']
+      };
+
+      // Allow driver to complete if it's already on_trip, or start if assigned.
+      // Also handle re-sending same status (idempotency)
+      if (booking.status === status) {
+        return res.json({ success: true, message: 'Status already updated', data: booking });
+      }
+
+      const allowedNext = validTransitions[booking.status] || [];
+      if (!allowedNext.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          error: `Invalid status transition. Cannot go from ${booking.status} to ${status}`
+        });
+      }
+
+      // 3. Update status
+      const updateRes = await query(
+        'UPDATE bookings SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+        [status, bookingId]
+      );
+
+      // If completed, update vehicle status and send email
+      if (status === 'completed') {
+        const completedBooking = updateRes.rows[0];
+
+        // 1. Mark vehicle as available
+        if (completedBooking.assigned_vehicle_id) {
+          await query("UPDATE vehicles SET status = 'available' WHERE id = $1", [completedBooking.assigned_vehicle_id]);
+          console.log(`✅ Vehicle ${completedBooking.assigned_vehicle_id} marked as available`);
+        }
+
+        // 2. Send completion email and WhatsApp
+        await emailService.sendRideCompletionNotification(completedBooking);
+        console.log(`📧 Ride completion email sent for booking ${bookingId}`);
+
+        // 3. Send WhatsApp
+        await notificationService.sendTripCompletedNotification(completedBooking, req.user);
+        console.log(`📱 Ride completion WhatsApp sent for booking ${bookingId}`);
+      }
+
+      res.json({
+        success: true,
+        message: `Ride ${status === 'on_trip' ? 'started' : 'completed'} successfully`,
+        data: updateRes.rows[0]
+      });
+
     } catch (error) {
       next(error);
     }
@@ -197,8 +276,8 @@ const driverStatsController = {
 function getDateRange(range) {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  
-  switch(range) {
+
+  switch (range) {
     case 'today':
       return {
         start: today,

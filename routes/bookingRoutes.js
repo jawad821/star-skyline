@@ -15,6 +15,7 @@ router.get('/vehicle-details', formController.getVehicleDetails);
 router.get('/guest-info', formController.getGuestInfo);
 router.get('/billing', formController.getBillingDetails);
 router.get('/success', formController.getSuccessPage);
+router.get('/status', formController.getBookingStatus);
 router.post('/wordpress-booking', wordpressBookingController.createWordPressBooking);
 router.post('/wordpress-calculate-fare', wordpressBookingController.calculateWordPressFare);
 
@@ -30,6 +31,7 @@ router.post('/assign-vehicle', authMiddleware, rbacMiddleware(['admin', 'operato
 router.post('/assign-driver', authMiddleware, rbacMiddleware(['admin']), bookingController.assignDriver);
 router.post('/assign-vehicle-type', authMiddleware, rbacMiddleware(['admin']), bookingController.assignVehicleType);
 router.post('/resend-notifications', authMiddleware, rbacMiddleware(['admin']), bookingController.resendNotifications);
+router.delete('/:id', authMiddleware, rbacMiddleware(['admin']), bookingController.deleteBooking);
 router.post('/create-multi-stop', authMiddleware, rbacMiddleware(['admin', 'operator']), bookingController.createMultiStopBooking);
 router.post('/create-round-trip', authMiddleware, rbacMiddleware(['admin', 'operator']), bookingController.createRoundTripBooking);
 

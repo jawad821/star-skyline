@@ -1,8 +1,26 @@
 const { Pool } = require('pg');
-const { DATABASE_URL } = require('./env');
+// Corrected: Removed space from PGHOS T, and ensuring all relevant vars are imported
+const { PGUSER, PGHOST, PGDATABASE, PGPASSWORD, PGPORT } = require('./env');
+
+// --- ADD THESE LINES FOR DEBUGGING ---
+console.log('--- PG Connection Params ---');
+console.log('PGUSER:', PGUSER);
+console.log('PGHOST:', PGHOST);
+console.log('PGDATABASE:', PGDATABASE);
+console.log('PGPORT:', PGPORT);
+console.log('PGPASSWORD (length):', PGPASSWORD ? PGPASSWORD.length : 'undefined/null');
+console.log('PGPASSWORD (first char):', PGPASSWORD ? PGPASSWORD[0] : 'undefined/null');
+console.log('PGPASSWORD (type):', typeof PGPASSWORD);
+console.log('----------------------------');
+// --- END DEBUGGING LINES ---
 
 const pool = new Pool({
-  connectionString: DATABASE_URL,
+  // Corrected: Using individual parameters instead of connectionString
+  user: PGUSER,
+  host: PGHOST,
+  database: PGDATABASE,
+  password: PGPASSWORD,
+  port: parseInt(PGPORT, 10), // Ensure port is parsed as an integer
   max: 30,
   idleTimeoutMillis: 60000,
   connectionTimeoutMillis: 30000,

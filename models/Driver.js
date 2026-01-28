@@ -50,19 +50,34 @@ const Driver = {
   },
 
   async updateDriver(id, data) {
-    const { license_issue_date, license_expiry_date, auto_assign, status, image_url } = data;
+    const { license_issue_date, license_expiry_date, auto_assign, status, image_url, driver_registration_status, name, phone, email, license_number } = data;
     const result = await query(`
       UPDATE drivers 
       SET license_issue_date = COALESCE($1, license_issue_date),
-          license_expiry_date = COALESCE($2, license_expiry_date),
-          auto_assign = COALESCE($3, auto_assign),
-          status = COALESCE($4, status),
-          image_url = COALESCE($5, image_url),
-          updated_at = NOW()
-      WHERE id = $6
+      license_expiry_date = COALESCE($2, license_expiry_date),
+      auto_assign = COALESCE($3, auto_assign),
+      status = COALESCE($4, status),
+      image_url = COALESCE($5, image_url),
+      driver_registration_status = COALESCE($6, driver_registration_status),
+      name = COALESCE($7, name),
+      phone = COALESCE($8, phone),
+      email = COALESCE($9, email),
+      license_number = COALESCE($10, license_number),
+      updated_at = NOW()
+      WHERE id = $11
       RETURNING *
-    `, [license_issue_date, license_expiry_date, auto_assign, status, image_url, id]);
+    `, [license_issue_date, license_expiry_date, auto_assign, status, image_url, driver_registration_status, name, phone, email, license_number, id]);
     return result.rows[0];
+  },
+
+  async deleteDriver(id) {
+    // Hard delete: remove from database
+    const result = await query(`
+      DELETE FROM drivers
+      WHERE id = $1
+      RETURNING *
+    `, [id]);
+    return result.rows[0] || null;
   }
 };
 

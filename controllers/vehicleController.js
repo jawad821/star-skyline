@@ -6,11 +6,11 @@ const vehicleController = {
   async suggestVehicles(req, res, next) {
     try {
       const { passengers_count, luggage_count } = req.query;
-      
+
       console.log('\n🚗 [BAREERAH] Suggesting vehicles...');
       console.log('   👥 Passengers requested:', passengers_count);
       console.log('   🧳 Luggage requested:', luggage_count);
-      
+
       // Validate input
       if (!passengers_count || !luggage_count) {
         console.log('❌ [BAREERAH] Missing required parameters');
@@ -52,7 +52,7 @@ const vehicleController = {
           error: `No vehicles available for ${pax} passengers and ${luggage} luggage`
         });
       }
-      
+
       console.log(`✅ [BAREERAH] Found ${result.rows.length} matching vehicle types`);
 
       // Get fare rules for each vehicle type to include pricing
@@ -128,6 +128,19 @@ const vehicleController = {
   async createVehicle(req, res, next) {
     try {
       const vehicle = await vehicleService.createVehicle(req.body);
+      const auditLogger = require('../utils/auditLogger');
+      const user = req.user || { username: 'system', role: 'admin' };
+
+      await auditLogger.logChange(
+        'vehicle',
+        vehicle.id,
+        'CREATE',
+        { ...req.body, id: vehicle.id },
+        user.username,
+        user.username,
+        user.role
+      ).catch(e => console.error('Audit error:', e));
+
       res.status(201).json({
         success: true,
         message: 'Vehicle created successfully',
@@ -157,16 +170,16 @@ const vehicleController = {
       const { id } = req.params;
       const Vehicle = require('../models/Vehicle');
       const auditLogger = require('../utils/auditLogger');
-      
+
       // Get old vehicle data for change tracking
       const oldVehicle = await Vehicle.findById(id);
-      
+
       // Get user info from token (JWT has username, not name)
       const user = req.user || { username: 'unknown', role: 'admin' };
-      
+
       // Update vehicle
       const vehicle = await Vehicle.updateVehicle(id, req.body);
-      
+
       // Log changes
       const changes = {};
       for (let key in req.body) {
@@ -174,16 +187,36 @@ const vehicleController = {
           changes[key] = { old: oldVehicle[key], new: req.body[key] };
         }
       }
-      
+
       if (Object.keys(changes).length > 0) {
         await auditLogger.logChange('vehicle', id, 'UPDATE', changes, user.username, user.username, user.role);
       }
-      
+
       res.json({
         success: true,
         message: 'Vehicle updated successfully',
         vehicle
       });
+    } catch (error) {
+      next(error);
+    }
+  },
+  async deleteVehicle(req, res, next) {
+    try {
+      const { id } = req.params;
+      const Vehicle = require('../models/Vehicle');
+      const auditLogger = require('../utils/auditLogger');
+      const oldVehicle = await Vehicle.findById(id);
+      if (!oldVehicle) return res.status(404).json({ success: false, error: 'Vehicle not found' });
+
+      // Soft deactivate
+      const vehicle = await Vehicle.updateVehicle(id, { active: false, status: 'disabled' });
+
+      const user = req.user || { username: 'system', role: 'admin' };
+      const changes = { active: { old: oldVehicle.active, new: false }, status: { old: oldVehicle.status, new: 'disabled' } };
+      await auditLogger.logChange('vehicle', id, 'DELETE', changes, user.username, user.username, user.role).catch(e => console.error('Audit error:', e));
+
+      res.json({ success: true, message: 'Vehicle deactivated (soft)', data: vehicle });
     } catch (error) {
       next(error);
     }

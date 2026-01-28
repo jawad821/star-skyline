@@ -24,7 +24,7 @@ const bareerahLogger = (req, res, next) => {
   });
   
   // Log body (request data)
-  if (req.method !== 'GET' && Object.keys(req.body).length > 0) {
+  if (req.method !== 'GET' && req.body && Object.keys(req.body).length > 0) {
     console.log('\n📦 Request Body:');
     console.log(JSON.stringify(req.body, null, 2));
   }

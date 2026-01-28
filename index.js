@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -6,32 +8,60 @@ const { query } = require('./config/db');
 const { PORT } = require('./config/env');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
+const { bareerahLogger, bareerahErrorLogger } = require('./middleware/bareerahLogger');
+console.log('Middleware loaded');
+
+// Import Routes
+console.log('Loading routes...');
+const bookingRoutes = require('./routes/bookingRoutes');
+console.log('bookingRoutes loaded');
+const vehicleRoutes = require('./routes/vehicleRoutes');
+console.log('vehicleRoutes loaded');
+const vendorRoutes = require('./routes/vendorRoutes');
+console.log('vendorRoutes loaded');
+const authRoutes = require('./routes/authRoutes');
+console.log('authRoutes loaded');
+const reportRoutes = require('./routes/reportRoutes');
+console.log('reportRoutes loaded');
+const pushRoutes = require('./routes/pushRoutes');
+console.log('pushRoutes loaded');
+const statsRoutes = require('./routes/statsRoutes');
+console.log('statsRoutes loaded');
+const customerRoutes = require('./routes/customerRoutes');
+console.log('customerRoutes loaded');
+const driverRoutes = require('./routes/driverRoutes');
+console.log('driverRoutes loaded');
+const ratingRoutes = require('./routes/ratingRoutes');
+console.log('ratingRoutes loaded');
+const fareRuleRoutes = require('./routes/fareRuleRoutes');
+console.log('fareRuleRoutes loaded');
+const auditRoutes = require('./routes/auditRoutes');
+console.log('auditRoutes loaded');
+const driverStatsRoutes = require('./routes/driverStatsRoutes');
+console.log('driverStatsRoutes loaded');
+const vendorAuthRoutes = require('./routes/vendorAuthRoutes');
+console.log('vendorAuthRoutes loaded');
+const driverAuthRoutes = require('./routes/driverAuthRoutes');
+console.log('driverAuthRoutes loaded');
+const vendorManagementRoutes = require('./routes/vendorManagementRoutes');
+console.log('vendorManagementRoutes loaded');
+const settingsRoutes = require('./routes/settingsRoutes');
+console.log('settingsRoutes loaded');
+const notificationRoutes = require('./routes/notificationRoutes');
+console.log('notificationRoutes loaded');
+const webhookRoutes = require('./routes/webhookRoutes');
+console.log('webhookRoutes loaded');
 
 // Set Dubai timezone globally
 process.env.TZ = 'Asia/Dubai';
 moment.tz.setDefault('Asia/Dubai');
 
-const bookingRoutes = require('./routes/bookingRoutes');
-const vehicleRoutes = require('./routes/vehicleRoutes');
-const vendorRoutes = require('./routes/vendorRoutes');
-const authRoutes = require('./routes/authRoutes');
-const reportRoutes = require('./routes/reportRoutes');
-const pushRoutes = require('./routes/pushRoutes');
-const statsRoutes = require('./routes/statsRoutes');
-const customerRoutes = require('./routes/customerRoutes');
-const driverRoutes = require('./routes/driverRoutes');
-const ratingRoutes = require('./routes/ratingRoutes');
-const fareRuleRoutes = require('./routes/fareRuleRoutes');
-const auditRoutes = require('./routes/auditRoutes');
-
 const app = express();
-
-// Import Bareerah logging middleware
-const { bareerahLogger, bareerahErrorLogger } = require('./middleware/bareerahLogger');
+console.log('Express app created');
 
 // CORS Configuration - Allow Replit preview and local development
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     // Allow all origins for development - removes CORS barriers
     callback(null, true);
   },
@@ -58,7 +88,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// API routes BEFORE static files
+// API routes definition
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/vehicles', vehicleRoutes);
@@ -71,6 +101,13 @@ app.use('/api/push', pushRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/fare-rules', fareRuleRoutes);
 app.use('/api/audit-logs', auditRoutes);
+app.use('/api/driver-stats', driverStatsRoutes);
+app.use('/api/vendor-auth', vendorAuthRoutes);
+app.use('/api/driver-auth', driverAuthRoutes);
+app.use('/api/vendor-management', vendorManagementRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api', webhookRoutes); // WhatsApp webhook endpoint
 
 // Admin Login page (public)
 app.get('/dashboard/login.html', (req, res) => {
@@ -130,20 +167,15 @@ app.get('/', (req, res) => {
   res.redirect('/dashboard/login.html');
 });
 
-const driverStatsRoutes = require('./routes/driverStatsRoutes');
-app.use('/api/driver-stats', driverStatsRoutes);
+// Error handling - MUST be last
 app.use(errorHandler);
 
-app.listen(PORT, '0.0.0.0', () => {
+console.log('Attempting to listen on port ' + PORT);
+const server = app.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server running on http://0.0.0.0:${PORT}`);
 });
 
-// Import new routes
-const vendorAuthRoutes = require('./routes/vendorAuthRoutes');
-const driverAuthRoutes = require('./routes/driverAuthRoutes');
-const vendorManagementRoutes = require('./routes/vendorManagementRoutes');
+server.on('error', (e) => {
+  console.error('SERVER ERROR:', e);
+});
 
-// Mount new routes
-app.use('/api/vendor-auth', vendorAuthRoutes);
-app.use('/api/driver-auth', driverAuthRoutes);
-app.use('/api/vendor-management', vendorManagementRoutes);

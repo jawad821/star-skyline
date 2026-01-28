@@ -1,10 +1,12 @@
 const { query } = require('../config/db');
 const fareCalculator = require('../utils/fareCalculator');
 const logger = require('../utils/logger');
+const auditLogger = require('../utils/auditLogger'); // Added import
 
 const addBookingController = {
   async createManualBooking(req, res, next) {
     try {
+      // ... (existing destructuring and validation) ...
       const {
         customer_name,
         customer_phone,
@@ -31,12 +33,13 @@ const addBookingController = {
         flight_time
       } = req.body;
 
-      // Validate required fields
       if (!customer_name || !customer_phone || !pickup_location || !dropoff_location || !booking_type || !vehicle_type) {
         return res.status(400).json({ success: false, error: 'Missing required fields' });
       }
 
-      // For multi_stop and round_trip, handle special logic
+      // ... (rest of validation and calculation logic unchanged) ...
+      // For brevity, I am skipping lines that don't need changes, but since replace_file_content needs context, I will include enough.
+
       let finalDistance = distance_km || 0;
       if (booking_type.toLowerCase() === 'multi_stop') {
         const stops = req.body.stops || [];
@@ -51,7 +54,6 @@ const addBookingController = {
         finalDistance = (distance_km || 25) * 2;
       }
 
-      // Validate passenger and luggage counts
       if (!passengers_count || passengers_count < 1) {
         return res.status(400).json({ success: false, error: 'passengers_count must be >= 1' });
       }
@@ -97,18 +99,18 @@ const addBookingController = {
 
       // Determine vehicle model - use vehicle_model if provided, otherwise car_model
       const finalVehicleModel = vehicle_model || car_model || 'Not specified';
-      
+
       // AUTO-ASSIGNMENT: Handle vehicle assignment
       let finalDriverId = driver_id;
       let finalAssignedVehicleId = assigned_vehicle_id;
       let finalVehicleModelForBooking = finalVehicleModel;
       let finalVehicleColor = null;
-      
-      // Determine booking source
+
       const finalBookingSource = booking_source === 'bareerah_ai' ? 'bareerah_ai' : (booking_source || 'manually_created');
-      
-      // If no vehicle assigned, auto-assign cheapest available (for ALL bookings, not just Bareerah)
+
+      // ... (auto assignment logic unchanged) ...
       if (!assigned_vehicle_id) {
+        logger.info(`Auto-assigning vehicle for type: ${vehicle_type}, passengers: ${passengers_count}`);
         const autoVehicleResult = await query(`
           SELECT id, driver_id, model, color FROM vehicles 
           WHERE type = $1 AND status = 'available' AND active = true
@@ -116,14 +118,19 @@ const addBookingController = {
           ORDER BY per_km_price ASC
           LIMIT 1
         `, [vehicle_type.toLowerCase(), passengers_count, luggage_count]);
-        
+
+        logger.info(`Auto-assign result: ${autoVehicleResult.rows.length} vehicles found`);
+
         if (autoVehicleResult.rows.length > 0) {
           finalAssignedVehicleId = autoVehicleResult.rows[0].id;
           if (autoVehicleResult.rows[0].driver_id && !driver_id) {
             finalDriverId = autoVehicleResult.rows[0].driver_id;
+            logger.info(`Auto-assigned driver: ${finalDriverId}`);
           }
           finalVehicleModelForBooking = autoVehicleResult.rows[0].model;
           finalVehicleColor = autoVehicleResult.rows[0].color;
+        } else {
+          logger.warn('No available vehicle found for auto-assignment');
         }
       } else if (assigned_vehicle_id) {
         // Get the vehicle's tagged driver, model, and color
@@ -144,7 +151,7 @@ const addBookingController = {
               ORDER BY per_km_price ASC
               LIMIT 1
             `, [vehicle_type.toLowerCase(), passengers_count, luggage_count]);
-            
+
             if (autoVehicleResult.rows.length > 0) {
               finalAssignedVehicleId = autoVehicleResult.rows[0].id;
               if (autoVehicleResult.rows[0].driver_id && !driver_id) {
@@ -158,14 +165,14 @@ const addBookingController = {
             }
           } else {
             // Non-Bareerah booking with invalid vehicle - reject
-            return res.status(400).json({ 
-              success: false, 
-              error: `Vehicle ID ${assigned_vehicle_id} not found in system` 
+            return res.status(400).json({
+              success: false,
+              error: `Vehicle ID ${assigned_vehicle_id} not found in system`
             });
           }
         }
       }
-      
+
       // Create booking (database auto-generates UUID)
       const result = await query(`
         INSERT INTO bookings 
@@ -198,11 +205,47 @@ const addBookingController = {
       }
 
       logger.info(`Manual booking created: ${booking.id}`);
-      
+
+      // AUDIT LOG
+      const user = req.user || { id: null, username: 'system', role: 'system' };
+      await auditLogger.logChange(
+        'booking',
+        booking.id,
+        'CREATE',
+        { customer_name, pickup_location, booking_type, fare_aed: fare },
+        user.id || user.username,
+        user.username,
+        user.role
+      ).catch(e => logger.error('Audit log error:', e));
+
       // Send confirmation email if email provided
+      // Send Notifications
+      const emailService = require('../utils/emailService');
+      const notificationService = require('../services/notificationService');
+
+      // 1. Customer Notifications (Email + WhatsApp)
       if (customer_email) {
-        const emailService = require('../utils/emailService');
-        emailService.sendCustomerNotification(booking, null);
+        emailService.sendCustomerNotification(booking, null).catch(e => logger.error('Error sending customer email:', e));
+      }
+      if (customer_phone) {
+        notificationService.sendWhatsAppToCustomer(customer_phone, booking).catch(e => logger.error('Error sending customer WhatsApp:', e));
+      }
+
+      // 2. Admin Notifications (Email + WhatsApp)
+      emailService.sendAdminNotification(booking, null).catch(e => logger.error('Error sending admin email:', e));
+      notificationService.sendWhatsAppToAdmin(booking).catch(e => logger.error('Error sending admin WhatsApp:', e));
+
+      // 3. Driver Notification (if assigned)
+      if (finalDriverId) {
+        query('SELECT phone, email FROM drivers WHERE id = $1', [finalDriverId])
+          .then(res => {
+            if (res.rows.length > 0) {
+              const driver = res.rows[0];
+              if (driver.phone) notificationService.sendWhatsAppToDriver(driver.phone, booking).catch(e => logger.error('Error sending driver WhatsApp:', e));
+              if (driver.email) notificationService.sendEmailToDriver(driver.email, booking).catch(e => logger.error('Error sending driver Email:', e));
+            }
+          })
+          .catch(e => logger.error('Error fetching driver for notification:', e));
       }
 
       res.status(201).json({
@@ -240,7 +283,7 @@ const addBookingController = {
 
       // Calculate rental fare
       const fareData = await rentalRulesService.calculateRentalFare(vehicle_type, rental_hours);
-      
+
       // Create booking
       const result = await query(`
         INSERT INTO bookings 
@@ -260,6 +303,18 @@ const addBookingController = {
 
 
       const booking = result.rows[0];
+
+      // AUDIT LOG
+      const user = req.user || { id: null, username: 'system', role: 'system' };
+      await auditLogger.logChange(
+        'booking',
+        booking.id,
+        'CREATE',
+        { customer_name, pickup_location, booking_type: 'hourly_rental', fare_aed: fareData.total_fare },
+        user.id || user.username,
+        user.username,
+        user.role
+      ).catch(e => logger.error('Audit log error:', e));
 
       // Send email notification
       if (customer_email) {

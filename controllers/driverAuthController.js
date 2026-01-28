@@ -2,6 +2,7 @@ const { query } = require('../config/db');
 const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const logger = require('../utils/logger');
+const { JWT_SECRET } = require('../config/env');
 
 const driverAuthController = {
   async driverSignup(req, res, next) {
@@ -15,10 +16,10 @@ const driverAuthController = {
       const passwordHash = await bcryptjs.hash(password, 10);
       
       const result = await query(`
-        INSERT INTO drivers (name, email, phone, password_hash, license_number, national_id, date_of_birth, bank_account_number, bank_name, account_holder_name, driver_registration_status)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $1, 'pending')
-        RETURNING id, name, email, driver_registration_status
-      `, [name, email, phone, passwordHash, license_number, national_id, date_of_birth, bank_account_number, bank_name]);
+  INSERT INTO drivers (name, email, phone, password_hash, license_number, national_id, date_of_birth, bank_account_number, bank_name, account_holder_name, driver_registration_status, status, auto_assign)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NULL, 'pending', 'pending', false)
+  RETURNING id, name, email, driver_registration_status, status
+`, [name, email, phone, passwordHash, license_number, national_id, date_of_birth, bank_account_number, bank_name]);
 
       logger.info(`Driver signup request: ${result.rows[0].name}`);
       
@@ -45,7 +46,8 @@ const driverAuthController = {
       }
 
       const driver = result.rows[0];
-      if (driver.driver_registration_status !== 'approved') {
+      // Allow login if registration status is not explicitly set to a blocking state.
+      if (driver.driver_registration_status && driver.driver_registration_status !== 'approved') {
         return res.status(403).json({ success: false, error: `Status: ${driver.driver_registration_status}` });
       }
 
@@ -56,7 +58,7 @@ const driverAuthController = {
 
       const token = jwt.sign(
         { id: driver.id, email: driver.email, role: 'driver' },
-        process.env.JWT_SECRET || 'secret',
+        JWT_SECRET || process.env.JWT_SECRET || 'secret',
         { expiresIn: '7d' }
       );
 

@@ -83,7 +83,7 @@ const Booking = {
       confirmed_contact_number || null,
       notes || null
     ]);
-    
+
     return result.rows[0];
   },
 
@@ -107,7 +107,7 @@ const Booking = {
 
   async assignDriver(id, driverId) {
     const result = await query(
-      'UPDATE bookings SET driver_id = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      'UPDATE bookings SET driver_id = $1, status = \'assigned\', updated_at = NOW() WHERE id = $2 RETURNING *',
       [driverId, id]
     );
     return result.rows[0];
@@ -127,6 +127,20 @@ const Booking = {
       [notes || null, id]
     );
     return result.rows[0];
+  },
+
+  async deleteBooking(id) {
+    // Hard delete: remove from database
+    // First remove related stops to maintain integrity
+    await query('DELETE FROM booking_stops WHERE booking_id = $1', [id]);
+
+    // Then remove the booking
+    const result = await query(`
+      DELETE FROM bookings
+      WHERE id = $1
+      RETURNING *
+    `, [id]);
+    return result.rows[0] || null;
   }
 };
 

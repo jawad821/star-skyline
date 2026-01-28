@@ -1,0 +1,52 @@
+{
+  "data": [
+    {
+      "name": "booking_cancelled_customer",
+      "status": "APPROVED",
+      "language": "en",
+      "id": "736535915883792"
+    },
+    {
+      "name": "trip_completed_customer",
+      "status": "APPROVED",
+      "language": "en",
+      "id": "894017106557250"
+    },
+    {
+      "name": "payment_pending_customer",
+      "status": "APPROVED",
+      "language": "en",
+      "id": "1615902546100116"
+    },
+    {
+      "name": "booking_assigned_driver",
+      "status": "APPROVED",
+      "language": "en",
+      "id": "1269363895051417"
+    },
+    {
+      "name": "new_booking_admin_alert",
+      "status": "APPROVED",
+      "language": "en",
+      "id": "1243598590971689"
+    },
+    {
+      "name": "driver_assigned_customer",
+      "status": "APPROVED",
+      "language": "en",
+      "id": "926619243056021"
+    },
+    {
+      "name": "booking_confirmed_customer",
+      "status": "APPROVED",
+      "language": "en",
+      "id": "2379844445793870"
+    }
+  ],
+  "paging": {
+    "cursors": {
+      "before": "QVFIU0NFZAXFaNk5ucGRqN1RwdThhMVNiNUh1UzZAZAUkxER1RyWkVkSGhUcTFTRnU2cVdsaG52VWpKdkdRSkU2NzRQTEFKRWNYY2w1OURxWXVUQmczUnBQMUxR",
+      "after": "QVFIUzM3VGVzX0ZAHV3VPRVZAzRXd1U2QtZA3JxdF9DRWhIbGVfdi1rcmtoT0d6WC1qWnVtOVdaTVpPYmVUV1BsWE93d0NTSWpBQXdmS0tPNThrOWN4el9uWVVR"
+    }
+  }
+}

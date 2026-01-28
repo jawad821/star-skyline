@@ -34,7 +34,7 @@ const Vehicle = {
         AND v.max_luggage >= $2
       ORDER BY v.per_km_price ASC, v.model
     `, [passengers, luggage]);
-    
+
     return result.rows;
   },
 
@@ -50,15 +50,15 @@ const Vehicle = {
       LEFT JOIN vendors vn ON v.vendor_id = vn.id
       WHERE v.status = 'available' AND v.active = true
     `;
-    
+
     const params = [];
     if (type) {
       sql += ' AND v.type = $1';
       params.push(type);
     }
-    
+
     sql += ' ORDER BY v.per_km_price ASC, v.model';
-    
+
     const result = await query(sql, params);
     return result.rows;
   },
@@ -101,7 +101,7 @@ const Vehicle = {
       ORDER BY v.per_km_price ASC, v.hourly_price ASC
       LIMIT 1
     `, [passengers, luggage]);
-    
+
     if (companyResult.rows.length > 0) {
       return companyResult.rows[0];
     }
@@ -126,7 +126,7 @@ const Vehicle = {
       ORDER BY v.per_km_price ASC, v.hourly_price ASC
       LIMIT 1
     `, [passengers, luggage]);
-    
+
     if (vendorResult.rows.length > 0) {
       return vendorResult.rows[0];
     }
@@ -136,8 +136,9 @@ const Vehicle = {
   },
 
   async updateStatus(id, status) {
+    // Some schemas may not have an updated_at column; update only status to be safe.
     const result = await query(
-      'UPDATE vehicles SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      'UPDATE vehicles SET status = $1 WHERE id = $2 RETURNING *',
       [status, id]
     );
     return result.rows[0];
@@ -154,10 +155,30 @@ const Vehicle = {
       WHERE v.active = true
     `;
     const params = [];
+
+    // Smart filtering for tabs
     if (type) {
-      sql += ' AND v.type = $1';
-      params.push(type);
+      if (type === 'suv') {
+        sql += " AND (v.type ILIKE '%suv%')";
+      } else if (type === 'sedan') {
+        // Includes classic, executive, first_class which are sedans
+        sql += " AND (v.type = 'sedan' OR v.type = 'classic' OR v.type = 'executive' OR v.type = 'first_class' OR v.type = 'standard')";
+      } else if (type === 'luxury') {
+        // Includes anything luxury or first class
+        sql += " AND (v.type ILIKE '%luxury%' OR v.type = 'first_class' OR v.type = 'executive' OR v.type = 'elite_van')";
+      } else if (type === 'van') {
+        sql += " AND (v.type ILIKE '%van%' OR v.type = 'van')";
+      } else if (type === 'minibus') {
+        sql += " AND (v.type = 'mini_bus' OR v.type = 'minibus')";
+      } else if (type === 'bus') {
+        sql += " AND (v.type = 'bus')";
+      } else {
+        // Fallback for strict match or other types
+        sql += ' AND v.type = $1';
+        params.push(type);
+      }
     }
+
     sql += ' ORDER BY v.model';
     const result = await query(sql, params);
     return result.rows;
@@ -177,24 +198,42 @@ const Vehicle = {
   },
 
   async updateVehicle(id, data) {
-    const { model, plate_number, color, type, status, max_passengers, max_luggage, hourly_price, per_km_price, image_url, driver_id } = data;
-    const result = await query(`
+    const fields = [];
+    const values = [];
+    let idx = 1;
+
+    // Map allowed fields to DB columns
+    const allowedFields = ['model', 'plate_number', 'color', 'type', 'status', 'max_passengers', 'max_luggage', 'hourly_price', 'per_km_price', 'image_url', 'driver_id'];
+
+    for (const key of allowedFields) {
+      if (data.hasOwnProperty(key)) {
+        let value = data[key];
+
+        // Handle driver_id specifically
+        if (key === 'driver_id') {
+          // If empty string, treat as NULL (unassign)
+          if (value === '' || value === 'null') value = null;
+        }
+
+        fields.push(`${key} = $${idx++}`);
+        values.push(value);
+      }
+    }
+
+    if (fields.length === 0) {
+      // Nothing to update, return current state
+      return this.findById(id);
+    }
+
+    values.push(id); // ID is the last parameter
+    const sql = `
       UPDATE vehicles 
-      SET model = COALESCE($1, model),
-          plate_number = COALESCE($2, plate_number),
-          color = COALESCE($3, color),
-          type = COALESCE($4, type),
-          status = COALESCE($5, status),
-          max_passengers = COALESCE($6, max_passengers),
-          max_luggage = COALESCE($7, max_luggage),
-          hourly_price = COALESCE($8, hourly_price),
-          per_km_price = COALESCE($9, per_km_price),
-          image_url = COALESCE($10, image_url),
-          driver_id = COALESCE(NULLIF($11, ''), driver_id),
-          updated_at = NOW()
-      WHERE id = $12
+      SET ${fields.join(', ')}
+      WHERE id = $${idx}
       RETURNING *
-    `, [model, plate_number, color, type, status, max_passengers, max_luggage, hourly_price, per_km_price, image_url, driver_id || null, id]);
+    `;
+
+    const result = await query(sql, values);
     return result.rows[0];
   }
 };

@@ -1,6 +1,7 @@
 const { query } = require('../config/db');
 const { calculateFare } = require('../utils/fareCalculator');
 const emailService = require('../utils/emailService');
+const notificationService = require('../services/notificationService');
 
 const wordpressBookingController = {
   /**
@@ -170,7 +171,7 @@ const wordpressBookingController = {
 
           // Mark vehicle as on trip
           await query('UPDATE vehicles SET status = $1 WHERE id = $2', ['on_trip', vehicle.id]);
-          
+
           console.log(`✅ Auto-assigned vehicle ${vehicle.model} (${vehicle.color}) to booking ${bookingId}`);
         } else {
           console.log(`⚠️ No available ${vehicle_type} vehicle found for ${passengers_count} passengers, ${luggage_count} luggage`);
@@ -199,11 +200,19 @@ const wordpressBookingController = {
           booking_source: 'wordpress',
           created_at: createdAt
         };
-        
-        await emailService.sendWordPressBookingNotification(bookingData, assignedVehicle);
-        console.log('📧 Email notification sent for WordPress booking:', bookingId);
-      } catch (emailError) {
-        console.log('⚠️  Email notification failed:', emailError.message);
+
+        await notificationService.sendWordPressBookingAdminEmail(bookingData, assignedVehicle);
+        await notificationService.sendEmailToCustomer(customer_email, bookingData);
+
+        // Send WhatsApp notifications
+        if (customer_phone) {
+          await notificationService.sendWhatsAppToCustomer(customer_phone, bookingData);
+        }
+        await notificationService.sendWhatsAppToAdmin(bookingData);
+
+        console.log('📧 Notifications sent (Email & WhatsApp) for WordPress booking:', bookingId);
+      } catch (notificationError) {
+        console.log('⚠️  Notification failed:', notificationError.message);
         // Continue anyway - booking is still created
       }
 

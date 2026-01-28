@@ -30,7 +30,8 @@ body.dark-theme {
   --border-color: rgba(255, 255, 255, 0.1);
 }
 
-html, body {
+html,
+body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
   background: var(--light-bg);
   color: var(--text-primary);
@@ -69,7 +70,9 @@ html, body {
   align-items: center;
 }
 
-.theme-toggle, .logout-btn, .cache-clear-btn {
+.theme-toggle,
+.logout-btn,
+.cache-clear-btn {
   background: none;
   border: none;
   font-size: 14px;
@@ -80,11 +83,14 @@ html, body {
   color: var(--text-primary);
 }
 
-.theme-toggle:hover, .logout-btn:hover, .cache-clear-btn:hover {
+.theme-toggle:hover,
+.logout-btn:hover,
+.cache-clear-btn:hover {
   background: rgba(0, 0, 0, 0.06);
 }
 
-.logout-btn, .cache-clear-btn {
+.logout-btn,
+.cache-clear-btn {
   font-size: 13px;
   border: 1px solid var(--border-color);
 }
@@ -150,7 +156,8 @@ html, body {
   display: none;
 }
 
-.nav-item, .nav-submenu-toggle {
+.nav-item,
+.nav-submenu-toggle {
   padding: 12px 20px;
   margin: 0 10px;
   display: flex;
@@ -165,7 +172,8 @@ html, body {
   white-space: nowrap;
 }
 
-.nav-item:hover, .nav-submenu-toggle:hover {
+.nav-item:hover,
+.nav-submenu-toggle:hover {
   background: rgba(0, 0, 0, 0.04);
   color: var(--text-primary);
 }
@@ -372,12 +380,12 @@ html, body {
 
 .drag-handle:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .drag-handle.sortable-ghost {
   opacity: 0.5;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .card-drag-indicator {
@@ -477,7 +485,8 @@ html, body {
   margin-bottom: 15px;
 }
 
-.alerts-list, .alerts-full-list {
+.alerts-list,
+.alerts-full-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -578,7 +587,9 @@ tr:hover {
   color: var(--danger);
 }
 
-.badge-sedan, .badge-suv, .badge-luxury {
+.badge-sedan,
+.badge-suv,
+.badge-luxury {
   background: rgba(0, 122, 255, 0.1);
   color: var(--primary);
 }
@@ -617,7 +628,8 @@ label {
   font-weight: 500;
 }
 
-input, select {
+input,
+select {
   padding: 10px 12px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -626,7 +638,8 @@ input, select {
   font-size: 13px;
 }
 
-input:focus, select:focus {
+input:focus,
+select:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
@@ -754,7 +767,8 @@ input:focus, select:focus {
     font-size: 12px;
   }
 
-  th, td {
+  th,
+  td {
     padding: 8px;
   }
 }
@@ -842,14 +856,45 @@ input:focus, select:focus {
   font-weight: 600;
 }
 
-.badge-sedan { background: rgba(102, 126, 234, 0.2); color: #667eea; }
-.badge-suv { background: rgba(255, 149, 0, 0.2); color: #FF9500; }
-.badge-luxury { background: rgba(240, 147, 251, 0.2); color: #f093fb; }
-.badge-completed { background: rgba(52, 199, 89, 0.2); color: #34C759; }
-.badge-pending { background: rgba(255, 149, 0, 0.2); color: #FF9500; }
-.badge-cancelled { background: rgba(255, 59, 48, 0.2); color: #FF3B30; }
-.badge-online { background: rgba(52, 199, 89, 0.2); color: #34C759; }
-.badge-offline { background: rgba(142, 142, 147, 0.2); color: #8e8e93; }
+.badge-sedan {
+  background: rgba(102, 126, 234, 0.2);
+  color: #667eea;
+}
+
+.badge-suv {
+  background: rgba(255, 149, 0, 0.2);
+  color: #FF9500;
+}
+
+.badge-luxury {
+  background: rgba(240, 147, 251, 0.2);
+  color: #f093fb;
+}
+
+.badge-completed {
+  background: rgba(52, 199, 89, 0.2);
+  color: #34C759;
+}
+
+.badge-pending {
+  background: rgba(255, 149, 0, 0.2);
+  color: #FF9500;
+}
+
+.badge-cancelled {
+  background: rgba(255, 59, 48, 0.2);
+  color: #FF3B30;
+}
+
+.badge-online {
+  background: rgba(52, 199, 89, 0.2);
+  color: #34C759;
+}
+
+.badge-offline {
+  background: rgba(142, 142, 147, 0.2);
+  color: #8e8e93;
+}
 
 .btn-small {
   padding: 6px 12px;
@@ -875,6 +920,7 @@ input:focus, select:focus {
     transform: translateX(400px);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -886,6 +932,7 @@ input:focus, select:focus {
     transform: translateX(0);
     opacity: 1;
   }
+
   to {
     transform: translateX(400px);
     opacity: 0;
@@ -1120,4 +1167,94 @@ input:focus, select:focus {
   .detail-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Google Maps Autocomplete Fix for Modals */
+.pac-container {
+  z-index: 10005 !important;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  font-family: inherit;
+  background-color: white;
+}
+
+.pac-item {
+  padding: 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.pac-item:hover {
+  background-color: var(--light-bg);
+}
+
+.pac-item-query {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+/* Fix Input Backgrounds - Remove repeating icons */
+input.pac-target-input {
+  background-repeat: no-repeat !important;
+  background-position: right center !important;
+  background-image: none !important;
+  /* Force remove if icon is broken */
+}
+
+/* Settings Tabs */
+.settings-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0;
+}
+
+.settings-tab {
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  margin-bottom: -2px;
+}
+
+.settings-tab:hover {
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.settings-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.settings-tab-content {
+  display: none;
+}
+
+.settings-tab-content.active {
+  display: block;
+}
+
+textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
 }

@@ -1,0 +1,31 @@
+{
+  "debug": {
+    "data": {
+      "app_id": "1432925445154838",
+      "type": "SYSTEM_USER",
+      "application": "Starsky line wa business app",
+      "data_access_expires_at": 0,
+      "expires_at": 0,
+      "is_valid": true,
+      "issued_at": 1769538477,
+      "scopes": [
+        "whatsapp_business_management",
+        "whatsapp_business_messaging",
+        "public_profile"
+      ],
+      "granular_scopes": [
+        {
+          "scope": "whatsapp_business_management"
+        },
+        {
+          "scope": "whatsapp_business_messaging"
+        }
+      ],
+      "user_id": "122107432269224471"
+    }
+  },
+  "me": {
+    "id": "122107432269224471",
+    "name": "StarSkylinesystem"
+  }
+}

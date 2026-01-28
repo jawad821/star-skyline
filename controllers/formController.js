@@ -7,34 +7,34 @@ const UAE_LOCATIONS = [
   "Dubai Airport Terminal 1", "Dubai Airport Terminal 2", "Dubai Airport Terminal 3",
   "Abu Dhabi International Airport", "AUH", "Sharjah International Airport",
   "RAK Airport", "Fujairah Airport", "Ajman Airport",
-  
+
   // DUBAI - LANDMARKS
   "Burj Khalifa", "Dubai Marina", "Downtown Dubai", "Dubai Mall", "Business Bay",
   "Palm Jumeirah", "Dubai Creek", "Deira", "Bur Dubai", "JBR Beach", "Jumeirah Beach",
   "Dubai Hills Estate", "Emirates Hills", "Arabian Ranches", "Dubai Silicon Oasis",
   "Dubai Festival City", "Dubai Creek Harbour", "World Trade Centre",
-  
+
   // DUBAI - SHOPPING MALLS
   "The Dubai Mall", "Mall of the Emirates", "Ibn Battuta Mall", "Dubai Marina Mall",
   "Deira City Centre", "The Galleria", "Uptown Downtown", "Marina Mall",
   "Emporium Mall", "City Centre Deira", "Lulu Hypermarket", "Carrefour", "Spinneys",
-  
+
   // ABU DHABI
   "Abu Dhabi Downtown", "Etihad Tower", "Sheikh Zayed Grand Mosque", "Emirates Palace",
   "Al Reem Island", "Al Mina", "Khalifa City", "Al Bateen", "Yas Island", "Yas Mall",
   "Ferrari World", "Saadiyat Island", "Louvre Abu Dhabi", "Marina Mall Abu Dhabi",
-  
+
   // SHARJAH
   "Sharjah Corniche", "Al Majaz Waterfront", "Sharjah Museum", "Mega Mall Sharjah",
   "City Center Sharjah", "Al Qasba", "Sharjah Hills", "Al Nahda", "Khorfakkan",
   "Khorfakkan Beach", "Kalba", "Dibba",
-  
+
   // OTHER EMIRATES
   "Ajman Corniche", "Ajman City Centre", "Ajman Museum", "Umm Al Quwain",
   "Ras Al Khaimah", "RAK Corniche", "Jebel Jais", "Khatt Hot Springs",
   "Fujairah", "Fujairah Corniche", "Al Aqah Beach", "Dibba Beach", "Khor Fakkan",
   "Al Ain", "Al Ain Zoo", "Wadi Adventure Al Ain", "Hatta", "Hatta Dam",
-  
+
   // HOTELS & RESORTS (100+)
   "Atlantis The Palm", "Burj Al Arab", "Jumeirah Beach Hotel", "Jumeirah Zabeel Saray",
   "Jumeirah Creekside Hotel", "Emirates Palace Abu Dhabi", "St Regis Abu Dhabi",
@@ -44,7 +44,7 @@ const UAE_LOCATIONS = [
   "Hilton Dubai", "Sheraton Dubai", "Dusit Thani Dubai", "Novotel Dubai", "Ibis Dubai",
   "Four Seasons Dubai", "Ritz Carlton Dubai", "Banyan Tree Dubai", "Arabian Ranches Hotel",
   "Rixos The Palm", "Rotana Hotels Dubai", "Apartments by Marriott Dubai",
-  
+
   // RESTAURANTS & CAFES (120+)
   "Cafe de Palma", "Al Mallah Restaurant", "Arabian Tea House Cafe", "Bu Qtair Restaurant",
   "Em Sherif Restaurant", "Al Reef Bakery", "Zaroob Restaurant", "Hummus FZ", "Loloma Cafe",
@@ -65,7 +65,7 @@ const UAE_LOCATIONS = [
   "Falafel House", "Shawarma House", "Lebanese Grill", "Persian Grille",
   "Turkish House", "Moroccan Tagine House", "Indian Spice House", "Curry House Dubai",
   "Taj Mahal Restaurant",
-  
+
   // SHOPPING & RETAIL (80+)
   "Saks Fifth Avenue Dubai", "Bloomingdale's Dubai", "Galeries Lafayette Abu Dhabi",
   "Harvey Nichols Dubai", "Virgin Megastore Dubai", "Borders Books Dubai", "BookWorm UAE",
@@ -76,7 +76,7 @@ const UAE_LOCATIONS = [
   "Nike Store Dubai", "Puma Store Dubai", "Reebok Store", "Lacoste Boutique",
   "Tommy Hilfiger Store", "Calvin Klein Dubai", "Gucci Dubai", "Louis Vuitton Dubai",
   "Chanel Dubai", "Hermès Dubai", "Dior Dubai", "Prada Dubai",
-  
+
   // ENTERTAINMENT & LEISURE (60+)
   "Dubai Aquarium", "Dubai Underwater Zoo", "Lost Chambers Aquarium", "Madame Tussauds Dubai",
   "Dubai Reptile Zoo", "Big Bus Tours Dubai", "Dune Bashing Dubai", "Desert Safari Dubai",
@@ -88,7 +88,7 @@ const UAE_LOCATIONS = [
   "Yoga Studio Dubai", "Fitness Gym Dubai", "Swimming Pool Dubai", "Tennis Court Dubai",
   "Golf Course Dubai", "Bowling Alley Dubai", "Arcade Dubai", "Cinema Dubai",
   "Theatre Dubai", "Concert Hall Dubai", "Art Gallery Dubai", "Museum Dubai",
-  
+
   // TRANSPORTATION & SERVICES (40+)
   "Dubai Taxi Stand", "Bus Station Dubai", "Train Station Dubai", "Uber Pick up Point",
   "Careem Pick up Point", "Car Rental Agency Dubai", "Avis Car Rental", "Hertz Car Rental",
@@ -96,7 +96,7 @@ const UAE_LOCATIONS = [
   "Petrol Station Dubai", "Fuel Station Dubai", "Car Wash Dubai", "Auto Service Center Dubai",
   "Mercedes Service Center", "BMW Service Center", "Audi Service Center",
   "Toyota Service Center", "Nissan Service Center", "Honda Service Center",
-  
+
   // HOSPITALS & MEDICAL (50+)
   "American Hospital Dubai", "Medicana International Dubai", "NMC Hospital Dubai",
   "Aster Hospital Dubai", "Burjeel Hospital Dubai", "Zayed Hospital Dubai",
@@ -116,7 +116,7 @@ const VEHICLES = [
     passengers: 3,
     suitcases: 2,
     image:
-      "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=300&h=150&fit=crop",
+      "https://starskylinelimousine.ae/wp-content/uploads/2022/11/bmw-5-series-480x444.jpg",
     baseFare: 95,
     perKm: 1.0,
     includedKm: 20,
@@ -223,7 +223,7 @@ const VEHICLES = [
 
 const formController = {
   /**
-   * Screen 1: Initial Booking Form
+   * Screen 1: Initial Booking Form WITH GOOGLE MAPS
    */
   async getBookingForm(req, res, next) {
     try {
@@ -231,6 +231,10 @@ const formController = {
       const host = req.get("host") || "localhost:5000";
       const apiBase = `${protocol}://${host}`;
       const locationsJSON = JSON.stringify(UAE_LOCATIONS);
+
+      // Get Google Maps API Key from environment
+      const GOOGLE_MAPS_KEY = process.env.GOOGLE_MAPS_API_KEY || '';
+      console.log('🗺️ Google Maps Key Status:', GOOGLE_MAPS_KEY ? '✅ Loaded' : '❌ Missing');
 
       const html = `
 <!DOCTYPE html>
@@ -245,7 +249,6 @@ const formController = {
     body {
       font-family: 'Montserrat', sans-serif;
       min-height: 100vh;
-      // background: url('https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1920') center/cover no-repeat fixed;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -304,6 +307,42 @@ const formController = {
     }
     .form-group input::placeholder { color: rgba(255, 255, 255, 0.5); }
     .form-group input:focus { border-bottom-color: rgba(255, 255, 255, 0.8); }
+    
+    /* Google Places Autocomplete Styling */
+    .pac-container {
+      background: rgba(20, 30, 40, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      margin-top: 5px;
+      font-family: 'Montserrat', sans-serif;
+      z-index: 10000;
+    }
+    .pac-item {
+      padding: 12px 15px;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.2s ease;
+    }
+    .pac-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding-left: 20px;
+    }
+    .pac-item-query {
+      color: #fff;
+      font-weight: 500;
+    }
+    .pac-icon {
+      display: none;
+    }
+    .pac-matched {
+      color: #ffc107;
+      font-weight: 600;
+    }
+    
     .autocomplete-suggestions {
       position: absolute;
       top: 100%;
@@ -400,8 +439,7 @@ const formController = {
     .hour-option:hover { background: rgba(255, 255, 255, 0.2); color: #fff; }
     .hour-option.selected { background: rgba(255, 255, 255, 0.25); border-color: #fff; color: #fff; }
     
-    /* ===== RESPONSIVE DESIGN ===== */
-    /* MOBILE SMALL (320px - 480px) */
+    /* RESPONSIVE DESIGN */
     @media (max-width: 480px) {
       body { padding: 10px; }
       .glass-container { 
@@ -454,7 +492,6 @@ const formController = {
       .autocomplete-suggestions div { padding: 10px 12px; }
     }
     
-    /* MOBILE MEDIUM (480px - 768px) */
     @media (min-width: 481px) and (max-width: 768px) {
       body { padding: 15px; }
       .glass-container { 
@@ -496,7 +533,6 @@ const formController = {
       }
     }
     
-    /* TABLETS (768px - 1024px) */
     @media (min-width: 769px) and (max-width: 1024px) {
       body { padding: 20px; }
       .glass-container { 
@@ -511,7 +547,6 @@ const formController = {
       .footer-text { font-size: 13px; }
     }
     
-    /* DESKTOP (1024px+) */
     @media (min-width: 1025px) {
       body { padding: 30px; }
       .glass-container { 
@@ -524,21 +559,18 @@ const formController = {
       .footer-text { font-size: 14px; }
     }
     
-    /* UNIVERSAL IMPROVEMENTS */
     @media (max-width: 768px) {
-      /* Better touch targets */
       .hour-option { min-height: 40px; display: flex; align-items: center; justify-content: center; }
       .btn-primary, .btn-link { min-height: 44px; display: flex; align-items: center; }
-      /* Fix date/time inputs on mobile */
       input[type="date"], input[type="time"] { font-size: 16px; }
-      /* Better autocomplete on mobile */
       .autocomplete-suggestions { 
         max-height: 200px;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
       }
     }
-    /* Beautiful Toast Notifications */
+    
+    /* Toast Notifications */
     .toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
     .toast { background: rgba(30, 40, 50, 0.95); border-radius: 12px; padding: 16px 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 12px; min-width: 320px; max-width: 420px; animation: slideIn 0.3s ease; border-left: 4px solid #f44336; }
     .toast.success { border-left-color: #4caf50; }
@@ -624,7 +656,6 @@ const formController = {
   <div class="footer-text">Hire a limousine in Dubai from just <span>AED 99</span></div>
 
   <script>
-    // Beautiful Toast Notification Function
     function showToast(message, type = 'error', title = '') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
@@ -638,13 +669,179 @@ const formController = {
 
     const API_BASE = '${apiBase}';
     const ALL_LOCATIONS = ${locationsJSON};
+    const GOOGLE_MAPS_KEY = '${GOOGLE_MAPS_KEY}';
     let currentTab = 'transfer';
     let isReturnAdded = false;
     let selectedHours = 0;
+    let pickupAutocomplete, dropoffAutocomplete, hourlyPickupAutocomplete;
+    let googleMapsLoaded = false;
+    // ================= DISTANCE ENGINE =================
+let directionsService;
+let lastCalculatedDistance = null;
+let lastCalculatedDuration = null;
+
 
     const now = new Date();
     document.getElementById('pickup-date').value = now.toISOString().split('T')[0];
     document.getElementById('pickup-time').value = now.toTimeString().slice(0,5);
+
+    // Load Google Maps Script Dynamically with Error Handling
+    function loadGoogleMaps() {
+      if (!GOOGLE_MAPS_KEY || GOOGLE_MAPS_KEY.length < 30) {
+        console.warn('⚠️ Invalid Google Maps API Key, using fallback autocomplete');
+        initFallbackAutocomplete();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://maps.googleapis.com/maps/api/js?key=' + GOOGLE_MAPS_KEY + '&libraries=places&callback=initGoogleMaps';
+      script.async = true;
+      script.defer = true;
+      
+      script.onerror = function() {
+        console.error('❌ Google Maps failed to load, using fallback');
+        showToast('Using offline location search', 'warning', 'Limited Features');
+        initFallbackAutocomplete();
+      };
+      
+      document.head.appendChild(script);
+    }
+
+    // Initialize Google Maps Autocomplete
+    window.initGoogleMaps = function() {
+      try {
+        const options = {
+          types: ['geocode', 'establishment'],
+          componentRestrictions: { country: 'ae' },
+          fields: ['formatted_address', 'geometry', 'name']
+        };
+
+        const pickupInput = document.getElementById('pickup');
+        const dropoffInput = document.getElementById('dropoff');
+        const hourlyPickupInput = document.getElementById('hourly-pickup');
+        
+        if (pickupInput) {
+          pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, options);
+          pickupAutocomplete.addListener('place_changed', function() {
+            const place = pickupAutocomplete.getPlace();
+            if (place.formatted_address) {
+              pickupInput.value = place.formatted_address;
+            }
+          });
+        }
+
+        if (dropoffInput) {
+          dropoffAutocomplete = new google.maps.places.Autocomplete(dropoffInput, options);
+          dropoffAutocomplete.addListener('place_changed', function() {
+            const place = dropoffAutocomplete.getPlace();
+            if (place.formatted_address) {
+              dropoffInput.value = place.formatted_address;
+            }
+          });
+        }
+
+        if (hourlyPickupInput) {
+          hourlyPickupAutocomplete = new google.maps.places.Autocomplete(hourlyPickupInput, options);
+          hourlyPickupAutocomplete.addListener('place_changed', function() {
+            const place = hourlyPickupAutocomplete.getPlace();
+            if (place.formatted_address) {
+              hourlyPickupInput.value = place.formatted_address;
+            }
+          });
+        }
+        // ✅ ADD THIS LINE
+    directionsService = new google.maps.DirectionsService();
+        googleMapsLoaded = true;
+        console.log('✅ Google Maps Autocomplete initialized');
+      } catch (error) {
+        console.error('❌ Error initializing Google Maps:', error);
+        initFallbackAutocomplete();
+      }
+    };
+
+// ================= REAL DISTANCE CALCULATION =================
+function calculateRealDistance(origin, destination, callback) {
+  if (!directionsService) {
+    callback(null);
+    return;
+  }
+
+  directionsService.route(
+    {
+      origin,
+      destination,
+      travelMode: google.maps.TravelMode.DRIVING,
+      unitSystem: google.maps.UnitSystem.METRIC,
+  drivingOptions: {
+    departureTime: new Date(), // 🚦 LEAVE NOW
+    trafficModel: google.maps.TrafficModel.BEST_GUESS
+  }
+    },
+    function (result, status) {
+      if (status !== 'OK') {
+        console.warn('Directions error:', status);
+        callback(null);
+        return;
+      }
+
+      const leg = result.routes[0].legs[0];
+
+      lastCalculatedDistance = (leg.distance.value / 1000).toFixed(2);
+      const durationSeconds =
+  leg.duration_in_traffic?.value || leg.duration.value;
+
+lastCalculatedDuration = Math.round(durationSeconds / 60);
+
+      callback({
+        distance: lastCalculatedDistance,
+        duration: lastCalculatedDuration
+      });
+    }
+  );
+}
+
+
+
+    // Fallback Autocomplete
+    function initFallbackAutocomplete() {
+      setupFallbackAutocomplete('pickup', 'pickup-suggestions');
+      setupFallbackAutocomplete('dropoff', 'dropoff-suggestions');
+      setupFallbackAutocomplete('hourly-pickup', 'hourly-pickup-suggestions');
+      console.log('✅ Fallback autocomplete initialized');
+    }
+
+    function setupFallbackAutocomplete(inputId, suggestionsId) {
+      const input = document.getElementById(inputId);
+      const suggestionsBox = document.getElementById(suggestionsId);
+      if (!input || !suggestionsBox) return;
+      
+      input.addEventListener('input', function() {
+        const value = this.value.toLowerCase().trim();
+        if (value.length < 2) {
+          suggestionsBox.innerHTML = '';
+          suggestionsBox.classList.remove('active');
+          return;
+        }
+        
+        const matches = ALL_LOCATIONS.filter(loc => loc.toLowerCase().includes(value));
+        if (matches.length === 0) {
+          suggestionsBox.innerHTML = '';
+          suggestionsBox.classList.remove('active');
+          return;
+        }
+        
+        const suggestions = matches.slice(0, 8);
+        suggestionsBox.innerHTML = suggestions.map(loc => \`<div onclick="selectLocation('\${inputId}', '\${loc}')">\${loc}</div>\`).join('');
+        suggestionsBox.classList.add('active');
+      });
+      
+      input.addEventListener('blur', () => setTimeout(() => suggestionsBox.classList.remove('active'), 200));
+    }
+
+    function selectLocation(inputId, location) {
+      document.getElementById(inputId).value = location;
+      document.getElementById(inputId + '-suggestions').classList.remove('active');
+    }
 
     function switchTab(tab) {
       currentTab = tab;
@@ -674,59 +871,44 @@ const formController = {
       });
     }
 
-    function setupAutocomplete(inputId, suggestionsId) {
-      const input = document.getElementById(inputId);
-      const suggestionsBox = document.getElementById(suggestionsId);
-      if (!input || !suggestionsBox) return;
-      input.addEventListener('input', function() {
-        const value = this.value.toLowerCase().trim();
-        if (value.length < 1) {
-          suggestionsBox.innerHTML = '';
-          suggestionsBox.classList.remove('active');
-          return;
-        }
-        const matches = ALL_LOCATIONS.filter(loc => loc.toLowerCase().includes(value));
-        if (matches.length === 0) {
-          suggestionsBox.innerHTML = '';
-          suggestionsBox.classList.remove('active');
-          return;
-        }
-        const suggestions = matches.slice(0, 8);
-        suggestionsBox.innerHTML = suggestions.map(loc => \`<div onclick="selectLocation('\${inputId}', '\${loc}')">\${loc}</div>\`).join('');
-        suggestionsBox.classList.add('active');
-      });
-      input.addEventListener('blur', () => setTimeout(() => suggestionsBox.classList.remove('active'), 200));
-    }
-
-    function selectLocation(inputId, location) {
-      document.getElementById(inputId).value = location;
-      document.getElementById(inputId + '-suggestions').classList.remove('active');
-    }
-
-    setupAutocomplete('pickup', 'pickup-suggestions');
-    setupAutocomplete('dropoff', 'dropoff-suggestions');
-    setupAutocomplete('hourly-pickup', 'hourly-pickup-suggestions');
-
     function checkFare() {
       const pickupDate = document.getElementById('pickup-date').value;
       const pickupTime = document.getElementById('pickup-time').value;
 
       if (currentTab === 'transfer') {
-        const pickup = document.getElementById('pickup').value;
-        const dropoff = document.getElementById('dropoff').value;
-        if (!pickup || !dropoff) { showToast('Please enter pickup and dropoff locations', 'error', 'Missing Location'); return; }
+  const pickup = document.getElementById('pickup').value;
+  const dropoff = document.getElementById('dropoff').value;
 
-        const params = new URLSearchParams({
-          type: isReturnAdded ? 'round_trip' : 'point_to_point',
-          pickup: pickup,
-          dropoff: dropoff,
-          date: pickupDate,
-          time: pickupTime,
-          returnDate: isReturnAdded ? document.getElementById('return-date').value : '',
-          returnTime: isReturnAdded ? document.getElementById('return-time').value : ''
-        });
-        window.location.href = API_BASE + '/api/bookings/vehicle-details?' + params.toString();
-      } else {
+  if (!pickup || !dropoff) {
+    showToast('Please enter pickup and dropoff locations', 'error');
+    return;
+  }
+
+  calculateRealDistance(pickup, dropoff, function (result) {
+    if (!result) {
+      showToast('Unable to calculate route distance', 'warning');
+      return;
+    }
+
+    const params = new URLSearchParams({
+      type: isReturnAdded ? 'round_trip' : 'point_to_point',
+      pickup,
+      dropoff,
+      date: pickupDate,
+      time: pickupTime,
+      returnDate: isReturnAdded ? document.getElementById('return-date').value : '',
+      returnTime: isReturnAdded ? document.getElementById('return-time').value : '',
+      distance: result.distance,
+      duration: result.duration
+    });
+
+    window.location.href =
+      API_BASE + '/api/bookings/vehicle-details?' + params.toString();
+  });
+
+  return;
+}
+else {
         const pickup = document.getElementById('hourly-pickup').value;
         if (!pickup) { showToast('Please enter pickup location', 'error', 'Missing Location'); return; }
         if (!selectedHours) { showToast('Please select rental hours', 'warning', 'Select Hours'); return; }
@@ -741,6 +923,11 @@ const formController = {
         window.location.href = API_BASE + '/api/bookings/vehicle-details?' + params.toString();
       }
     }
+
+    // Initialize on page load
+    window.addEventListener('load', function() {
+      loadGoogleMaps();
+    });
   </script>
 </body>
 </html>`;
@@ -758,7 +945,7 @@ const formController = {
   },
 
   /**
-   * Screen 2: Vehicle Details Page
+   * Screen 2: Vehicle Details Page (UNCHANGED - YOUR ORIGINAL CODE)
    */
   async getVehicleDetails(req, res, next) {
     try {
@@ -776,8 +963,9 @@ const formController = {
       const host = req.get("host") || "localhost:5000";
       const apiBase = `${protocol}://${host}`;
 
-      // Calculate estimated distance (mock - in production use real API)
-      const estimatedDistance = 14.4; // km
+      const estimatedDuration = parseInt(req.query.duration || 0);
+      const estimatedDistance = parseFloat(req.query.distance || 14.4);
+
       const vehiclesJSON = JSON.stringify(VEHICLES);
 
       const html = `
@@ -803,7 +991,6 @@ const formController = {
       padding: 20px;
     }
     
-    /* Header */
     .page-header {
       text-align: center;
       margin-bottom: 30px;
@@ -815,7 +1002,6 @@ const formController = {
       margin-bottom: 20px;
     }
     
-    /* Progress Steps */
     .progress-steps {
       display: flex;
       justify-content: center;
@@ -843,14 +1029,12 @@ const formController = {
     .step.active .step-icon { background: #1a1a1a; color: #fff; }
     .step-line { width: 60px; height: 2px; background: #e0e0e0; }
 
-    /* Main Layout */
     .main-layout {
       display: grid;
       grid-template-columns: 1fr 350px;
       gap: 30px;
     }
 
-    /* Vehicle Cards */
     .vehicles-section { }
     .vehicle-card {
       background: #fff;
@@ -957,7 +1141,6 @@ const formController = {
     }
     .btn-select:hover { background: #333; }
 
-    /* Navigation Buttons */
     .button-group {
       display: flex;
       gap: 15px;
@@ -983,7 +1166,6 @@ const formController = {
       border-color: #999;
     }
 
-    /* Booking Details Sidebar */
     .sidebar {
       background: #fff;
       border-radius: 12px;
@@ -1118,7 +1300,6 @@ const formController = {
       color: #666;
     }
 
-    /* Responsive */
     @media (max-width: 900px) {
       .main-layout {
         grid-template-columns: 1fr;
@@ -1139,18 +1320,16 @@ const formController = {
       }
       .sidebar {
         position: relative;
-        order: -1;
+        order: 0!important;
       }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Header -->
     <div class="page-header">
       <h1 class="page-title">${type === "round_trip" ? "Book a Return Ride" : type === "hourly" ? "Book Hourly Rental" : "Book a Ride"}</h1>
       
-      <!-- Progress Steps -->
       <div class="progress-steps">
         <div class="step active">
           <div class="step-icon"><i class="fas fa-car"></i></div>
@@ -1169,18 +1348,13 @@ const formController = {
       </div>
     </div>
 
-    <!-- Main Layout -->
     <div class="main-layout">
-      <!-- Vehicle Cards -->
       <div class="vehicles-section" id="vehicles-list">
-        <!-- Vehicles will be rendered here by JS -->
       </div>
 
-      <!-- Sidebar -->
       <div class="sidebar">
         <h2 class="sidebar-title">Booking Details</h2>
         
-        <!-- Outward Journey -->
         <div class="journey-section">
           <div class="journey-label">Outward Journey</div>
           <div class="journey-point">
@@ -1194,10 +1368,8 @@ const formController = {
           </div>
         </div>
 
-        ${
-          type === "round_trip"
-            ? `
-        <!-- Return Journey -->
+        ${type === "round_trip"
+          ? `
         <div class="journey-section">
           <div class="journey-label">Return Journey</div>
           <div class="journey-point">
@@ -1211,21 +1383,19 @@ const formController = {
           </div>
         </div>
         `
-            : ""
+          : ""
         }
 
-        ${
-          type === "hourly"
-            ? `
+        ${type === "hourly"
+          ? `
         <div class="info-item">
           <i class="fas fa-clock"></i>
           <span>${hours} Hours Rental</span>
         </div>
         `
-            : ""
+          : ""
         }
 
-        <!-- Info List -->
         <div class="info-list">
           <div class="info-item">
             <i class="fas fa-route"></i>
@@ -1233,7 +1403,7 @@ const formController = {
           </div>
           <div class="info-item">
             <i class="fas fa-stopwatch"></i>
-            <span>~30 mins (Approx)</span>
+             <span>~${estimatedDuration} mins (Approx)</span>
           </div>
           <div class="info-item">
             <i class="fas fa-users"></i>
@@ -1249,7 +1419,6 @@ const formController = {
           </div>
         </div>
 
-        <!-- Payment Methods -->
         <div class="payment-methods">
           <div class="payment-title">Secure Payments by Credit Card, Debit card or Paypal</div>
           <div class="payment-icons">
@@ -1261,7 +1430,6 @@ const formController = {
           </div>
         </div>
 
-        <!-- Help Section -->
         <div class="help-section">
           <div class="help-title">Need Help?</div>
           <div class="help-item">
@@ -1287,7 +1455,6 @@ const formController = {
           </div>
         </div>
 
-        <!-- Trust Badge -->
         <div class="trust-badge">
           <div class="trust-title">Trustpilot</div>
           <div class="trust-stars">
@@ -1300,7 +1467,6 @@ const formController = {
           <div class="trust-rating">TrustScore 4.5 | 890 reviews</div>
         </div>
       </div>
-      <!-- Navigation Buttons -->
       <div class="button-group">
         <button class="btn-back" onclick="goBack()">BACK</button>
       </div>
@@ -1311,10 +1477,11 @@ const formController = {
     const API_BASE = '${apiBase}';
     const VEHICLES = ${vehiclesJSON};
     const BOOKING_TYPE = '${type}';
-    const DISTANCE = ${estimatedDistance};
     const HOURS = ${hours || 0};
 
-    // Booking data
+// ✅ SINGLE SOURCE OF TRUTH
+  const DISTANCE = Number('${req.query.distance || 0}');
+ 
     const bookingData = {
       type: '${type}',
       pickup: '${pickup || ""}',
@@ -1323,7 +1490,9 @@ const formController = {
       time: '${time}',
       returnDate: '${returnDate || ""}',
       returnTime: '${returnTime || ""}',
-      hours: ${hours || 0}
+      hours: ${hours || 0},
+  distance: '${req.query.distance || 0}',   // ✅ ADD
+  duration: '${req.query.duration || 0}'
     };
 
     function goBack() {
@@ -1355,8 +1524,9 @@ const formController = {
         }
       } else {
         if (DISTANCE > includedKm) {
-          price = vehicle.baseFare + ((DISTANCE - includedKm) * vehicle.perKm);
-        } else {
+    // Charged for FULL DISTANCE
+    price = vehicle.baseFare + (DISTANCE * vehicle.perKm);
+} else {
           price = vehicle.baseFare;
         }
       }
@@ -1420,7 +1590,6 @@ const formController = {
       });
     }
   },
-
   /**
    * Screen 3: Schedule & Guest Info Page - Starsky Line Limousine Style
    */
@@ -1594,7 +1763,7 @@ const formController = {
       .main-layout { grid-template-columns: 1fr; }
       .form-grid { grid-template-columns: 1fr; }
       .form-group.full-width { grid-column: span 1; }
-      .sidebar { order: -1; }
+      
     }
     
     /* Beautiful Toast Notifications */
@@ -1769,9 +1938,8 @@ const formController = {
       </div>
 
       <div class="sidebar">
-        ${
-          type === "round_trip"
-            ? `
+        ${type === "round_trip"
+          ? `
         <div class="sidebar-card">
           <div class="sidebar-title">Return Ride Trip</div>
           <div class="trip-point"><div class="trip-dot green"></div><div class="trip-text">${dropoff || "Return From"}</div></div>
@@ -1782,7 +1950,7 @@ const formController = {
           </div>
         </div>
         `
-            : `
+          : `
         <div class="sidebar-card">
           <div class="sidebar-title">One Way Trip</div>
           <div class="trip-point"><div class="trip-dot green"></div><div class="trip-text">${pickup || "Pickup Location"}</div></div>
@@ -1863,7 +2031,11 @@ const formController = {
       returnTime: '${returnTime || ""}',
       hours: ${hours || 0},
       vehicle: '${vehicle}',
-      basePrice: ${price || 0}
+      basePrice: ${price || 0},
+
+  // ✅ ADD THESE (CRITICAL)
+  distance: Number('${req.query.distance || 0}'),
+  duration: Number('${req.query.duration || 0}')
     };
 
     const COUNTRIES = [
@@ -2003,6 +2175,9 @@ const formController = {
 
       const params = new URLSearchParams({
         ...bookingData,
+         // ✅ FORCE PASS THROUGH
+  distance: bookingData.distance,
+  duration: bookingData.duration,
         fullName,
         email,
         phone: selectedCountry.contact.code + contactNumber,
@@ -2064,6 +2239,8 @@ const formController = {
         boosterCount,
         infantCount,
         totalPrice,
+        distance,      // ✅ ADD
+        duration       // ✅ ADD (optional but good)
       } = req.query;
       const protocol = req.get("x-forwarded-proto") || req.protocol || "https";
       const host = req.get("host") || "localhost:5000";
@@ -2091,6 +2268,8 @@ const formController = {
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Montserrat', sans-serif; background: #f5f5f5; min-height: 100vh; color: #333; }
     .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
@@ -2168,7 +2347,7 @@ const formController = {
     
     @media (max-width: 800px) {
       .main-layout { grid-template-columns: 1fr; }
-      .sidebar { order: -1; }
+      
     }
     
     /* Beautiful Toast Notifications */
@@ -2241,18 +2420,7 @@ const formController = {
               <div class="payment-name">Pay by Cash/Bank Transfer (No Fee)</div>
             </div>
           </div>
-          <div class="payment-option" onclick="selectPayment('card')">
-            <div class="payment-radio"></div>
-            <i class="far fa-credit-card payment-icon"></i>
-            <div class="payment-info">
-              <div class="payment-name">Pay by Card (+4% Fee)</div>
-            </div>
-            <div class="payment-cards">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/d/d6/Visa_2021.svg
-" alt="Visa" style="height:16px;">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/MasterCard_Logo.svg" alt="Mastercard" style="height:16px;">
-            </div>
-          </div>
+         
         </div>
 
         <div class="terms">
@@ -2277,9 +2445,8 @@ const formController = {
           </div>
         </div>
 
-        ${
-          type === "round_trip"
-            ? `
+        ${type === "round_trip"
+          ? `
         <div class="sidebar-card">
           <div class="sidebar-title">Return Ride Trip</div>
           <div class="trip-point"><div class="trip-dot green"></div><div class="trip-text">${dropoff}</div></div>
@@ -2290,7 +2457,7 @@ const formController = {
           </div>
         </div>
         `
-            : ""
+          : ""
         }
 
         <div class="sidebar-card">
@@ -2323,32 +2490,38 @@ const formController = {
     let selectedPayment = 'cash';
     let isSubmitting = false;
     
-    const bookingData = {
-      type: '${type}',
-      pickup: '${pickup}',
-      dropoff: '${dropoff}',
-      date: '${date}',
-      time: '${time}',
-      returnDate: '${returnDate || ""}',
-      returnTime: '${returnTime || ""}',
-      vehicle: '${vehicle}',
-      vehicleName: '${selectedVehicle.name}',
-      vehicleImage: '${selectedVehicle.image}',
-      passengers: ${selectedVehicle.passengers},
-      suitcases: ${selectedVehicle.suitcases},
-      fullName: '${fullName}',
-      email: '${email}',
-      phone: '${phone}',
-      whatsapp: '${whatsapp || phone}',
-      stopOnWay: ${stopOnWay === "true"},
-      stopLocation: '${stopLocation || ""}',
-      childSeats: ${parseInt(childSeats) || 0},
-      seatCount: ${parseInt(seatCount) || 0},
-      boosterCount: ${parseInt(boosterCount) || 0},
-      infantCount: ${parseInt(infantCount) || 0},
-      basePrice: ${basePrice},
-      totalPrice: ${total}
-    };
+    const params = new URLSearchParams(window.location.search);
+
+const bookingData = {
+  type: '${type}',
+  pickup: '${pickup}',
+  dropoff: '${dropoff}',
+  date: '${date}',
+  time: '${time}',
+  returnDate: '${returnDate || ""}',
+  returnTime: '${returnTime || ""}',
+  vehicle: '${vehicle}',
+  vehicleName: '${selectedVehicle.name}',
+  vehicleImage: '${selectedVehicle.image}',
+  passengers: ${selectedVehicle.passengers},
+  suitcases: ${selectedVehicle.suitcases},
+  fullName: '${fullName}',
+  email: '${email}',
+  phone: '${phone}',
+  whatsapp: '${whatsapp || phone}',
+  stopOnWay: ${stopOnWay === "true"},
+  stopLocation: '${stopLocation || ""}',
+  childSeats: ${parseInt(childSeats) || 0},
+  seatCount: ${parseInt(seatCount) || 0},
+  boosterCount: ${parseInt(boosterCount) || 0},
+  infantCount: ${parseInt(infantCount) || 0},
+  basePrice: ${basePrice},
+  totalPrice: ${total},
+
+  // ✅ FINAL FIX
+  distance_km: Number(params.get('distance')) || 0,
+  duration: Number(params.get('duration')) || 0
+};
     
     function selectPayment(method) {
       selectedPayment = method;
@@ -2388,6 +2561,7 @@ const formController = {
             return_time: bookingData.returnTime,
             vehicle_type: bookingData.vehicle,
             booking_type: bookingData.type,
+            distance_km: bookingData.distance_km,
             passengers_count: bookingData.passengers,
             luggage_count: bookingData.suitcases,
             payment_method: selectedPayment,
@@ -2403,10 +2577,11 @@ const formController = {
         
         if (result.success) {
           const successParams = new URLSearchParams({
-            bookingId: result.booking_id,
-            ...bookingData,
-            paymentMethod: selectedPayment
-          });
+  bookingId: result.data ? result.data.booking_id : (result.booking_id || result.id), 
+  ...bookingData,
+  paymentMethod: selectedPayment
+});
+
           window.location.href = API_BASE + '/api/bookings/success?' + successParams.toString();
         } else {
           showToast(result.error || 'Failed to submit booking. Please try again.', 'error', 'Booking Failed');
@@ -2423,6 +2598,8 @@ const formController = {
       }
     }
   </script>
+ 
+
 </body>
 </html>`;
 
@@ -2461,6 +2638,8 @@ const formController = {
         whatsapp,
         totalPrice,
         paymentMethod,
+        distance,      // ✅ ADD
+        duration,
       } = req.query;
       const protocol = req.get("x-forwarded-proto") || req.protocol || "https";
       const host = req.get("host") || "localhost:5000";
@@ -2635,6 +2814,209 @@ const formController = {
         error: "Failed to load success page",
         message: error.message,
       });
+    }
+  },
+  /**
+   * Screen 6: Public Booking Status Page (Track My Ride)
+   */
+  async getBookingStatus(req, res, next) {
+    try {
+      const { id } = req.query;
+      if (!id) return res.status(404).send('Booking ID required');
+
+      let queryText = `
+        SELECT b.*, 
+               v.model as vehicle_model_name, v.image_url as vehicle_image_url,
+               d.name as driver_name, d.phone as driver_phone
+        FROM bookings b
+        LEFT JOIN vehicles v ON b.assigned_vehicle_id = v.id
+        LEFT JOIN drivers d ON b.driver_id = d.id
+      `;
+
+      let queryParams = [];
+
+      // Check if it's a valid UUID
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
+      if (isUUID) {
+        queryText += " WHERE b.id = $1";
+        queryParams = [id];
+      } else {
+        // Assume it's a short reference (start of UUID)
+        queryText += " WHERE b.id::text ILIKE $1 || '%'";
+        queryParams = [id];
+      }
+
+      const result = await query(queryText, queryParams);
+
+      const booking = result.rows[0];
+      if (!booking) return res.status(404).send('Booking not found');
+
+      // Determine vehicle image/details
+      let vehicleImage = 'https://starskylinelimousine.ae/wp-content/uploads/2022/11/bmw-5-series-480x444.jpg'; // Default
+      const vehicleTypeData = VEHICLES.find(v => v.id === booking.vehicle_type);
+      if (vehicleTypeData) vehicleImage = vehicleTypeData.image;
+      if (booking.vehicle_image_url) vehicleImage = booking.vehicle_image_url; // Override if assigned vehicle has image
+
+      const protocol = req.get("x-forwarded-proto") || req.protocol || "https";
+      const host = req.get("host") || "localhost:5000";
+      const apiBase = `${protocol}://${host}`;
+
+      // Format Dates
+      const pickupDateObj = new Date(booking.pickup_time || booking.created_at);
+      const dateStr = pickupDateObj.toLocaleDateString('en-GB');
+      const timeStr = pickupDateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+      // Status Colors/Icons
+      const statusMap = {
+        'pending': { color: '#ffc107', icon: 'fa-hourglass-half', text: 'Pending Confirmation' },
+        'assigned': { color: '#2563eb', icon: 'fa-check-circle', text: 'Driver Assigned' },
+        'on_trip': { color: '#9333ea', icon: 'fa-car-side', text: 'On Trip' },
+        'completed': { color: '#10b981', icon: 'fa-flag-checkered', text: 'Completed' },
+        'cancelled': { color: '#ef4444', icon: 'fa-times-circle', text: 'Cancelled' }
+      };
+      const statusInfo = statusMap[booking.status] || statusMap['pending'];
+
+      const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Status - Star Skyline</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Montserrat', sans-serif; background: #f5f5f5; min-height: 100vh; color: #333; }
+    .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+    .status-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+    .status-header { background: ${statusInfo.color}; color: #fff; padding: 30px; text-align: center; }
+    .status-icon { font-size: 40px; margin-bottom: 10px; }
+    .status-title { font-size: 24px; font-weight: 600; }
+    .status-subtitle { font-size: 14px; opacity: 0.9; margin-top: 5px; }
+    
+    .status-body { padding: 30px; }
+    
+    .section-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+    
+    .trip-details { display: flex; align-items: stretch; gap: 20px; margin-bottom: 30px; }
+    .route-visual { width: 40px; display: flex; flex-direction: column; align-items: center; padding-top: 5px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot.green { background: #4caf50; }
+    .dot.red { background: #f44336; }
+    .line { width: 2px; flex: 1; background: #e0e0e0; margin: 4px 0; min-height: 40px; }
+    
+    .route-text { flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 20px; }
+    .loc-group label { font-size: 11px; color: #999; display: block; margin-bottom: 4px; }
+    .loc-group div { font-size: 14px; font-weight: 500; color: #333; }
+    
+    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px; }
+    .info-item label { font-size: 11px; color: #999; display: block; margin-bottom: 4px; }
+    .info-item div { font-size: 14px; font-weight: 500; }
+    
+    .driver-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
+    .driver-avatar { width: 60px; height: 60px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 24px; }
+    .driver-info { flex: 1; }
+    .driver-name { font-weight: 600; font-size: 16px; color: #333; }
+    .driver-car { font-size: 13px; color: #64748b; margin-top: 2px; }
+    .driver-contact { margin-left: auto; }
+    .btn-call { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #10b981; color: white; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; }
+    
+    .fare-box { text-align: center; background: #fdfdfd; padding: 20px; border: 1px dashed #e0e0e0; border-radius: 8px; }
+    .fare-amount { font-size: 28px; font-weight: 700; color: #333; }
+    .fare-label { font-size: 12px; color: #666; }
+    
+    @media (max-width: 600px) {
+      .trip-details { gap: 10px; }
+      .info-grid { grid-template-columns: 1fr; }
+      .driver-card { flex-direction: column; text-align: center; }
+      .driver-contact { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="status-card">
+      <div class="status-header">
+        <div class="status-icon"><i class="fas ${statusInfo.icon}"></i></div>
+        <div class="status-title">${statusInfo.text}</div>
+        <div class="status-subtitle">Reference #${booking.id.substring(0, 8).toUpperCase()}</div>
+      </div>
+      
+      <div class="status-body">
+        
+        ${booking.status === 'assigned' || booking.status === 'on_trip' ? `
+        <div class="section-title">Your Driver</div>
+        <div class="driver-card">
+          <div class="driver-avatar"><i class="fas fa-user"></i></div>
+          <div class="driver-info">
+            <div class="driver-name">${booking.driver_name || 'Assigned Driver'}</div>
+            <div class="driver-car">${booking.vehicle_model_name || vehicleTypeData.name} (${booking.vehicle_color || 'Black'})</div>
+          </div>
+          ${booking.driver_phone ? `
+          <div class="driver-contact">
+            <a href="tel:${booking.driver_phone}" class="btn-call"><i class="fas fa-phone"></i> Call Driver</a>
+          </div>
+          ` : ''}
+        </div>
+        ` : ''}
+
+        <div class="section-title">Trip Details</div>
+        <div class="trip-details">
+          <div class="route-visual">
+            <div class="dot green"></div>
+            <div class="line"></div>
+            <div class="dot red"></div>
+          </div>
+          <div class="route-text">
+            <div class="loc-group">
+              <label>PICKUP</label>
+              <div>${booking.pickup_location}</div>
+            </div>
+            <div class="loc-group">
+              <label>DROPOFF</label>
+              <div>${booking.dropoff_location}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <label>DATE & TIME</label>
+            <div>${dateStr} at ${timeStr}</div>
+          </div>
+          <div class="info-item">
+            <label>VEHICLE TYPE</label>
+            <div>${vehicleTypeData ? vehicleTypeData.name : booking.vehicle_type}</div>
+          </div>
+          <div class="info-item">
+            <label>PASSENGERS</label>
+            <div>${booking.passengers_count}</div>
+          </div>
+          <div class="info-item">
+            <label>PAYMENT</label>
+            <div>${booking.payment_method.toUpperCase()}</div>
+          </div>
+        </div>
+
+        <div class="fare-box">
+          <div class="fare-label">TOTAL FARE</div>
+          <div class="fare-amount">AED ${parseFloat(booking.fare_aed).toFixed(2)}</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+      `;
+
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.send(html);
+    } catch (error) {
+      console.error("Booking Status Page Error:", error);
+      res.status(500).send("Error loading booking status");
     }
   },
 };

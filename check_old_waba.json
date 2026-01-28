@@ -1,0 +1,17 @@
+{
+  "data": [
+    {
+      "display_phone_number": "+971 56 735 1760",
+      "id": "885921134615257",
+      "name_status": "APPROVED",
+      "quality_rating": "UNKNOWN",
+      "code_verification_status": "VERIFIED"
+    }
+  ],
+  "paging": {
+    "cursors": {
+      "before": "QVFIU2VCV1B1T3NhTTR6N2J2WXJxLVFfN1FyRG1kS3FkcjlfaDVUeHhuSjNGaUFhYnZAsQmYtOWVUMktFTDY1UFI2QmQZD",
+      "after": "QVFIU2VCV1B1T3NhTTR6N2J2WXJxLVFfN1FyRG1kS3FkcjlfaDVUeHhuSjNGaUFhYnZAsQmYtOWVUMktFTDY1UFI2QmQZD"
+    }
+  }
+}

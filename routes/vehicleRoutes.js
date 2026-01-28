@@ -9,5 +9,6 @@ router.get('/:id', vehicleController.getVehicleById);
 router.post('/', authMiddleware, rbacMiddleware(['admin']), vehicleController.createVehicle);
 router.put('/:id', authMiddleware, rbacMiddleware(['admin']), vehicleController.updateVehicle);
 router.get('/available', vehicleController.getAvailableVehicles);
+router.delete('/:id', authMiddleware, rbacMiddleware(['admin']), vehicleController.deleteVehicle);
 
 module.exports = router;

@@ -1,0 +1,16 @@
+{
+  "db_settings": {
+    "smtp_host": "booking.digitalmindsdemo.com",
+    "smtp_port": "465",
+    "smtp_user": "info@booking.digitalmindsdemo.com",
+    "smtp_password": "mindsdemo",
+    "smtp_from": "Star Skyline Limousine <info@booking.digitalmindsdemo.com>",
+    "smtp_secure": "true"
+  },
+  "env_settings": {
+    "SMTP_HOST": "booking.digitalmindsdemo.com",
+    "SMTP_USER": "info@booking.digitalmindsdemo.com",
+    "SMTP_FROM": "Star Skyline Limousine <info@booking.digitalmindsdemo.com>",
+    "SMTP_PORT": "465"
+  }
+}

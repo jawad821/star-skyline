@@ -1,0 +1,37 @@
+ALTER TABLE ONLY public.audit_logs ADD CONSTRAINT audit_logs_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.booking_stops ADD CONSTRAINT booking_stops_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.bookings ADD CONSTRAINT bookings_external_id_key UNIQUE (external_id);
+ALTER TABLE ONLY public.bookings ADD CONSTRAINT bookings_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.car_images ADD CONSTRAINT car_images_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.customers ADD CONSTRAINT customers_phone_key UNIQUE (phone);
+ALTER TABLE ONLY public.customers ADD CONSTRAINT customers_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.driver_ratings ADD CONSTRAINT driver_ratings_booking_id_key UNIQUE (booking_id);
+ALTER TABLE ONLY public.driver_ratings ADD CONSTRAINT driver_ratings_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.drivers ADD CONSTRAINT drivers_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.fare_rules ADD CONSTRAINT fare_rules_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.fare_rules ADD CONSTRAINT fare_rules_vehicle_type_key UNIQUE (vehicle_type);
+ALTER TABLE ONLY public.notification_logs ADD CONSTRAINT notification_logs_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.payouts ADD CONSTRAINT payouts_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.rental_rules ADD CONSTRAINT rental_rules_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.rental_rules ADD CONSTRAINT rental_rules_vehicle_type_key UNIQUE (vehicle_type);
+ALTER TABLE ONLY public.users ADD CONSTRAINT users_email_key UNIQUE (email);
+ALTER TABLE ONLY public.users ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.vehicles ADD CONSTRAINT vehicles_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.vendor_payouts ADD CONSTRAINT vendor_payouts_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.vendors ADD CONSTRAINT vendors_pkey PRIMARY KEY (id);
+-- Clean up orphaned records before adding foreign key constraints
+DELETE FROM public.booking_stops WHERE booking_id NOT IN (SELECT id FROM public.bookings);
+DELETE FROM public.driver_ratings WHERE booking_id NOT IN (SELECT id FROM public.bookings);
+
+ALTER TABLE ONLY public.booking_stops ADD CONSTRAINT booking_stops_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.bookings ADD CONSTRAINT bookings_assigned_vehicle_id_fkey FOREIGN KEY (assigned_vehicle_id) REFERENCES public.vehicles(id);
+ALTER TABLE ONLY public.bookings ADD CONSTRAINT bookings_vendor_id_fkey FOREIGN KEY (vendor_id) REFERENCES public.vendors(id);
+ALTER TABLE ONLY public.car_images ADD CONSTRAINT car_images_vehicle_id_fkey FOREIGN KEY (vehicle_id) REFERENCES public.vehicles(id);
+ALTER TABLE ONLY public.driver_ratings ADD CONSTRAINT driver_ratings_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(id);
+ALTER TABLE ONLY public.drivers ADD CONSTRAINT drivers_vendor_id_fkey FOREIGN KEY (vendor_id) REFERENCES public.vendors(id);
+ALTER TABLE ONLY public.payouts ADD CONSTRAINT payouts_vendor_id_fkey FOREIGN KEY (vendor_id) REFERENCES public.vendors(id);
+ALTER TABLE ONLY public.payouts ADD CONSTRAINT payouts_vendor_id_fkey1 FOREIGN KEY (vendor_id) REFERENCES public.vendors(id);
+ALTER TABLE ONLY public.vehicles ADD CONSTRAINT vehicles_driver_id_fkey FOREIGN KEY (driver_id) REFERENCES public.drivers(id);
+ALTER TABLE ONLY public.vehicles ADD CONSTRAINT vehicles_vendor_id_fkey FOREIGN KEY (vendor_id) REFERENCES public.vendors(id);
+ALTER TABLE ONLY public.vendor_payouts ADD CONSTRAINT vendor_payouts_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(id);
+ALTER TABLE ONLY public.vendor_payouts ADD CONSTRAINT vendor_payouts_vendor_id_fkey FOREIGN KEY (vendor_id) REFERENCES public.vendors(id);

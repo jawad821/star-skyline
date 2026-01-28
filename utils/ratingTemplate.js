@@ -1,14 +1,14 @@
 const ratingEmailTemplate = {
   requestRating: (booking) => {
     const ratingLink = `${process.env.API_BASE_URL || 'http://localhost:8000'}/api/ratings/form?booking_id=${booking.id}`;
-    
+
     return {
-      subject: `Please rate your Bareerah ride - Ref #${booking.id.substring(0, 8).toUpperCase()}`,
+      subject: `Please rate your Star Skyline Limousine ride - Ref #${booking.id.substring(0, 8).toUpperCase()}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #007AFF;">How was your ride? 🚕</h2>
           
-          <p>Thank you for choosing Bareerah! We'd love to hear about your experience.</p>
+          <p>Thank you for choosing Star Skyline Limousine! We'd love to hear about your experience.</p>
           
           <div style="background: #f5f5f7; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="margin-top: 0;">Trip Summary</h3>
