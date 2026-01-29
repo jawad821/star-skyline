@@ -358,24 +358,39 @@ async function sendWhatsAppToDriver(phone, booking) {
   }
 }
 
-async function sendWhatsAppToAdmin(booking) {
+async function sendWhatsAppToAdmin(data) {
   try {
     const adminNumber = process.env.ADMIN_WHATSAPP || '';
-    const text = `New booking: ${booking.id.substring(0, 8).toUpperCase()} - ${booking.customer_name} - ${booking.pickup_location} -> ${booking.dropoff_location}`;
+
+    let text = '';
+    let bookingId = null;
+
+    if (typeof data === 'string') {
+      text = data;
+    } else if (data && data.id) {
+      text = `New booking: ${data.id.substring(0, 8).toUpperCase()} - ${data.customer_name} - ${data.pickup_location} -> ${data.dropoff_location}`;
+      bookingId = data.id;
+    } else {
+      logger.warn('Invalid data passed to sendWhatsAppToAdmin');
+      return { success: false, error: 'Invalid data' };
+    }
+
     if (!adminNumber) {
       logger.warn('No ADMIN_WHATSAPP configured');
       return { success: true, message: 'Admin WhatsApp not configured' };
     }
+
     const resp = await sendWhatsAppMessage(adminNumber, text);
+
     try {
       await Notification.logNotification({
         recipient_type: 'admin',
         recipient_phone: adminNumber,
         channel: 'whatsapp',
-        template_id: 'booking_alert',
+        template_id: 'admin_alert',
         content: text,
         status: resp.success ? 'sent' : 'failed',
-        metadata: { booking_id: booking.id }
+        metadata: { booking_id: bookingId }
       });
     } catch (e) {
       logger.error('Notification log error (admin whatsapp):', e);
