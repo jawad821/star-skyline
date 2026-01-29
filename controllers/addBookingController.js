@@ -218,41 +218,69 @@ const addBookingController = {
         user.role
       ).catch(e => logger.error('Audit log error:', e));
 
-      // Send confirmation email if email provided
-      // Send Notifications
-      const emailService = require('../utils/emailService');
-      const notificationService = require('../services/notificationService');
-
-      // 1. Customer Notifications (Email + WhatsApp)
-      if (customer_email) {
-        emailService.sendCustomerNotification(booking, null).catch(e => logger.error('Error sending customer email:', e));
-      }
-      if (customer_phone) {
-        notificationService.sendWhatsAppToCustomer(customer_phone, booking).catch(e => logger.error('Error sending customer WhatsApp:', e));
-      }
-
-      // 2. Admin Notifications (Email + WhatsApp)
-      emailService.sendAdminNotification(booking, null).catch(e => logger.error('Error sending admin email:', e));
-      notificationService.sendWhatsAppToAdmin(booking).catch(e => logger.error('Error sending admin WhatsApp:', e));
-
-      // 3. Driver Notification (if assigned)
-      if (finalDriverId) {
-        query('SELECT phone, email FROM drivers WHERE id = $1', [finalDriverId])
-          .then(res => {
-            if (res.rows.length > 0) {
-              const driver = res.rows[0];
-              if (driver.phone) notificationService.sendWhatsAppToDriver(driver.phone, booking).catch(e => logger.error('Error sending driver WhatsApp:', e));
-              if (driver.email) notificationService.sendEmailToDriver(driver.email, booking).catch(e => logger.error('Error sending driver Email:', e));
-            }
-          })
-          .catch(e => logger.error('Error fetching driver for notification:', e));
-      }
-
+      // ✅ RESPOND IMMEDIATELY - Don't wait for notifications
       res.status(201).json({
         success: true,
         message: 'Booking created successfully',
         booking: booking
       });
+
+      // 📨 Send notifications in background (non-blocking)
+      setImmediate(async () => {
+        try {
+          const emailService = require('../utils/emailService');
+          const notificationService = require('../services/notificationService');
+
+          logger.info(`[BACKGROUND] Starting notifications for booking ${booking.id}`);
+
+          // 1. Customer Notifications (Email + WhatsApp)
+          if (customer_email) {
+            emailService.sendCustomerNotification(booking, null)
+              .then(() => logger.info(`✅ Customer email sent for ${booking.id}`))
+              .catch(e => logger.error(`❌ Error sending customer email: ${e.message}`));
+          }
+          if (customer_phone) {
+            notificationService.sendWhatsAppToCustomer(customer_phone, booking)
+              .then(() => logger.info(`✅ Customer WhatsApp sent for ${booking.id}`))
+              .catch(e => logger.error(`❌ Error sending customer WhatsApp: ${e.message}`));
+          }
+
+          // 2. Admin Notifications (Email + WhatsApp)
+          emailService.sendAdminNotification(booking, null)
+            .then(() => logger.info(`✅ Admin email sent for ${booking.id}`))
+            .catch(e => logger.error(`❌ Error sending admin email: ${e.message}`));
+
+          notificationService.sendWhatsAppToAdmin(booking)
+            .then(() => logger.info(`✅ Admin WhatsApp sent for ${booking.id}`))
+            .catch(e => logger.error(`❌ Error sending admin WhatsApp: ${e.message}`));
+
+          // 3. Driver Notification (if assigned)
+          if (finalDriverId) {
+            query('SELECT phone, email FROM drivers WHERE id = $1', [finalDriverId])
+              .then(res => {
+                if (res.rows.length > 0) {
+                  const driver = res.rows[0];
+                  if (driver.phone) {
+                    notificationService.sendWhatsAppToDriver(driver.phone, booking)
+                      .then(() => logger.info(`✅ Driver WhatsApp sent for ${booking.id}`))
+                      .catch(e => logger.error(`❌ Error sending driver WhatsApp: ${e.message}`));
+                  }
+                  if (driver.email) {
+                    notificationService.sendEmailToDriver(driver.email, booking)
+                      .then(() => logger.info(`✅ Driver email sent for ${booking.id}`))
+                      .catch(e => logger.error(`❌ Error sending driver email: ${e.message}`));
+                  }
+                }
+              })
+              .catch(e => logger.error(`❌ Error fetching driver for notification: ${e.message}`));
+          }
+
+          logger.info(`[BACKGROUND] All notifications queued for booking ${booking.id}`);
+        } catch (error) {
+          logger.error(`[BACKGROUND] Error in notification handler: ${error.message}`);
+        }
+      });
+
     } catch (error) {
       next(error);
     }
