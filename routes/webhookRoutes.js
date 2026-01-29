@@ -33,7 +33,7 @@ router.get('/webhook', (req, res) => {
  * POST /api/webhook - Receive incoming WhatsApp messages
  * Meta will send incoming messages, status updates, etc. to this endpoint
  */
-router.post('/webhook', (req, res) => {
+router.post('/webhook', async (req, res) => {
     console.log('📨 [WEBHOOK] Incoming webhook event');
     console.log(JSON.stringify(req.body, null, 2));
 
@@ -49,21 +49,39 @@ router.post('/webhook', (req, res) => {
 
             if (value?.messages) {
                 const message = value.messages[0];
-                const from = message.from; // Customer's phone number
-                const messageBody = message.text?.body;
+                const from = message.from; // Customer/Driver phone number
                 const messageType = message.type;
+
+                let messageBody = '';
+                let buttonId = '';
+
+                if (messageType === 'text') {
+                    messageBody = message.text?.body;
+                } else if (messageType === 'interactive') {
+                    const interactive = message.interactive;
+                    if (interactive.type === 'button_reply') {
+                        messageBody = interactive.button_reply.title;
+                        buttonId = interactive.button_reply.id;
+                    }
+                }
 
                 console.log('📩 [WEBHOOK] New message received');
                 console.log('   From:', from);
                 console.log('   Type:', messageType);
                 console.log('   Message:', messageBody);
+                console.log('   Button ID:', buttonId);
 
-                // TODO: Process the incoming message
-                // You can add logic here to:
-                // - Create a new booking
-                // - Update booking status
-                // - Send automated responses
-                // - Log customer inquiries
+                // Handle Driver Response (Accept/Reject)
+                if (messageType === 'interactive') {
+                    const notificationService = require('../services/notificationService');
+                    if (messageBody.toLowerCase().includes('reject') || buttonId.includes('reject')) {
+                        // Driver rejected
+                        await notificationService.handleDriverResponse(from, 'reject', buttonId);
+                    } else if (messageBody.toLowerCase().includes('accept') || buttonId.includes('accept')) {
+                        // Driver accepted
+                        await notificationService.handleDriverResponse(from, 'accept', buttonId);
+                    }
+                }
             }
 
             if (value?.statuses) {

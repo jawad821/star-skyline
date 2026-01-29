@@ -14,6 +14,16 @@ const Driver = {
     return result.rows;
   },
 
+  async findByPhone(phone) {
+    // Sanitize phone (remove + if present, etc if needed, but simple match for now)
+    // Assuming phones are stored consistently. 
+    // WhatsApp sends with + usually. DB might be without.
+    // Let's try flexible matching or just raw for now.
+    // Try precise match first.
+    const result = await query('SELECT * FROM drivers WHERE phone = $1', [phone]);
+    return result.rows[0] || null;
+  },
+
   async findAll() {
     const result = await query(`
       SELECT d.*, v.name as vendor_name

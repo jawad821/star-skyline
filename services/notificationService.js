@@ -634,5 +634,103 @@ module.exports = {
   sendDriverApprovalNotification,
   sendWordPressBookingAdminEmail,
   sendDriverAssignedNotification,
-  sendTripCompletedNotification
+  sendTripCompletedNotification,
+
+  /**
+   * Handle driver response from WhatsApp button (Accept/Reject)
+   */
+  async handleDriverResponse(from, response, buttonId) {
+    try {
+      const Driver = require('../models/Driver');
+      const Booking = require('../models/Booking');
+
+      // 1. Find Driver by Phone
+      // WhatsApp sends number like '971501234567' (no +)
+      // DB might have '+971501234567' or '0501234567'
+      // Try exact, then with +, then fuzzy
+      let driver = await Driver.findByPhone(from);
+      if (!driver) {
+        driver = await Driver.findByPhone('+' + from);
+      }
+
+      if (!driver) {
+        logger.warn(`Received ${response} from unknown driver phone: ${from}`);
+        return { success: false, error: 'Driver not found' };
+      }
+
+      logger.info(`Processing ${response} from driver: ${driver.name} (${driver.id})`);
+
+      // 2. Identify Booking
+      // If buttonId contains ID (e.g. "reject_123") use it
+      let bookingId = null;
+      if (buttonId) {
+        const parts = buttonId.split('_');
+        if (parts.length > 1 && !isNaN(parts[parts.length - 1])) {
+          bookingId = parseInt(parts[parts.length - 1]);
+        }
+      }
+
+      // If no ID in button, find active assigned booking
+      let booking;
+      if (bookingId) {
+        booking = await Booking.findById(bookingId);
+      } else {
+        // Find latest booking assigned to this driver that is 'assigned' or 'pending'
+        const result = await query(
+          `SELECT * FROM bookings 
+             WHERE driver_id = $1 
+             AND status IN ('assigned', 'pending_driver') 
+             ORDER BY created_at DESC LIMIT 1`,
+          [driver.id]
+        );
+        booking = result.rows[0];
+      }
+
+      if (!booking) {
+        logger.warn(`No active booking found for driver ${driver.id} to ${response}`);
+        return { success: false, error: 'No active booking found' };
+      }
+
+      // 3. Process Response
+      if (response === 'reject') {
+        logger.info(`Driver ${driver.name} REJECTED booking ${booking.id}`);
+
+        // Update status to 'manual_assignment_required' so it appears in Admin Dashboard
+        // And clear the driver assignment so it's open again? 
+        // Or keep driver_id to show WHO rejected?
+        // Let's set status 'driver_rejected' if system supports it, or 'manual_assignment_required'.
+        await query(
+          `UPDATE bookings 
+             SET status = 'manual_assignment_required', 
+                 notes = COALESCE(notes, '') || '\n[System] Driver ${driver.name} rejected via WhatsApp at ' || NOW()
+             WHERE id = $1`,
+          [booking.id]
+        );
+
+        // Notify Admin
+        const adminMsg = `⚠️ *Driver Rejection Alert*\n\nDriver: ${driver.name}\nBooking ID: #${booking.id}\nPickup: ${booking.pickup_location}\n\nDriver clicked "Reject/Busy". Please reassign manually.`;
+        await module.exports.sendWhatsAppToAdmin(adminMsg); // Use module.exports to access self
+
+      } else if (response === 'accept') {
+        logger.info(`Driver ${driver.name} ACCEPTED booking ${booking.id}`);
+
+        // Update status to 'confirmed' or 'driver_accepted'
+        await query(
+          `UPDATE bookings SET status = 'driver_accepted', updated_at = NOW() WHERE id = $1`,
+          [booking.id]
+        );
+
+        // Notify Admin
+        await module.exports.sendWhatsAppToAdmin(`✅ Driver ${driver.name} ACCEPTED booking #${booking.id}.`);
+
+        // Notify Customer ?? (Optional, maybe specific flow)
+      }
+
+      return { success: true };
+
+    } catch (error) {
+      logger.error(`handleDriverResponse error: ${error.message}`);
+      return { success: false, error: error.message };
+    }
+  }
 };
