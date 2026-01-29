@@ -62,7 +62,37 @@ const emailService = {
 
       const textBody = template.html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
-      // Primary: SMTP via nodemailer if configured
+      // Primary: Resend API (HTTP-based, works on Railway)
+      if (RESEND_API_KEY) {
+        try {
+          const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${RESEND_API_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              from: RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+              to: booking.customer_email,
+              subject: template.subject,
+              html: template.html
+            })
+          });
+
+          const result = await response.json();
+          if (!response.ok) {
+            logger.error(`Resend API error: ${result.message || 'Unknown error'}`);
+            throw new Error(result.message || 'Failed to send email via Resend');
+          }
+          logger.info(`✅ Customer email sent to ${booking.customer_email} via Resend: ${result.id}`);
+          return { success: true, message: 'Email sent via Resend', messageId: result.id };
+        } catch (resendError) {
+          logger.error(`Resend failed, trying SMTP: ${resendError.message}`);
+          // Fall through to SMTP
+        }
+      }
+
+      // Fallback: SMTP via nodemailer (if Resend fails or not configured)
       const smtpConfig = await getSmtpConfig();
       if (nodemailer && smtpConfig.host) {
         try {
@@ -71,7 +101,7 @@ const emailService = {
             port: smtpConfig.port,
             secure: smtpConfig.secure,
             auth: smtpConfig.auth,
-            tls: { rejectUnauthorized: false } // Relax TLS for testing if needed
+            tls: { rejectUnauthorized: false }
           });
           const info = await transporter.sendMail({
             from: smtpConfig.from,
@@ -80,41 +110,15 @@ const emailService = {
             html: template.html,
             text: textBody
           });
-          logger.info(`Customer email sent to ${booking.customer_email} via SMTP: ${info.messageId}`);
+          logger.info(`✅ Customer email sent to ${booking.customer_email} via SMTP: ${info.messageId}`);
           return { success: true, message: 'Email sent via SMTP', messageId: info.messageId };
         } catch (smtpError) {
-          logger.error(`SMTP failed: ${smtpError.message}`);
-          // Only fall back if user permits, currently strictly SMTP requested, but error handling implies we just log it.
-          // Returning failure if SMTP fails per user request to "use smtp only" implies we shouldn't failover silently?
-          // For safety I will leave the Resend block but ensure we return early if successful. 
-          // ACTUALLY user said "I do not want to use Resend API... i want to smtp only".
-          // So I will throw/return error here instead of falling through to Resend.
-          return { success: false, error: `SMTP Failed: ${smtpError.message}` };
+          logger.error(`❌ SMTP failed: ${smtpError.message}`);
+          return { success: false, error: `Email failed: ${smtpError.message}` };
         }
       }
 
-      // Resend BLOCK REMOVED/SKIPPED based on user request
-      if (false && RESEND_API_KEY) { // Disabled
 
-        const response = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${RESEND_API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            from: RESEND_FROM_EMAIL,
-            to: booking.customer_email,
-            subject: template.subject,
-            html: template.html
-          })
-        });
-
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.message || 'Failed to send email via Resend');
-        logger.info(`Customer email sent to ${booking.customer_email} for booking ${booking.id} via Resend`);
-        return { success: true, message: 'Email sent via Resend', messageId: result.id };
-      }
 
       logger.warn('Email not sent: no Resend API key or SMTP configured');
       return { success: true, message: 'Email would be sent (no provider configured)' };
@@ -139,7 +143,37 @@ const emailService = {
 
       const textBody = template.html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
-      // Primary: SMTP
+      // Primary: Resend API
+      if (RESEND_API_KEY) {
+        try {
+          const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${RESEND_API_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              from: RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+              to: ADMIN_EMAIL,
+              subject: template.subject,
+              html: template.html
+            })
+          });
+
+          const result = await response.json();
+          if (!response.ok) {
+            logger.error(`Resend API error: ${result.message || 'Unknown error'}`);
+            throw new Error(result.message || 'Failed to send admin email via Resend');
+          }
+          logger.info(`✅ Admin email sent to ${ADMIN_EMAIL} via Resend: ${result.id}`);
+          return { success: true, message: 'Admin email sent via Resend', messageId: result.id };
+        } catch (resendError) {
+          logger.error(`Resend failed, trying SMTP: ${resendError.message}`);
+          // Fall through to SMTP
+        }
+      }
+
+      // Fallback: SMTP
       const smtpConfig = await getSmtpConfig();
       if (nodemailer && smtpConfig.host) {
         try {
@@ -157,18 +191,15 @@ const emailService = {
             html: template.html,
             text: textBody
           });
-          logger.info(`Admin email sent to ${ADMIN_EMAIL} via SMTP: ${info.messageId}`);
+          logger.info(`✅ Admin email sent to ${ADMIN_EMAIL} via SMTP: ${info.messageId}`);
           return { success: true, message: 'Admin email sent via SMTP', messageId: info.messageId };
         } catch (smtpError) {
-          logger.error(`SMTP failed: ${smtpError.message}`);
+          logger.error(`❌ SMTP failed: ${smtpError.message}`);
           return { success: false, error: `SMTP Failed: ${smtpError.message}` };
         }
       }
 
-      if (false && RESEND_API_KEY) { // Disabled per user request
 
-        return { success: true, message: 'Admin email sent via Resend', messageId: result.id };
-      }
 
       logger.warn('Admin email not sent: no Resend API key or SMTP configured');
       return { success: true, message: 'Admin email would be sent (no provider configured)' };
