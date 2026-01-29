@@ -218,7 +218,10 @@ async function sendDriverAssignedNotification(booking, driver, vehicle = null) {
 
     let vehicleInfo = booking.vehicle_model || "Standard";
     if (vehicle) {
-      vehicleInfo = `${vehicle.model} - ${vehicle.color} (${vehicle.plate_number})`;
+      const model = vehicle.model || "Standard";
+      const color = vehicle.color || "Color not set";
+      const plateNumber = vehicle.plate_number || "Plate not set";
+      vehicleInfo = `${model} - ${color} (${plateNumber})`;
     }
 
     const components = [{
