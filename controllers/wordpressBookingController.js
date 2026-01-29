@@ -181,40 +181,7 @@ const wordpressBookingController = {
         // Continue anyway - booking is still created
       }
 
-      // Send email notification to admins
-      try {
-        const bookingData = {
-          id: bookingId,
-          customer_name,
-          customer_email,
-          customer_phone,
-          pickup_location,
-          dropoff_location,
-          vehicle_type,
-          booking_type,
-          passengers_count,
-          luggage_count,
-          fare_aed: finalFare,
-          payment_method,
-          notes: finalNotes,
-          booking_source: 'wordpress',
-          created_at: createdAt
-        };
-
-        await notificationService.sendWordPressBookingAdminEmail(bookingData, assignedVehicle);
-        await notificationService.sendEmailToCustomer(customer_email, bookingData);
-
-        // Send WhatsApp notifications
-        if (customer_phone) {
-          await notificationService.sendWhatsAppToCustomer(customer_phone, bookingData);
-        }
-        await notificationService.sendWhatsAppToAdmin(bookingData);
-
-        console.log('📧 Notifications sent (Email & WhatsApp) for WordPress booking:', bookingId);
-      } catch (notificationError) {
-        console.log('⚠️  Notification failed:', notificationError.message);
-        // Continue anyway - booking is still created
-      }
+      // ✅ RESPOND IMMEDIATELY - Don't wait for notifications
 
       res.status(201).json({
         success: true,
@@ -238,6 +205,55 @@ const wordpressBookingController = {
           assigned_vehicle: assignedVehicle,
           created_at: createdAt,
           booking_source: 'wordpress'
+        }
+      });
+
+      // 📨 Send notifications in background (non-blocking)
+      setImmediate(async () => {
+        try {
+          const bookingData = {
+            id: bookingId,
+            customer_name,
+            customer_email,
+            customer_phone,
+            pickup_location,
+            dropoff_location,
+            vehicle_type,
+            booking_type,
+            passengers_count,
+            luggage_count,
+            fare_aed: finalFare,
+            payment_method,
+            notes: finalNotes,
+            booking_source: 'wordpress',
+            created_at: createdAt
+          };
+
+          console.log(`[BACKGROUND] Starting notifications for WordPress booking ${bookingId}`);
+
+          // Send email notifications
+          notificationService.sendWordPressBookingAdminEmail(bookingData, assignedVehicle)
+            .then(() => console.log(`✅ Admin email sent for ${bookingId}`))
+            .catch(e => console.log(`❌ Admin email failed: ${e.message}`));
+
+          notificationService.sendEmailToCustomer(customer_email, bookingData)
+            .then(() => console.log(`✅ Customer email sent for ${bookingId}`))
+            .catch(e => console.log(`❌ Customer email failed: ${e.message}`));
+
+          // Send WhatsApp notifications
+          if (customer_phone) {
+            notificationService.sendWhatsAppToCustomer(customer_phone, bookingData)
+              .then(() => console.log(`✅ Customer WhatsApp sent for ${bookingId}`))
+              .catch(e => console.log(`❌ Customer WhatsApp failed: ${e.message}`));
+          }
+
+          notificationService.sendWhatsAppToAdmin(bookingData)
+            .then(() => console.log(`✅ Admin WhatsApp sent for ${bookingId}`))
+            .catch(e => console.log(`❌ Admin WhatsApp failed: ${e.message}`));
+
+          console.log(`[BACKGROUND] All notifications queued for WordPress booking ${bookingId}`);
+        } catch (notificationError) {
+          console.log(`[BACKGROUND] Notification error: ${notificationError.message}`);
         }
       });
     } catch (error) {
