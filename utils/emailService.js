@@ -146,6 +146,7 @@ const emailService = {
       // Primary: Resend API
       if (RESEND_API_KEY) {
         try {
+          logger.info(`Attempting to send Admin email to: ${ADMIN_EMAIL} via Resend`);
           const response = await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
@@ -162,13 +163,13 @@ const emailService = {
 
           const result = await response.json();
           if (!response.ok) {
-            logger.error(`Resend API error: ${result.message || 'Unknown error'}`);
+            logger.error(`❌ Resend Admin Email Error: ${JSON.stringify(result)}`);
             throw new Error(result.message || 'Failed to send admin email via Resend');
           }
           logger.info(`✅ Admin email sent to ${ADMIN_EMAIL} via Resend: ${result.id}`);
           return { success: true, message: 'Admin email sent via Resend', messageId: result.id };
         } catch (resendError) {
-          logger.error(`Resend failed, trying SMTP: ${resendError.message}`);
+          logger.error(`⚠️ Resend failed for Admin, trying SMTP. Reason: ${resendError.message}`);
           // Fall through to SMTP
         }
       }
