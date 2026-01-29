@@ -216,12 +216,27 @@ async function sendDriverAssignedNotification(booking, driver, vehicle = null) {
     const phone = booking.customer_phone;
     if (!phone) return { success: false, error: 'No customer phone' };
 
+    // Debug logging
+    logger.info('🔍 [NOTIFICATION] Driver Assignment Debug:');
+    logger.info(`   Booking ID: ${booking.id}`);
+    logger.info(`   Driver: ${driver.name} (${driver.phone})`);
+    logger.info(`   Vehicle Object: ${vehicle ? 'PROVIDED' : 'NULL'}`);
+    if (vehicle) {
+      logger.info(`   Vehicle Model: ${vehicle.model || 'NOT SET'}`);
+      logger.info(`   Vehicle Color: ${vehicle.color || 'NOT SET'}`);
+      logger.info(`   Vehicle Plate: ${vehicle.plate_number || 'NOT SET'}`);
+    }
+    logger.info(`   Booking Vehicle ID: ${booking.assigned_vehicle_id || 'NOT ASSIGNED'}`);
+
     let vehicleInfo = booking.vehicle_model || "Standard";
     if (vehicle) {
       const model = vehicle.model || "Standard";
       const color = vehicle.color || "Color not set";
       const plateNumber = vehicle.plate_number || "Plate not set";
       vehicleInfo = `${model} - ${color} (${plateNumber})`;
+      logger.info(`   ✅ Vehicle Info: ${vehicleInfo}`);
+    } else {
+      logger.warn(`   ⚠️  No vehicle object provided, using fallback: ${vehicleInfo}`);
     }
 
     const components = [{
