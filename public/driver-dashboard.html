@@ -39,14 +39,14 @@
           <!-- Filter Controls -->
           <div class="filter-bar" style="margin-bottom: 20px;">
             <div class="filter-group">
-              <button class="filter-btn active"
+              <button class="filter-btn"
                 onclick="setDateRange('today'); this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">Today</button>
               <button class="filter-btn"
                 onclick="setDateRange('yesterday'); this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">Yesterday</button>
               <button class="filter-btn"
                 onclick="setDateRange('week'); this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">This
                 Week</button>
-              <button class="filter-btn"
+              <button class="filter-btn active"
                 onclick="setDateRange('month'); this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">This
                 Month</button>
               <button class="filter-btn" onclick="toggleCustomRange()">Custom Range</button>
@@ -217,7 +217,7 @@
 
   <script>
     const API_BASE = window.location.origin + '/api';
-    let currentDateRange = 'today';
+    let currentDateRange = 'month'; // Changed from 'today' to 'month' to show booking history
     let bookingsChart = null;
     let earningsChart = null;
 
