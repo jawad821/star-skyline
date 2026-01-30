@@ -123,4 +123,41 @@ router.get('/email', async (req, res) => {
     res.json(report);
 });
 
+// 3. Fix DB Missing Table
+router.get('/fix-db', async (req, res) => {
+    try {
+        const tableCheck = await query("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'call_sessions')");
+        if (tableCheck.rows[0].exists) {
+            return res.json({ success: true, message: 'Table "call_sessions" already exists. No action needed.' });
+        }
+
+        const fs = require('fs');
+        const path = require('path');
+        const sqlPath = path.join(__dirname, '..', 'scripts', 'fix_missing_call_sessions.sql');
+
+        let sql = `
+            CREATE TABLE IF NOT EXISTS public.call_sessions (
+                call_sid character varying(255) PRIMARY KEY,
+                flow_step character varying(50),
+                locked_slots jsonb DEFAULT '{}'::jsonb,
+                caller_phone character varying(20),
+                notes text DEFAULT ''::text,
+                language character varying(10) DEFAULT 'en'::character varying,
+                created_at timestamp with time zone DEFAULT now(),
+                updated_at timestamp with time zone DEFAULT now()
+            );
+        `;
+
+        if (fs.existsSync(sqlPath)) {
+            sql = fs.readFileSync(sqlPath, 'utf8');
+        }
+
+        await query(sql);
+        res.json({ success: true, message: 'Successfully created "call_sessions" table!' });
+
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 module.exports = router;
