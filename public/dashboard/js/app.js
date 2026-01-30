@@ -1560,6 +1560,7 @@ function editDriver(id) {
           document.getElementById('driverName').value = driver.name || '';
           document.getElementById('driverPhone').value = driver.phone || '';
           document.getElementById('driverEmail').value = driver.email || '';
+          document.getElementById('driverLicense').value = driver.license_number || '';
           document.getElementById('driverStatus').value = driver.status || 'offline';
 
           // Auto Assign Checkbox
@@ -2144,6 +2145,7 @@ function saveDriverChanges() {
   const id = document.getElementById('driverEditId').value;
   const name = document.getElementById('driverName').value;
   const phone = document.getElementById('driverPhone').value;
+  const email = document.getElementById('driverEmail').value;
   const license = document.getElementById('driverLicense').value;
   const status = document.getElementById('driverStatus').value;
   const token = localStorage.getItem('token');
@@ -2161,6 +2163,7 @@ function saveDriverChanges() {
   const driverData = {
     name: name,
     phone: phone,
+    email: email,
     license_number: license,
     status: status
   };
