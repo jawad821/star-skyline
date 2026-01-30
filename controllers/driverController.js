@@ -131,16 +131,16 @@ const driverController = {
 
       // Create driver
       const result = await query(`
-        INSERT INTO drivers (name, phone, license_number, status, auto_assign)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO drivers (name, phone, license_number, status, auto_assign, email)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *
-      `, [name, phone, license_number, status, true]);
+      `, [name, phone, license_number, status, true, req.body.email || null]);
 
       const driver = result.rows[0];
 
       // Audit log
       await auditLogger.logChange('driver', driver.id, 'CREATE',
-        { name, phone, license_number, status },
+        { name, phone, license_number, status, email: req.body.email },
         user.username, user.username, user.role
       ).catch(e => console.error('Audit error:', e));
 

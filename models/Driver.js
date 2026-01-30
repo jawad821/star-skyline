@@ -48,6 +48,9 @@ const Driver = {
       SELECT 
         d.id, d.name, d.phone, d.status, d.license_number, 
         d.license_issue_date, d.license_expiry_date, d.auto_assign, d.image_url,
+        d.email, d.national_id, d.date_of_birth, 
+        d.bank_account_number, d.bank_name, d.account_holder_name,
+        d.driver_registration_status,
         COUNT(b.id)::int as completed_rides,
         COALESCE(AVG(dr.driver_rating), 0)::float as avg_rating
       FROM drivers d
