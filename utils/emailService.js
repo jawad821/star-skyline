@@ -99,8 +99,12 @@ const emailService = {
           const transporter = nodemailer.createTransport({
             host: smtpConfig.host,
             port: smtpConfig.port,
-            secure: smtpConfig.secure,
+            secure: smtpConfig.secure !== undefined ? smtpConfig.secure : (smtpConfig.port === 465), // Default to true for 465
             auth: smtpConfig.auth,
+            // Increase timeouts to prevent early disconnects
+            connectionTimeout: 10000, // 10 seconds
+            greetingTimeout: 10000,   // 10 seconds
+            socketTimeout: 20000,     // 20 seconds
             tls: { rejectUnauthorized: false }
           });
           const info = await transporter.sendMail({
@@ -181,8 +185,11 @@ const emailService = {
           const transporter = nodemailer.createTransport({
             host: smtpConfig.host,
             port: smtpConfig.port,
-            secure: smtpConfig.secure,
+            secure: smtpConfig.secure !== undefined ? smtpConfig.secure : (smtpConfig.port === 465),
             auth: smtpConfig.auth,
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 20000,
             tls: { rejectUnauthorized: false }
           });
           const info = await transporter.sendMail({
@@ -338,8 +345,11 @@ const emailService = {
           const transporter = nodemailer.createTransport({
             host: smtpConfig.host,
             port: smtpConfig.port,
-            secure: smtpConfig.secure,
+            secure: smtpConfig.secure !== undefined ? smtpConfig.secure : (smtpConfig.port === 465),
             auth: smtpConfig.auth,
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 20000,
             tls: { rejectUnauthorized: false }
           });
 

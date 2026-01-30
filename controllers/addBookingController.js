@@ -208,13 +208,16 @@ const addBookingController = {
 
       // AUDIT LOG
       const user = req.user || { id: null, username: 'system', role: 'system' };
+      // Prefer email if available, otherwise fallback to username or system
+      const auditUsername = user.email || user.username || 'system';
+
       await auditLogger.logChange(
         'booking',
         booking.id,
         'CREATE',
         { customer_name, pickup_location, booking_type, fare_aed: fare },
-        user.id || user.username,
-        user.username,
+        user.id || auditUsername,
+        auditUsername,
         user.role
       ).catch(e => logger.error('Audit log error:', e));
 
