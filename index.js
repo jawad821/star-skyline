@@ -50,6 +50,7 @@ console.log('settingsRoutes loaded');
 const notificationRoutes = require('./routes/notificationRoutes');
 console.log('notificationRoutes loaded');
 const webhookRoutes = require('./routes/webhookRoutes');
+const debugRoutes = require('./routes/debugRoutes');
 console.log('webhookRoutes loaded');
 
 // Set Dubai timezone globally
@@ -108,6 +109,7 @@ app.use('/api/vendor-management', vendorManagementRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api', webhookRoutes); // WhatsApp webhook endpoint
+app.use('/api/debug', debugRoutes); // Debug endpoint
 
 // Admin Login page (public)
 app.get('/dashboard/login.html', (req, res) => {
